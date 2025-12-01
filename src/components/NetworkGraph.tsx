@@ -10,6 +10,8 @@ import { importGraphFromZip } from "@/lib/graphImport";
 import { LinkManager } from "@/components/LinkManager";
 import { DynamicLinkManager } from "@/components/DynamicLinkManager";
 import { useTheme } from "@/hooks/useTheme";
+import { useGraphConfig } from "@/hooks/useGraphConfig";
+import { GraphConfigPanel } from "@/components/GraphConfigPanel";
 import {
   Popover,
   PopoverContent,
@@ -77,6 +79,14 @@ interface NetworkGraphProps {
 export const NetworkGraph = ({ onNodeSelect, selectedNode, graphData, setGraphData, linkStyles }: NetworkGraphProps) => {
   const graphRef = useRef<any>();
   const { theme } = useTheme();
+  const {
+    config: graphConfig,
+    setDimensions,
+    updateNodeConfig,
+    updateLinkConfig,
+    updateForceConfig,
+    resetConfig,
+  } = useGraphConfig();
   const [searchQuery, setSearchQuery] = useState("");
   const [linkMode, setLinkMode] = useState(false);
   const [linkSource, setLinkSource] = useState<string | null>(null);
@@ -87,7 +97,7 @@ export const NetworkGraph = ({ onNodeSelect, selectedNode, graphData, setGraphDa
   const [dynamicLinkManagerOpen, setDynamicLinkManagerOpen] = useState(false);
   const [graphKey, setGraphKey] = useState(0);
 
-  // Force graph re-render when theme changes
+  // Force graph re-render when theme or graph config changes
   useEffect(() => {
     setGraphKey(prev => prev + 1);
   }, [
@@ -97,17 +107,21 @@ export const NetworkGraph = ({ onNodeSelect, selectedNode, graphData, setGraphDa
     theme.colors.linkColor,
     theme.colors.nodeGlow,
     theme.colors.accent,
+    graphConfig.dimensions,
+    graphConfig.nodes,
+    graphConfig.links,
   ]);
 
-  // Apply physics settings to the graph
+  // Apply physics settings to the graph from graphConfig
   useEffect(() => {
     if (graphRef.current) {
       const fg = graphRef.current;
       
       // Access the d3 simulation and update forces dynamically
       if (fg.d3Force) {
-        fg.d3Force('charge')?.strength(theme.physics.chargeStrength);
-        fg.d3Force('link')?.distance(theme.physics.linkDistance);
+        fg.d3Force('charge')?.strength(graphConfig.forces.chargeStrength);
+        fg.d3Force('link')?.distance(graphConfig.forces.linkDistance);
+        fg.d3Force('center')?.strength(graphConfig.forces.centerStrength);
       }
       
       // Reheat the simulation when physics change
@@ -115,7 +129,30 @@ export const NetworkGraph = ({ onNodeSelect, selectedNode, graphData, setGraphDa
         fg.d3ReheatSimulation();
       }
     }
-  }, [theme.physics.chargeStrength, theme.physics.linkDistance, theme.physics.velocityDecay, theme.physics.alphaDecay]);
+  }, [
+    graphConfig.forces.chargeStrength,
+    graphConfig.forces.linkDistance,
+    graphConfig.forces.centerStrength,
+    graphConfig.forces.velocityDecay,
+    graphConfig.forces.alphaDecay,
+  ]);
+
+  // Reheat simulation handler
+  const handleReheatSimulation = useCallback(() => {
+    if (graphRef.current?.d3ReheatSimulation) {
+      graphRef.current.d3ReheatSimulation();
+      toast.success('Simulation reheated');
+    }
+  }, []);
+
+  // Stop simulation handler
+  const handleStopSimulation = useCallback(() => {
+    if (graphRef.current) {
+      // Set alpha to 0 to stop the simulation
+      graphRef.current.pauseAnimation?.();
+      toast.info('Simulation stopped');
+    }
+  }, []);
 
   const handleNodeClick = useCallback((node: Node) => {
     if (linkMode) {
@@ -475,6 +512,18 @@ export const NetworkGraph = ({ onNodeSelect, selectedNode, graphData, setGraphDa
               </div>
             </PopoverContent>
           </Popover>
+
+          {/* Graph Configuration Panel */}
+          <GraphConfigPanel
+            config={graphConfig}
+            onDimensionsChange={setDimensions}
+            onNodeConfigUpdate={updateNodeConfig}
+            onLinkConfigUpdate={updateLinkConfig}
+            onForceConfigUpdate={updateForceConfig}
+            onReset={resetConfig}
+            onReheatSimulation={handleReheatSimulation}
+            onStopSimulation={handleStopSimulation}
+          />
         </div>
         
         <div className="relative">
@@ -510,117 +559,136 @@ export const NetworkGraph = ({ onNodeSelect, selectedNode, graphData, setGraphDa
         key={graphKey}
         ref={graphRef}
         graphData={filteredData}
-        nodeLabel={(node: any) => `${node.type === "folder" ? "📁" : "📄"} ${node.name} (depth: ${node.depth})`}
-        nodeColor={(node: any) => {
-          if (selectedNode?.id === node.id) return `hsl(${theme.colors.accent})`;
-          return node.type === "folder" ? `hsl(${theme.colors.folderNodeColor})` : `hsl(${theme.colors.fileNodeColor})`;
+        nodeLabel={(node: any) => {
+          if (graphConfig.nodes.labelField === 'id') return node.id;
+          return `${node.type === "folder" ? "📁" : "📄"} ${node.name} (depth: ${node.depth})`;
         }}
-        nodeRelSize={10}
+        nodeColor={(node: any) => {
+          if (!graphConfig.nodes.visible) return 'transparent';
+          if (selectedNode?.id === node.id) return graphConfig.nodes.selectedColor;
+          
+          // Auto-color based on config
+          switch (graphConfig.nodes.autoColorBy) {
+            case 'type':
+              return node.type === "folder" ? graphConfig.nodes.folderColor : graphConfig.nodes.fileColor;
+            case 'depth':
+              const hue = (node.depth * 40) % 360;
+              return `hsl(${hue}, 70%, 55%)`;
+            case 'tags':
+              if (node.tags && node.tags.length > 0) {
+                const tagHash = node.tags[0].split('').reduce((a: number, b: string) => a + b.charCodeAt(0), 0);
+                return `hsl(${tagHash % 360}, 70%, 55%)`;
+              }
+              return graphConfig.nodes.fileColor;
+            default:
+              return node.type === "folder" ? graphConfig.nodes.folderColor : graphConfig.nodes.fileColor;
+          }
+        }}
+        nodeRelSize={graphConfig.nodes.relSize}
+        nodeVal={(node: any) => node.type === "folder" ? 1.5 : 1}
+        nodeVisibility={graphConfig.nodes.visible}
         linkColor={(link: any) => {
           const linkType = link.type as keyof typeof linkStyles | undefined;
           if (linkStyles && linkType && linkStyles[linkType]) {
             const style = linkStyles[linkType];
-            // Return color with opacity
             return style.color.replace(')', ` / ${style.opacity})`).replace('hsl(', 'hsla(');
           }
-          // Fallback colors
-          switch (linkType) {
-            case "hierarchy":
-              return `hsla(var(--primary) / 0.6)`;
-            case "tag":
-              return `hsla(var(--accent) / 0.6)`;
-            case "backlink":
-              return `hsla(var(--secondary) / 0.6)`;
-            case "custom":
-              return `hsla(var(--destructive) / 0.6)`;
-            default:
-              return `hsl(${theme.colors.linkColor} / 0.4)`;
-          }
+          // Use graphConfig link settings as fallback
+          return graphConfig.links.color.replace(')', ` / ${graphConfig.links.opacity})`).replace('hsl(', 'hsla(');
         }}
         linkWidth={(link: any) => {
           const linkType = link.type as keyof typeof linkStyles | undefined;
           if (linkStyles && linkType && linkStyles[linkType]) {
             return linkStyles[linkType].width;
           }
-          return link.type ? 2.5 : 2;
+          return graphConfig.links.width;
         }}
         linkLineDash={(link: any) => {
           const linkType = link.type as keyof typeof linkStyles | undefined;
           if (linkStyles && linkType && linkStyles[linkType]) {
             const style = linkStyles[linkType];
             switch (style.lineStyle) {
-              case "dashed":
-                return [8, 4];
-              case "dotted":
-                return [2, 3];
-              default:
-                return [];
+              case "dashed": return [8, 4];
+              case "dotted": return [2, 3];
+              default: return [];
             }
           }
-          // Default line dashes based on type
-          switch (linkType) {
-            case "backlink":
-              return [8, 4];
-            case "tag":
-              return [2, 3];
-            default:
-              return [];
+          // Use graphConfig dashArray
+          if (graphConfig.links.dashArray) {
+            return graphConfig.links.dashArray.split(',').map(Number);
           }
+          return [];
         }}
+        linkCurvature={graphConfig.links.curvature}
+        linkDirectionalArrowLength={graphConfig.links.showArrows ? graphConfig.links.arrowLength : 0}
+        linkDirectionalArrowRelPos={graphConfig.links.arrowRelPos}
+        linkDirectionalParticles={graphConfig.links.showParticles ? graphConfig.links.particles : 0}
+        linkDirectionalParticleSpeed={graphConfig.links.particleSpeed}
+        linkDirectionalParticleWidth={graphConfig.links.particleWidth}
         onNodeClick={handleNodeClick}
         nodeCanvasObject={(node: any, ctx: CanvasRenderingContext2D, globalScale: number) => {
+          if (!graphConfig.nodes.visible) return;
+          
           const label = node.name;
-          const fontSize = 12 / globalScale;
-          const iconSize = 14 / globalScale;
+          const fontSize = graphConfig.nodes.labelSize / globalScale;
+          const iconSize = (graphConfig.nodes.labelSize + 2) / globalScale;
           const isFolder = node.type === "folder";
           ctx.font = `${fontSize}px Inter, sans-serif`;
           const textWidth = ctx.measureText(label).width;
           const bckgDimensions = [textWidth + iconSize + 6, fontSize + 2];
 
           // Draw node circle with glow
-          const nodeSize = isFolder ? 10 : 8;
+          const nodeSize = (isFolder ? 10 : 8) * (graphConfig.nodes.relSize / 6);
           ctx.beginPath();
           ctx.arc(node.x, node.y, nodeSize, 0, 2 * Math.PI);
           
+          // Set fill color with opacity
+          let fillColor = graphConfig.nodes.fileColor;
           if (selectedNode?.id === node.id) {
-            ctx.fillStyle = `hsl(${theme.colors.accent})`;
-          } else {
-            ctx.fillStyle = isFolder ? `hsl(${theme.colors.folderNodeColor})` : `hsl(${theme.colors.fileNodeColor})`;
+            fillColor = graphConfig.nodes.selectedColor;
+          } else if (isFolder) {
+            fillColor = graphConfig.nodes.folderColor;
           }
           
+          ctx.globalAlpha = graphConfig.nodes.opacity;
+          ctx.fillStyle = fillColor;
+          
           ctx.shadowBlur = 10;
-          ctx.shadowColor = isFolder 
-            ? `hsl(${theme.colors.folderNodeColor} / 0.8)` 
-            : `hsl(${theme.colors.nodeGlow} / 0.8)`;
+          ctx.shadowColor = fillColor.replace(')', ' / 0.8)').replace('hsl(', 'hsla(');
           ctx.fill();
           ctx.shadowBlur = 0;
+          ctx.globalAlpha = 1;
 
-          // Draw label background
-          ctx.fillStyle = "hsl(var(--card) / 0.95)";
-          ctx.fillRect(
-            node.x - bckgDimensions[0] / 2,
-            node.y + 14,
-            bckgDimensions[0],
-            bckgDimensions[1]
-          );
+          // Draw label if enabled
+          if (graphConfig.nodes.showLabels) {
+            ctx.fillStyle = "hsl(var(--card) / 0.95)";
+            ctx.fillRect(
+              node.x - bckgDimensions[0] / 2,
+              node.y + 14,
+              bckgDimensions[0],
+              bckgDimensions[1]
+            );
 
-          // Draw icon and label text
-          ctx.textAlign = "left";
-          ctx.textBaseline = "middle";
-          ctx.fillStyle = "hsl(var(--card-foreground))";
-          
-          const icon = isFolder ? "📁" : "📄";
-          ctx.fillText(icon, node.x - bckgDimensions[0] / 2 + 2, node.y + 15 + fontSize / 2);
-          ctx.fillText(label, node.x - bckgDimensions[0] / 2 + iconSize + 4, node.y + 15 + fontSize / 2);
+            ctx.textAlign = "left";
+            ctx.textBaseline = "middle";
+            ctx.fillStyle = "hsl(var(--card-foreground))";
+            
+            const icon = isFolder ? "📁" : "📄";
+            ctx.fillText(icon, node.x - bckgDimensions[0] / 2 + 2, node.y + 15 + fontSize / 2);
+            ctx.fillText(label, node.x - bckgDimensions[0] / 2 + iconSize + 4, node.y + 15 + fontSize / 2);
+          }
         }}
         backgroundColor={`hsl(${theme.colors.canvasBackground})`}
         enableNodeDrag={true}
         enableZoomInteraction={true}
         enablePanInteraction={true}
-        cooldownTicks={100}
-        d3AlphaDecay={theme.physics.alphaDecay}
-        d3VelocityDecay={theme.physics.velocityDecay}
-        warmupTicks={100}
+        dagMode={graphConfig.forces.dagMode === 'null' ? null : graphConfig.forces.dagMode}
+        dagLevelDistance={graphConfig.forces.dagLevelDistance}
+        cooldownTicks={graphConfig.forces.cooldownTicks}
+        cooldownTime={graphConfig.forces.cooldownTime}
+        d3AlphaDecay={graphConfig.forces.alphaDecay}
+        d3VelocityDecay={graphConfig.forces.velocityDecay}
+        warmupTicks={graphConfig.forces.warmupTicks}
       />
     </div>
   );
