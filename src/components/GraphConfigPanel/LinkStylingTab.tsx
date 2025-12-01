@@ -32,7 +32,7 @@ interface LinkStylingTabProps {
 }
 
 const DASH_PRESETS = [
-  { value: '', label: 'Solid' },
+  { value: 'solid', label: 'Solid' },
   { value: '8,4', label: 'Dashed' },
   { value: '2,3', label: 'Dotted' },
   { value: '12,3,3,3', label: 'Dash-Dot' },
@@ -146,8 +146,8 @@ export function LinkStylingTab({ config, is3D, onUpdate }: LinkStylingTabProps) 
           <div className="space-y-2">
             <Label className="text-sm font-medium">Line Style</Label>
             <Select
-              value={config.dashArray}
-              onValueChange={(value) => onUpdate({ dashArray: value })}
+              value={config.dashArray || 'solid'}
+              onValueChange={(value) => onUpdate({ dashArray: value === 'solid' ? '' : value })}
             >
               <SelectTrigger className="h-9">
                 <SelectValue />
@@ -164,7 +164,7 @@ export function LinkStylingTab({ config, is3D, onUpdate }: LinkStylingTabProps) 
                           y2="2"
                           stroke="currentColor"
                           strokeWidth="2"
-                          strokeDasharray={preset.value || undefined}
+                          strokeDasharray={preset.value === 'solid' ? undefined : preset.value}
                         />
                       </svg>
                       {preset.label}
