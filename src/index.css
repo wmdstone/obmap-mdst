@@ -1,0 +1,154 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+All colors MUST be HSL.
+*/
+
+@layer base {
+  :root {
+    --background: 240 15% 5%;
+    --foreground: 240 10% 95%;
+
+    --card: 240 12% 8%;
+    --card-foreground: 240 10% 95%;
+
+    --popover: 240 12% 8%;
+    --popover-foreground: 240 10% 95%;
+
+    --primary: 270 70% 65%;
+    --primary-foreground: 240 10% 95%;
+
+    --secondary: 240 10% 12%;
+    --secondary-foreground: 240 10% 95%;
+
+    --muted: 240 10% 15%;
+    --muted-foreground: 240 5% 60%;
+
+    --accent: 270 80% 70%;
+    --accent-foreground: 240 10% 95%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 240 10% 95%;
+
+    --border: 240 10% 18%;
+    --input: 240 10% 18%;
+    --ring: 270 70% 65%;
+
+    --radius: 0.5rem;
+
+    --sidebar-background: 240 12% 7%;
+    --sidebar-foreground: 240 10% 90%;
+    --sidebar-primary: 270 70% 65%;
+    --sidebar-primary-foreground: 240 10% 95%;
+    --sidebar-accent: 240 10% 12%;
+    --sidebar-accent-foreground: 240 10% 90%;
+    --sidebar-border: 240 10% 15%;
+    --sidebar-ring: 270 70% 65%;
+
+    --node-glow: 270 80% 70%;
+    --graph-bg: 240 15% 4%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+
+  .graph-node {
+    filter: drop-shadow(0 0 8px hsl(var(--node-glow) / 0.6));
+    transition: filter 0.3s ease;
+  }
+
+  .graph-node:hover {
+    filter: drop-shadow(0 0 16px hsl(var(--node-glow) / 0.9));
+  }
+
+  .graph-link {
+    stroke: hsl(var(--primary) / 0.4);
+    stroke-width: 2px;
+    transition: stroke 0.3s ease;
+  }
+
+  .graph-link:hover {
+    stroke: hsl(var(--primary) / 0.8);
+  }
+
+  /* Wikilink styling */
+  .wikilink {
+    @apply text-primary font-medium cursor-pointer underline decoration-dotted hover:decoration-solid hover:text-accent transition-colors;
+  }
+
+  /* Hashtag styling */
+  .hashtag {
+    @apply text-accent font-medium cursor-pointer hover:text-accent/80 transition-colors;
+  }
+
+  /* Prose styles for markdown */
+  .prose {
+    @apply text-foreground;
+  }
+
+  .prose h1 {
+    @apply text-2xl font-bold text-foreground mb-4 mt-6;
+  }
+
+  .prose h2 {
+    @apply text-xl font-bold text-foreground mb-3 mt-5;
+  }
+
+  .prose h3 {
+    @apply text-lg font-semibold text-foreground mb-2 mt-4;
+  }
+
+  .prose p {
+    @apply mb-3 leading-relaxed;
+  }
+
+  .prose ul, .prose ol {
+    @apply mb-3 ml-6;
+  }
+
+  .prose li {
+    @apply mb-1;
+  }
+
+  .prose blockquote {
+    @apply border-l-4 border-primary pl-4 italic text-muted-foreground my-4;
+  }
+
+  .prose code {
+    @apply bg-muted px-1.5 py-0.5 rounded text-sm;
+  }
+
+  .prose pre {
+    @apply bg-muted p-4 rounded-lg overflow-x-auto my-4;
+  }
+
+  .prose a {
+    @apply text-primary hover:underline;
+  }
+
+  .prose hr {
+    @apply border-border my-6;
+  }
+
+  .prose table {
+    @apply w-full border-collapse my-4;
+  }
+
+  .prose th, .prose td {
+    @apply border border-border px-3 py-2;
+  }
+
+  .prose th {
+    @apply bg-muted font-semibold;
+  }
+}
