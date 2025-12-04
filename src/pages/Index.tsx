@@ -20,11 +20,14 @@ interface Node {
   id: string;
   name: string;
   content: string;
-  type: "folder" | "file";
+  type: "folder" | "file" | "media";
   parentId: string | null;
   depth: number;
   tags: string[];
   wikilinks?: string[];
+  mediaType?: "image" | "audio" | "video";
+  mimeType?: string;
+  dataUrl?: string;
 }
 
 interface Link {
@@ -418,7 +421,7 @@ const Index = () => {
           vaultName={currentVaultId ? vaultManager.getVault(currentVaultId)?.name || null : null}
           onCloseVault={handleCloseVault}
           graphConfigTrigger={graphConfigTrigger}
-          onImportComplete={loadActiveVault}
+          onImportComplete={(importedNodes) => setNodes(prev => [...prev, ...importedNodes])}
         />
       </div>
 
@@ -432,7 +435,7 @@ const Index = () => {
         vaultName={currentVaultId ? vaultManager.getVault(currentVaultId)?.name || null : null}
         onCloseVault={handleCloseVault}
         graphConfigTrigger={graphConfigTrigger}
-        onImportComplete={loadActiveVault}
+        onImportComplete={(importedNodes) => setNodes(prev => [...prev, ...importedNodes])}
       />
 
       <div className="flex-1 relative">

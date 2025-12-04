@@ -14,6 +14,9 @@ import {
   PanelLeftClose,
   PanelLeft,
   FileArchive,
+  Image,
+  Music,
+  Video,
 } from "lucide-react";
 import { ImportExportPanel } from "@/components/ImportExportPanel";
 import { cn } from "@/lib/utils";
@@ -31,10 +34,11 @@ interface Node {
   id: string;
   name: string;
   content: string;
-  type: "folder" | "file";
+  type: "folder" | "file" | "media";
   parentId: string | null;
   depth: number;
   tags: string[];
+  mediaType?: "image" | "audio" | "video";
 }
 
 interface AppSidebarProps {
@@ -46,7 +50,7 @@ interface AppSidebarProps {
   vaultName: string | null;
   onCloseVault: () => void;
   graphConfigTrigger: React.ReactNode;
-  onImportComplete?: () => void;
+  onImportComplete?: (importedNodes: Node[]) => void;
 }
 
 export function AppSidebar({
@@ -155,8 +159,27 @@ export function AppSidebar({
       const children = getChildren(node.id);
       const hasChildren = children.length > 0;
       const isFolder = node.type === "folder";
+      const isMedia = node.type === "media";
       const isExpanded = expandedFolders.has(node.id);
       const isDragOver = dragOverNode === node.id;
+
+      const getNodeIcon = () => {
+        if (isFolder) {
+          return <Folder className="w-4 h-4 shrink-0 text-yellow-500" />;
+        }
+        if (isMedia) {
+          if (node.mediaType === "image") {
+            return <Image className="w-4 h-4 shrink-0 text-green-500" />;
+          }
+          if (node.mediaType === "audio") {
+            return <Music className="w-4 h-4 shrink-0 text-purple-500" />;
+          }
+          if (node.mediaType === "video") {
+            return <Video className="w-4 h-4 shrink-0 text-red-500" />;
+          }
+        }
+        return <FileText className="w-4 h-4 shrink-0 text-primary" />;
+      };
 
       return (
         <div key={node.id}>
@@ -193,11 +216,7 @@ export function AppSidebar({
                 </button>
               )}
               {isFolder && !hasChildren && <span className="w-4" />}
-              {isFolder ? (
-                <Folder className="w-4 h-4 shrink-0 text-yellow-500" />
-              ) : (
-                <FileText className="w-4 h-4 shrink-0 text-primary" />
-              )}
+              {getNodeIcon()}
               <span className="truncate flex-1 text-left">{node.name}</span>
               {node.tags.length > 0 && (
                 <Badge variant="outline" className="text-[10px] px-1 py-0 h-4">

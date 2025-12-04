@@ -8,11 +8,12 @@ export interface GraphNode {
   id: string;
   name: string;
   content: string;
-  type: 'folder' | 'file';
+  type: 'folder' | 'file' | 'media';
   parentId: string | null;
   depth: number;
   tags: string[];
   wikilinks?: string[];
+  mediaType?: 'image' | 'audio' | 'video';
 }
 
 export interface GraphLink {
