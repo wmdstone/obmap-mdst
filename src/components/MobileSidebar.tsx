@@ -8,10 +8,11 @@ interface Node {
   id: string;
   name: string;
   content: string;
-  type: "folder" | "file";
+  type: "folder" | "file" | "media";
   parentId: string | null;
   depth: number;
   tags: string[];
+  mediaType?: "image" | "audio" | "video";
 }
 
 interface MobileSidebarProps {
@@ -23,7 +24,7 @@ interface MobileSidebarProps {
   vaultName: string | null;
   onCloseVault: () => void;
   graphConfigTrigger: React.ReactNode;
-  onImportComplete?: () => void;
+  onImportComplete?: (importedNodes: Node[]) => void;
 }
 
 export function MobileSidebar({

@@ -6,36 +6,9 @@
  */
 
 import JSZip from 'jszip';
-import { eventBus, EventType } from '../events/DomainEvents';
 import { ContentParser } from '../graph/ContentParser';
 
-export interface MediaFile {
-  id: string;
-  name: string;
-  type: 'image' | 'audio' | 'video';
-  mimeType: string;
-  size: number;
-  data: Blob;
-  parentId: string | null;
-  path: string[];
-}
-
-export interface ImportResult {
-  success: boolean;
-  folders: number;
-  files: number;
-  media: number;
-  errors: string[];
-}
-
-export interface ExportOptions {
-  type: 'vault' | 'folder' | 'files' | 'media';
-  nodeIds?: string[];
-  includeMedia?: boolean;
-  format?: 'zip' | 'json';
-}
-
-interface GraphNode {
+export interface GraphNode {
   id: string;
   name: string;
   content: string;
@@ -47,6 +20,22 @@ interface GraphNode {
   mediaType?: 'image' | 'audio' | 'video';
   mimeType?: string;
   dataUrl?: string;
+}
+
+export interface ImportResult {
+  success: boolean;
+  nodes: GraphNode[];
+  folders: number;
+  files: number;
+  media: number;
+  errors: string[];
+}
+
+export interface ExportOptions {
+  type: 'vault' | 'folder' | 'files' | 'media';
+  nodeIds?: string[];
+  includeMedia?: boolean;
+  format?: 'zip' | 'json';
 }
 
 const SUPPORTED_EXTENSIONS = {
@@ -62,7 +51,6 @@ const MAX_FILES = 10000;
 
 export class ImportExportService {
   private parser: ContentParser;
-  private mediaStore: Map<string, MediaFile> = new Map();
 
   constructor() {
     this.parser = new ContentParser();
@@ -83,11 +71,19 @@ export class ImportExportService {
   }
 
   /**
-   * Import files from file input
+   * Generate unique ID
    */
-  async importFiles(files: FileList): Promise<ImportResult> {
+  private generateId(prefix: string): string {
+    return `${prefix}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  }
+
+  /**
+   * Import files from file input - returns nodes to merge
+   */
+  async importFiles(files: FileList, existingNodes: GraphNode[] = []): Promise<ImportResult> {
     const result: ImportResult = {
       success: true,
+      nodes: [],
       folders: 0,
       files: 0,
       media: 0,
@@ -96,7 +92,15 @@ export class ImportExportService {
 
     let totalSize = 0;
     const folderMap = new Map<string, string>();
-    let nodeIdCounter = 0;
+    const importedNodes: GraphNode[] = [];
+
+    // Find a root folder to attach imports to, or create one
+    let importRootId: string | null = null;
+    const existingRoot = existingNodes.find(n => n.parentId === null && n.type === 'folder');
+    
+    if (existingRoot) {
+      importRootId = existingRoot.id;
+    }
 
     // Process each file
     for (const file of Array.from(files)) {
@@ -116,7 +120,8 @@ export class ImportExportService {
         
         // Handle ZIP files
         if (file.name.endsWith('.zip')) {
-          const zipResult = await this.importZip(file);
+          const zipResult = await this.importZip(file, existingNodes, folderMap);
+          importedNodes.push(...zipResult.nodes);
           result.folders += zipResult.folders;
           result.files += zipResult.files;
           result.media += zipResult.media;
@@ -129,82 +134,77 @@ export class ImportExportService {
         const pathParts = relativePath.split('/').filter(Boolean);
         
         // Create folder hierarchy
+        let currentParentId = importRootId;
         for (let i = 0; i < pathParts.length - 1; i++) {
           const folderPath = pathParts.slice(0, i + 1).join('/');
           if (!folderMap.has(folderPath)) {
-            const folderId = `folder-${nodeIdCounter++}`;
-            const parentPath = i > 0 ? pathParts.slice(0, i).join('/') : null;
-            const parentId = parentPath ? folderMap.get(parentPath) || null : null;
+            const folderId = this.generateId('folder');
+            const folderDepth = currentParentId 
+              ? (existingNodes.find(n => n.id === currentParentId)?.depth ?? -1) + 1 
+              : 0;
 
-            eventBus.emit({
-              type: EventType.FOLDER_CREATED,
-              timestamp: Date.now(),
-              payload: {
-                id: folderId,
-                name: pathParts[i],
-                path: pathParts.slice(0, i + 1),
-                parentId,
-              },
-            });
+            const folderNode: GraphNode = {
+              id: folderId,
+              name: pathParts[i],
+              content: '',
+              type: 'folder',
+              parentId: currentParentId,
+              depth: folderDepth,
+              tags: [],
+            };
 
+            importedNodes.push(folderNode);
             folderMap.set(folderPath, folderId);
+            currentParentId = folderId;
             result.folders++;
+          } else {
+            currentParentId = folderMap.get(folderPath)!;
           }
         }
 
         // Get parent folder ID
         const parentPath = pathParts.length > 1 ? pathParts.slice(0, -1).join('/') : null;
-        const parentId = parentPath ? folderMap.get(parentPath) || null : null;
+        const parentId = parentPath ? folderMap.get(parentPath) || importRootId : importRootId;
+        const parentNode = parentId ? [...existingNodes, ...importedNodes].find(n => n.id === parentId) : null;
+        const nodeDepth = parentNode ? parentNode.depth + 1 : 0;
+        
         const fileName = pathParts[pathParts.length - 1];
         const fileNameWithoutExt = fileName.replace(/\.[^/.]+$/, '');
 
         if (fileType === 'markdown') {
           const content = await file.text();
-          const fileId = `file-${nodeIdCounter++}`;
+          const parsed = this.parser.parse(content);
+          
+          const fileNode: GraphNode = {
+            id: this.generateId('file'),
+            name: fileNameWithoutExt,
+            content,
+            type: 'file',
+            parentId,
+            depth: nodeDepth,
+            tags: parsed.tags,
+            wikilinks: parsed.wikilinks,
+          };
 
-          eventBus.emit({
-            type: EventType.NOTE_CREATED,
-            timestamp: Date.now(),
-            payload: {
-              id: fileId,
-              name: fileNameWithoutExt,
-              content,
-              path: pathParts,
-              parentId,
-            },
-          });
+          importedNodes.push(fileNode);
           result.files++;
         } else if (fileType !== 'unknown') {
           const dataUrl = await this.fileToDataUrl(file);
-          const mediaId = `media-${nodeIdCounter++}`;
-
-          // Store media in memory
-          this.mediaStore.set(mediaId, {
-            id: mediaId,
-            name: fileName,
-            type: fileType as 'image' | 'audio' | 'video',
-            mimeType: file.type,
-            size: file.size,
-            data: file,
+          
+          const mediaNode: GraphNode = {
+            id: this.generateId('media'),
+            name: fileNameWithoutExt,
+            content: `![${fileName}](${dataUrl})`,
+            type: 'media',
             parentId,
-            path: pathParts,
-          });
+            depth: nodeDepth,
+            tags: [fileType],
+            mediaType: fileType as 'image' | 'audio' | 'video',
+            mimeType: file.type,
+            dataUrl,
+          };
 
-          // Emit as a special note type for media
-          eventBus.emit({
-            type: EventType.NOTE_CREATED,
-            timestamp: Date.now(),
-            payload: {
-              id: mediaId,
-              name: fileNameWithoutExt,
-              content: `![${fileName}](${dataUrl})`,
-              path: pathParts,
-              parentId,
-              mediaType: fileType,
-              mimeType: file.type,
-              dataUrl,
-            },
-          });
+          importedNodes.push(mediaNode);
           result.media++;
         }
       } catch (error) {
@@ -212,6 +212,7 @@ export class ImportExportService {
       }
     }
 
+    result.nodes = importedNodes;
     result.success = result.errors.length === 0;
     return result;
   }
@@ -219,9 +220,14 @@ export class ImportExportService {
   /**
    * Import from ZIP file
    */
-  async importZip(file: File): Promise<ImportResult> {
+  async importZip(
+    file: File, 
+    existingNodes: GraphNode[] = [],
+    existingFolderMap: Map<string, string> = new Map()
+  ): Promise<ImportResult> {
     const result: ImportResult = {
       success: true,
+      nodes: [],
       folders: 0,
       files: 0,
       media: 0,
@@ -237,9 +243,16 @@ export class ImportExportService {
       return result;
     }
 
-    const folderMap = new Map<string, string>();
-    let nodeIdCounter = 0;
+    const folderMap = new Map(existingFolderMap);
+    const importedNodes: GraphNode[] = [];
     const allFolderPaths = new Set<string>();
+
+    // Find root to attach to
+    let importRootId: string | null = null;
+    const existingRoot = existingNodes.find(n => n.parentId === null && n.type === 'folder');
+    if (existingRoot) {
+      importRootId = existingRoot.id;
+    }
 
     // First pass: collect all folder paths
     zip.forEach((relativePath, zipEntry) => {
@@ -263,23 +276,28 @@ export class ImportExportService {
     );
 
     for (const folderPath of sortedFolders) {
+      if (folderMap.has(folderPath)) continue;
+
       const pathParts = folderPath.split('/');
       const folderName = pathParts[pathParts.length - 1];
       const parentPath = pathParts.length > 1 ? pathParts.slice(0, -1).join('/') : null;
-      const parentId = parentPath ? folderMap.get(parentPath) || null : null;
-      const folderId = `folder-${nodeIdCounter++}`;
+      const parentId = parentPath ? folderMap.get(parentPath) || importRootId : importRootId;
+      
+      const parentNode = parentId ? [...existingNodes, ...importedNodes].find(n => n.id === parentId) : null;
+      const folderDepth = parentNode ? parentNode.depth + 1 : 0;
 
-      eventBus.emit({
-        type: EventType.FOLDER_CREATED,
-        timestamp: Date.now(),
-        payload: {
-          id: folderId,
-          name: folderName,
-          path: pathParts,
-          parentId,
-        },
-      });
+      const folderId = this.generateId('folder');
+      const folderNode: GraphNode = {
+        id: folderId,
+        name: folderName,
+        content: '',
+        type: 'folder',
+        parentId,
+        depth: folderDepth,
+        tags: [],
+      };
 
+      importedNodes.push(folderNode);
       folderMap.set(folderPath, folderId);
       result.folders++;
     }
@@ -300,54 +318,46 @@ export class ImportExportService {
             const fileName = pathParts[pathParts.length - 1];
             const fileNameWithoutExt = fileName.replace(/\.[^/.]+$/, '');
             const parentPath = pathParts.length > 1 ? pathParts.slice(0, -1).join('/') : null;
-            const parentId = parentPath ? folderMap.get(parentPath) || null : null;
+            const parentId = parentPath ? folderMap.get(parentPath) || importRootId : importRootId;
+            
+            const parentNode = parentId ? [...existingNodes, ...importedNodes].find(n => n.id === parentId) : null;
+            const nodeDepth = parentNode ? parentNode.depth + 1 : 0;
 
             if (fileType === 'markdown') {
               const content = await zipEntry.async('string');
-              const fileId = `file-${nodeIdCounter++}`;
+              const parsed = this.parser.parse(content);
+              
+              const fileNode: GraphNode = {
+                id: this.generateId('file'),
+                name: fileNameWithoutExt,
+                content,
+                type: 'file',
+                parentId,
+                depth: nodeDepth,
+                tags: parsed.tags,
+                wikilinks: parsed.wikilinks,
+              };
 
-              eventBus.emit({
-                type: EventType.NOTE_CREATED,
-                timestamp: Date.now(),
-                payload: {
-                  id: fileId,
-                  name: fileNameWithoutExt,
-                  content,
-                  path: pathParts,
-                  parentId,
-                },
-              });
+              importedNodes.push(fileNode);
               result.files++;
             } else {
               const blob = await zipEntry.async('blob');
               const dataUrl = await this.blobToDataUrl(blob);
-              const mediaId = `media-${nodeIdCounter++}`;
-
-              this.mediaStore.set(mediaId, {
-                id: mediaId,
-                name: fileName,
-                type: fileType as 'image' | 'audio' | 'video',
-                mimeType: this.getMimeType(fileName),
-                size: blob.size,
-                data: blob,
+              
+              const mediaNode: GraphNode = {
+                id: this.generateId('media'),
+                name: fileNameWithoutExt,
+                content: `![${fileName}](${dataUrl})`,
+                type: 'media',
                 parentId,
-                path: pathParts,
-              });
+                depth: nodeDepth,
+                tags: [fileType],
+                mediaType: fileType as 'image' | 'audio' | 'video',
+                mimeType: this.getMimeType(fileName),
+                dataUrl,
+              };
 
-              eventBus.emit({
-                type: EventType.NOTE_CREATED,
-                timestamp: Date.now(),
-                payload: {
-                  id: mediaId,
-                  name: fileNameWithoutExt,
-                  content: `![${fileName}](${dataUrl})`,
-                  path: pathParts,
-                  parentId,
-                  mediaType: fileType,
-                  mimeType: this.getMimeType(fileName),
-                  dataUrl,
-                },
-              });
+              importedNodes.push(mediaNode);
               result.media++;
             }
           } catch (error) {
@@ -358,6 +368,7 @@ export class ImportExportService {
     });
 
     await Promise.all(filePromises);
+    result.nodes = importedNodes;
     result.success = result.errors.length === 0;
     return result;
   }
@@ -427,7 +438,7 @@ export class ImportExportService {
 
       if (node.type === 'folder') {
         zip.folder(path);
-      } else if (node.mediaType && node.dataUrl) {
+      } else if (node.type === 'media' && node.dataUrl) {
         // Export media file
         const ext = this.getExtensionFromMimeType(node.mimeType || '');
         const blob = await this.dataUrlToBlob(node.dataUrl);
@@ -455,20 +466,6 @@ export class ImportExportService {
     }, null, 2));
 
     return await zip.generateAsync({ type: 'blob' });
-  }
-
-  /**
-   * Get stored media files
-   */
-  getMediaStore(): Map<string, MediaFile> {
-    return this.mediaStore;
-  }
-
-  /**
-   * Clear media store
-   */
-  clearMediaStore(): void {
-    this.mediaStore.clear();
   }
 
   // Helper methods

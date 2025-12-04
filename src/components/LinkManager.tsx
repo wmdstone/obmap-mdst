@@ -17,9 +17,10 @@ import { Separator } from "@/components/ui/separator";
 interface Node {
   id: string;
   name: string;
-  type: "folder" | "file";
+  type: "folder" | "file" | "media";
   parentId: string | null;
   depth: number;
+  mediaType?: "image" | "audio" | "video";
 }
 
 interface Link {

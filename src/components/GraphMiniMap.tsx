@@ -11,9 +11,10 @@ import { cn } from '@/lib/utils';
 interface Node {
   id: string;
   name: string;
-  type: "folder" | "file";
+  type: "folder" | "file" | "media";
   x?: number;
   y?: number;
+  mediaType?: "image" | "audio" | "video";
 }
 
 interface Link {

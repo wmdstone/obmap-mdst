@@ -32,7 +32,7 @@ interface Node {
   id: string;
   name: string;
   content: string;
-  type: "folder" | "file";
+  type: "folder" | "file" | "media";
   parentId: string | null;
   depth: number;
   tags: string[];
@@ -40,6 +40,7 @@ interface Node {
   y?: number;
   vx?: number;
   vy?: number;
+  mediaType?: "image" | "audio" | "video";
 }
 
 interface Link {

@@ -33,22 +33,25 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
-import { importExportService, ImportResult, ExportOptions } from "@/services/import-export/ImportExportService";
+import { importExportService, ImportResult, ExportOptions, GraphNode } from "@/services/import-export/ImportExportService";
 
 interface Node {
   id: string;
   name: string;
   content: string;
-  type: "folder" | "file";
+  type: "folder" | "file" | "media";
   parentId: string | null;
   depth: number;
   tags: string[];
-  mediaType?: string;
+  mediaType?: "image" | "audio" | "video";
+  mimeType?: string;
+  dataUrl?: string;
+  wikilinks?: string[];
 }
 
 interface ImportExportPanelProps {
   nodes: Node[];
-  onImportComplete: () => void;
+  onImportComplete: (importedNodes: Node[]) => void;
 }
 
 export const ImportExportPanel = ({ nodes, onImportComplete }: ImportExportPanelProps) => {
@@ -72,23 +75,31 @@ export const ImportExportPanel = ({ nodes, onImportComplete }: ImportExportPanel
 
     try {
       setImportProgress(30);
-      const result = await importExportService.importFiles(files);
+      const result = await importExportService.importFiles(files, nodes as GraphNode[]);
       setImportProgress(100);
       setLastResult(result);
 
-      if (result.success) {
+      if (result.nodes.length > 0) {
+        // Merge imported nodes with existing nodes
+        onImportComplete(result.nodes as Node[]);
         toast.success(
           `Imported ${result.folders} folders, ${result.files} files, ${result.media} media`
         );
-        onImportComplete();
-      } else {
+      } else if (result.errors.length > 0) {
         toast.warning(`Import completed with ${result.errors.length} errors`);
+      } else {
+        toast.info('No supported files found to import');
       }
     } catch (error) {
       toast.error(`Import failed: ${error instanceof Error ? error.message : "Unknown error"}`);
     } finally {
       setIsImporting(false);
       setImportProgress(0);
+      // Reset file inputs
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      if (folderInputRef.current) folderInputRef.current.value = '';
+      if (zipInputRef.current) zipInputRef.current.value = '';
+      if (mediaInputRef.current) mediaInputRef.current.value = '';
     }
   };
 
@@ -105,7 +116,7 @@ export const ImportExportPanel = ({ nodes, onImportComplete }: ImportExportPanel
     }
 
     try {
-      const blob = await importExportService.exportData(nodes as any, options);
+      const blob = await importExportService.exportData(nodes as GraphNode[], options);
       
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
@@ -134,13 +145,13 @@ export const ImportExportPanel = ({ nodes, onImportComplete }: ImportExportPanel
   };
 
   const folders = nodes.filter((n) => n.type === "folder");
-  const files = nodes.filter((n) => n.type === "file" && !n.mediaType);
-  const media = nodes.filter((n) => n.mediaType);
+  const files = nodes.filter((n) => n.type === "file");
+  const media = nodes.filter((n) => n.type === "media" || n.mediaType);
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm" className="gap-2">
+        <Button variant="outline" size="sm" className="gap-2 w-full">
           <FileArchive className="w-4 h-4" />
           Import/Export
         </Button>
@@ -375,7 +386,7 @@ export const ImportExportPanel = ({ nodes, onImportComplete }: ImportExportPanel
                           onClick={() => toggleNodeSelection(node.id)}
                         >
                           <Checkbox checked={selectedExportNodes.has(node.id)} />
-                          <Folder className="w-4 h-4 text-muted-foreground" />
+                          <Folder className="w-4 h-4 text-yellow-500" />
                           <span className="text-sm truncate">{node.name}</span>
                         </div>
                       ))}
@@ -392,7 +403,7 @@ export const ImportExportPanel = ({ nodes, onImportComplete }: ImportExportPanel
                           onClick={() => toggleNodeSelection(node.id)}
                         >
                           <Checkbox checked={selectedExportNodes.has(node.id)} />
-                          <FileText className="w-4 h-4 text-muted-foreground" />
+                          <FileText className="w-4 h-4 text-primary" />
                           <span className="text-sm truncate">{node.name}</span>
                         </div>
                       ))}
@@ -410,13 +421,13 @@ export const ImportExportPanel = ({ nodes, onImportComplete }: ImportExportPanel
                         >
                           <Checkbox checked={selectedExportNodes.has(node.id)} />
                           {node.mediaType === "image" && (
-                            <Image className="w-4 h-4 text-muted-foreground" />
+                            <Image className="w-4 h-4 text-green-500" />
                           )}
                           {node.mediaType === "audio" && (
-                            <Music className="w-4 h-4 text-muted-foreground" />
+                            <Music className="w-4 h-4 text-purple-500" />
                           )}
                           {node.mediaType === "video" && (
-                            <Video className="w-4 h-4 text-muted-foreground" />
+                            <Video className="w-4 h-4 text-red-500" />
                           )}
                           <span className="text-sm truncate">{node.name}</span>
                         </div>
