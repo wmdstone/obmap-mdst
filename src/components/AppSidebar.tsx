@@ -13,7 +13,9 @@ import {
   X,
   PanelLeftClose,
   PanelLeft,
+  FileArchive,
 } from "lucide-react";
+import { ImportExportPanel } from "@/components/ImportExportPanel";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -44,6 +46,7 @@ interface AppSidebarProps {
   vaultName: string | null;
   onCloseVault: () => void;
   graphConfigTrigger: React.ReactNode;
+  onImportComplete?: () => void;
 }
 
 export function AppSidebar({
@@ -55,6 +58,7 @@ export function AppSidebar({
   vaultName,
   onCloseVault,
   graphConfigTrigger,
+  onImportComplete,
 }: AppSidebarProps) {
   const navigate = useNavigate();
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -359,6 +363,18 @@ export function AppSidebar({
           </ScrollArea>
         </CollapsibleContent>
       </Collapsible>
+
+      {/* Import/Export Section */}
+      <div className="p-3 border-t border-sidebar-border">
+        <div className="flex items-center gap-2 mb-2 text-xs text-muted-foreground">
+          <FileArchive className="w-3.5 h-3.5" />
+          <span>Import / Export</span>
+        </div>
+        <ImportExportPanel 
+          nodes={nodes} 
+          onImportComplete={onImportComplete || (() => {})} 
+        />
+      </div>
 
       {/* Graph Config Section */}
       <div className="p-3 border-t border-sidebar-border">

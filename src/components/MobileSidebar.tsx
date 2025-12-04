@@ -23,6 +23,7 @@ interface MobileSidebarProps {
   vaultName: string | null;
   onCloseVault: () => void;
   graphConfigTrigger: React.ReactNode;
+  onImportComplete?: () => void;
 }
 
 export function MobileSidebar({
@@ -34,6 +35,7 @@ export function MobileSidebar({
   vaultName,
   onCloseVault,
   graphConfigTrigger,
+  onImportComplete,
 }: MobileSidebarProps) {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -63,6 +65,7 @@ export function MobileSidebar({
           vaultName={vaultName}
           onCloseVault={onCloseVault}
           graphConfigTrigger={graphConfigTrigger}
+          onImportComplete={onImportComplete}
         />
       </SheetContent>
     </Sheet>

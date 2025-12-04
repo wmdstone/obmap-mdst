@@ -418,6 +418,7 @@ const Index = () => {
           vaultName={currentVaultId ? vaultManager.getVault(currentVaultId)?.name || null : null}
           onCloseVault={handleCloseVault}
           graphConfigTrigger={graphConfigTrigger}
+          onImportComplete={loadActiveVault}
         />
       </div>
 
@@ -431,6 +432,7 @@ const Index = () => {
         vaultName={currentVaultId ? vaultManager.getVault(currentVaultId)?.name || null : null}
         onCloseVault={handleCloseVault}
         graphConfigTrigger={graphConfigTrigger}
+        onImportComplete={loadActiveVault}
       />
 
       <div className="flex-1 relative">
