@@ -9,6 +9,7 @@
  */
 
 import { eventBus, EventType, NoteCreatedEvent } from '../events/DomainEvents';
+import { backgroundSyncService } from '../sync/BackgroundSyncService';
 
 export interface FileSystemNode {
   id: string;
@@ -21,6 +22,19 @@ export interface FileSystemNode {
 export class FileSystemService {
   private vaultHandle: FileSystemDirectoryHandle | null = null;
   private nodeIdCounter = 0;
+
+  constructor() {
+    // Listen for sync requests
+    eventBus.subscribe(EventType.NOTE_SYNC_REQUESTED, async (event) => {
+      if (this.vaultHandle) {
+        try {
+          await this.saveFile(event.payload.path, event.payload.content);
+        } catch (error) {
+          console.error('[FileSystemService] Error syncing file:', error);
+        }
+      }
+    });
+  }
 
   /**
    * Open a vault directory
@@ -178,24 +192,38 @@ export class FileSystemService {
       throw new Error('No vault is currently open');
     }
 
-    const fileHandle = await this.getFileHandle(this.vaultHandle, path);
-    if (!fileHandle) {
-      throw new Error('Could not access file');
+    // If offline, queue for background sync
+    if (!navigator.onLine) {
+      console.log('[FileSystemService] Device offline, queuing change for sync');
+      backgroundSyncService.queueChange(path, content);
+      return;
     }
 
-    const writable = await fileHandle.createWritable();
-    await writable.write(content);
-    await writable.close();
+    try {
+      const fileHandle = await this.getFileHandle(this.vaultHandle, path);
+      if (!fileHandle) {
+        throw new Error('Could not access file');
+      }
 
-    // Emit note updated event
-    eventBus.emit({
-      type: EventType.NOTE_UPDATED,
-      timestamp: Date.now(),
-      payload: {
-        id: path.join('/'),
-        content,
-      },
-    });
+      const writable = await fileHandle.createWritable();
+      await writable.write(content);
+      await writable.close();
+
+      // Emit note updated event
+      eventBus.emit({
+        type: EventType.NOTE_UPDATED,
+        timestamp: Date.now(),
+        payload: {
+          id: path.join('/'),
+          content,
+        },
+      });
+    } catch (error) {
+      // If save fails, queue for retry
+      console.error('[FileSystemService] Save failed, queuing for retry:', error);
+      backgroundSyncService.queueChange(path, content);
+      throw error;
+    }
   }
 
   private async getFileHandle(

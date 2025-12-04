@@ -1,18 +1,20 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { NetworkGraph } from "@/components/NetworkGraph";
 import { NodePanel } from "@/components/NodePanel";
-import { Sidebar } from "@/components/Sidebar";
+import { AppSidebar } from "@/components/AppSidebar";
+import { MobileSidebar } from "@/components/MobileSidebar";
 import { ThemeCustomizer } from "@/components/ThemeCustomizer";
-import { VaultSelector } from "@/components/VaultSelector";
-import { LinkConfigPanel } from "@/components/LinkConfigPanel";
+import { GraphConfigPanel } from "@/components/GraphConfigPanel";
 import { PWAInstallPrompt, PWAStatusBadge } from "@/components/PWAInstallPrompt";
+import { SyncStatusIndicator } from "@/components/SyncStatusIndicator";
+import { OfflineIndicator } from "@/components/OfflineIndicator";
 import { Button } from "@/components/ui/button";
 import { Undo2, Redo2 } from "lucide-react";
 import { toast } from "sonner";
 import { extractMentions } from "@/lib/markdownParser";
 import { getVaultManager } from "@/services/vault/VaultManagerSingleton";
 import { useAutoLinks } from "@/hooks/useAutoLinks";
-import { useLinkConfig } from "@/hooks/useLinkConfig";
+import { useGraphConfig } from "@/hooks/useGraphConfig";
 
 interface Node {
   id: string;
@@ -61,18 +63,35 @@ const Index = () => {
 
   const [nodes, setNodes] = useState<Node[]>(getDemoData().nodes);
   
-  // Link configuration state
-  const { config: linkConfig, stats: linkStats, updateConfig, updateStyle, resetConfig } = useLinkConfig(nodes, []);
-  
-  // Auto-generate links based on hierarchy, tags, and backlinks with config
-  const autoLinks = useAutoLinks(nodes, {
-    hierarchy: linkConfig.showHierarchy,
-    tags: linkConfig.showTags,
-    backlinks: linkConfig.showBacklinks,
-    tagThreshold: linkConfig.tagThreshold,
+  // Auto-generate links based on hierarchy, tags, and backlinks
+  const tempAutoLinks = useAutoLinks(nodes, {
+    hierarchy: true,
+    tags: true,
+    backlinks: true,
+    tagThreshold: 1,
   });
   
-  // Memoized graphData with auto-generated links (including type for coloring)
+  // Graph configuration with stats
+  const { 
+    config: graphConfig, 
+    stats: graphStats,
+    updateNodeConfig,
+    updateLinkConfig,
+    updateTopologyConfig,
+    updateTopologyStyle,
+    updateForceConfig,
+    resetConfig,
+  } = useGraphConfig(nodes, tempAutoLinks);
+  
+  // Auto-generate links with actual config
+  const autoLinks = useAutoLinks(nodes, {
+    hierarchy: graphConfig.topology.showHierarchy,
+    tags: graphConfig.topology.showTags,
+    backlinks: graphConfig.topology.showBacklinks,
+    tagThreshold: graphConfig.topology.tagThreshold,
+  });
+  
+  // Memoized graphData with auto-generated links
   const graphData = useMemo<GraphData>(() => ({
     nodes,
     links: autoLinks.map(link => ({
@@ -81,73 +100,6 @@ const Index = () => {
       type: link.type,
     })),
   }), [nodes, autoLinks]);
-  
-  // Update link stats with actual links
-  const actualLinkStats = useMemo(() => {
-    let hierarchyCount = 0;
-    let backlinkCount = 0;
-    let tagCount = 0;
-
-    graphData.links.forEach(link => {
-      switch (link.type) {
-        case "hierarchy":
-          hierarchyCount++;
-          break;
-        case "backlink":
-          backlinkCount++;
-          break;
-        case "tag":
-          tagCount++;
-          break;
-      }
-    });
-
-    // Calculate node degrees
-    const nodeConnections = new Map<string, { inDegree: number; outDegree: number }>();
-    
-    nodes.forEach(node => {
-      nodeConnections.set(node.id, { inDegree: 0, outDegree: 0 });
-    });
-
-    graphData.links.forEach(link => {
-      const sourceId = typeof link.source === "string" ? link.source : (link.source as Node).id;
-      const targetId = typeof link.target === "string" ? link.target : (link.target as Node).id;
-      
-      const sourceConn = nodeConnections.get(sourceId);
-      const targetConn = nodeConnections.get(targetId);
-      
-      if (sourceConn) {
-        sourceConn.outDegree++;
-      }
-      if (targetConn) {
-        targetConn.inDegree++;
-      }
-    });
-
-    // Get top hubs
-    const topHubs = Array.from(nodeConnections.entries())
-      .map(([nodeId, { inDegree, outDegree }]) => {
-        const node = nodes.find(n => n.id === nodeId);
-        return {
-          nodeId,
-          nodeName: node?.name || "Unknown",
-          connectionCount: inDegree + outDegree,
-          inDegree,
-          outDegree,
-        };
-      })
-      .filter(hub => hub.connectionCount > 0)
-      .sort((a, b) => b.connectionCount - a.connectionCount)
-      .slice(0, 5);
-
-    return {
-      hierarchyCount,
-      backlinkCount,
-      tagCount,
-      totalCount: graphData.links.length,
-      topHubs,
-    };
-  }, [nodes, graphData.links]);
   
   // Wrapper to update graphData via nodes
   const setGraphData = useCallback((data: GraphData) => {
@@ -414,88 +366,107 @@ const Index = () => {
     
     if (nodesWithTag.length > 0) {
       toast.info(`Found ${nodesWithTag.length} note(s) with tag #${tag}`);
-      // You could implement a tag filter view here
     } else {
       toast.error(`No notes found with tag #${tag}`);
     }
   };
 
+  // Placeholder simulation controls
+  const handleReheatSimulation = () => {
+    toast.info("Simulation reheated");
+  };
+
+  const handleStopSimulation = () => {
+    toast.info("Simulation stopped");
+  };
+
+  const graphConfigTrigger = (
+    <GraphConfigPanel
+      config={graphConfig}
+      stats={graphStats}
+      onNodeConfigUpdate={updateNodeConfig}
+      onLinkConfigUpdate={updateLinkConfig}
+      onTopologyConfigUpdate={updateTopologyConfig}
+      onTopologyStyleUpdate={updateTopologyStyle}
+      onForceConfigUpdate={updateForceConfig}
+      onReset={resetConfig}
+      onReheatSimulation={handleReheatSimulation}
+      onStopSimulation={handleStopSimulation}
+      onNodeSelect={(nodeId) => {
+        const node = nodes.find(n => n.id === nodeId);
+        if (node) setSelectedNode(node);
+      }}
+      variant="compact"
+    />
+  );
+
   return (
-    <div className="flex h-screen overflow-hidden bg-background">
-      {/* Floating Sidebar - Desktop */}
-      <div className="hidden lg:flex lg:w-80 border-r border-border flex-col">
-        <VaultSelector
-          isVaultMode={!!currentVaultId}
-          vaultName={currentVaultId ? vaultManager.getVault(currentVaultId)?.name || null : null}
-          onCloseVault={handleCloseVault}
-        />
-        <Sidebar
+    <div className="flex h-screen overflow-hidden bg-background w-full">
+      {/* Offline Status Alert */}
+      <div className="fixed top-16 left-1/2 -translate-x-1/2 z-50 w-[90%] max-w-md">
+        <OfflineIndicator />
+      </div>
+      
+      {/* Desktop Sidebar */}
+      <div className="hidden lg:block">
+        <AppSidebar
           nodes={graphData.nodes}
           onNodeSelect={setSelectedNode}
           selectedNode={selectedNode}
           onNodeMove={handleNodeMove}
+          isVaultMode={!!currentVaultId}
+          vaultName={currentVaultId ? vaultManager.getVault(currentVaultId)?.name || null : null}
+          onCloseVault={handleCloseVault}
+          graphConfigTrigger={graphConfigTrigger}
         />
       </div>
 
-      {/* Mobile/Tablet Floating Sidebar */}
-      <div className="lg:hidden fixed top-4 left-4 z-30">
-        <div className="bg-card border border-border rounded-lg shadow-lg max-w-[280px] max-h-[80vh] flex flex-col">
-          <VaultSelector
-            isVaultMode={!!currentVaultId}
-            vaultName={currentVaultId ? vaultManager.getVault(currentVaultId)?.name || null : null}
-            onCloseVault={handleCloseVault}
-          />
-          <Sidebar
-            nodes={graphData.nodes}
-            onNodeSelect={setSelectedNode}
-            selectedNode={selectedNode}
-            onNodeMove={handleNodeMove}
-          />
-        </div>
-      </div>
+      {/* Mobile Sidebar */}
+      <MobileSidebar
+        nodes={graphData.nodes}
+        onNodeSelect={setSelectedNode}
+        selectedNode={selectedNode}
+        onNodeMove={handleNodeMove}
+        isVaultMode={!!currentVaultId}
+        vaultName={currentVaultId ? vaultManager.getVault(currentVaultId)?.name || null : null}
+        onCloseVault={handleCloseVault}
+        graphConfigTrigger={graphConfigTrigger}
+      />
 
       <div className="flex-1 relative">
-        <div className="absolute top-20 right-4 z-30 flex flex-col gap-2">
-          {currentVaultId && (
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={handleUndo}
-                disabled={!canUndo}
-                title="Undo (Ctrl+Z)"
-              >
-                <Undo2 className="w-4 h-4" />
-              </Button>
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={handleRedo}
-                disabled={!canRedo}
-                title="Redo (Ctrl+Y)"
-              >
-                <Redo2 className="w-4 h-4" />
-              </Button>
-            </div>
-          )}
-          <LinkConfigPanel
-            config={linkConfig}
-            stats={actualLinkStats}
-            onConfigUpdate={updateConfig}
-            onStyleUpdate={updateStyle}
-            onReset={resetConfig}
-            onNodeSelect={(nodeId) => {
-              const node = nodes.find(n => n.id === nodeId);
-              if (node) setSelectedNode(node);
-            }}
-          />
-        </div>
+        {/* Undo/Redo Controls */}
+        {currentVaultId && (
+          <div className="absolute top-4 right-4 z-30 flex gap-2">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={handleUndo}
+              disabled={!canUndo}
+              title="Undo (Ctrl+Z)"
+              className="shadow-md bg-background/95 backdrop-blur-sm"
+            >
+              <Undo2 className="w-4 h-4" />
+            </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={handleRedo}
+              disabled={!canRedo}
+              title="Redo (Ctrl+Y)"
+              className="shadow-md bg-background/95 backdrop-blur-sm"
+            >
+              <Redo2 className="w-4 h-4" />
+            </Button>
+          </div>
+        )}
+
         <NetworkGraph
           onNodeSelect={setSelectedNode}
           selectedNode={selectedNode}
           graphData={graphData}
           setGraphData={setGraphData}
-          linkStyles={linkConfig.styles}
+          linkStyles={graphConfig.topology.styles}
+          graphConfig={graphConfig}
         />
         <NodePanel
           node={selectedNode}
@@ -509,8 +480,9 @@ const Index = () => {
         />
         <ThemeCustomizer />
         
-        {/* PWA Status Badge */}
-        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-40">
+        {/* Status indicators */}
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-40 flex items-center gap-3">
+          <SyncStatusIndicator />
           <PWAStatusBadge />
         </div>
       </div>

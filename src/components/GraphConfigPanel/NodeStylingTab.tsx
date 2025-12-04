@@ -1,12 +1,11 @@
 /**
- * NodeStylingTab - Node visual configuration
+ * NodeStylingTab - Node visual configuration with collapsible sections
  */
 
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
 import {
   Select,
   SelectContent,
@@ -14,7 +13,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
 import {
   Circle,
   Eye,
@@ -24,6 +22,7 @@ import {
 } from 'lucide-react';
 import { NodeConfig } from '@/hooks/useGraphConfig';
 import { ColorPicker } from './ColorPicker';
+import { CollapsibleSection } from './CollapsibleSection';
 
 interface NodeStylingTabProps {
   config: NodeConfig;
@@ -33,14 +32,13 @@ interface NodeStylingTabProps {
 
 export function NodeStylingTab({ config, is3D, onUpdate }: NodeStylingTabProps) {
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Dimensions & Fidelity */}
-      <section className="space-y-4">
-        <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
-          <Circle className="w-4 h-4 text-primary" />
-          Dimensions & Fidelity
-        </div>
-
+      <CollapsibleSection
+        icon={<Circle className="w-4 h-4 text-primary" />}
+        title="Dimensions & Fidelity"
+        defaultOpen={true}
+      >
         <div className="space-y-4 p-3 rounded-lg bg-card border border-border">
           {/* Relative Size */}
           <div className="space-y-2">
@@ -101,17 +99,14 @@ export function NodeStylingTab({ config, is3D, onUpdate }: NodeStylingTabProps) 
             />
           </div>
         </div>
-      </section>
-
-      <Separator />
+      </CollapsibleSection>
 
       {/* Visibility & Transparency */}
-      <section className="space-y-4">
-        <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
-          <Eye className="w-4 h-4 text-primary" />
-          Visibility & Transparency
-        </div>
-
+      <CollapsibleSection
+        icon={<Eye className="w-4 h-4 text-primary" />}
+        title="Visibility & Transparency"
+        defaultOpen={false}
+      >
         <div className="space-y-4 p-3 rounded-lg bg-card border border-border">
           {/* Node Visibility */}
           <div className="flex items-center justify-between">
@@ -154,17 +149,14 @@ export function NodeStylingTab({ config, is3D, onUpdate }: NodeStylingTabProps) 
             />
           </div>
         </div>
-      </section>
-
-      <Separator />
+      </CollapsibleSection>
 
       {/* Color Management */}
-      <section className="space-y-4">
-        <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
-          <Palette className="w-4 h-4 text-primary" />
-          Color Management
-        </div>
-
+      <CollapsibleSection
+        icon={<Palette className="w-4 h-4 text-primary" />}
+        title="Color Management"
+        defaultOpen={false}
+      >
         <div className="space-y-4 p-3 rounded-lg bg-card border border-border">
           {/* Auto-Color Toggle */}
           <div className="space-y-2">
@@ -226,17 +218,14 @@ export function NodeStylingTab({ config, is3D, onUpdate }: NodeStylingTabProps) 
             />
           </div>
         </div>
-      </section>
-
-      <Separator />
+      </CollapsibleSection>
 
       {/* Labels Configuration */}
-      <section className="space-y-4">
-        <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
-          <Type className="w-4 h-4 text-primary" />
-          Label Configuration
-        </div>
-
+      <CollapsibleSection
+        icon={<Type className="w-4 h-4 text-primary" />}
+        title="Label Configuration"
+        defaultOpen={false}
+      >
         <div className="space-y-4 p-3 rounded-lg bg-card border border-border">
           <div className="space-y-2">
             <Label className="text-sm font-medium">Label Source Field</Label>
@@ -260,7 +249,7 @@ export function NodeStylingTab({ config, is3D, onUpdate }: NodeStylingTabProps) 
             </p>
           </div>
         </div>
-      </section>
+      </CollapsibleSection>
     </div>
   );
 }

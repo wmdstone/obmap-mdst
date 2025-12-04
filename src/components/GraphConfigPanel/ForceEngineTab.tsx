@@ -1,13 +1,11 @@
 /**
- * ForceEngineTab - D3-Force physics configuration
+ * ForceEngineTab - D3-Force physics configuration with collapsible sections
  */
 
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
-import { Input } from '@/components/ui/input';
 import {
   Select,
   SelectContent,
@@ -16,7 +14,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import {
-  Zap,
   GitBranch,
   Settings2,
   Play,
@@ -24,9 +21,9 @@ import {
   RotateCcw,
   Timer,
   Magnet,
-  Link,
 } from 'lucide-react';
 import { ForceConfig } from '@/hooks/useGraphConfig';
+import { CollapsibleSection } from './CollapsibleSection';
 
 interface ForceEngineTabProps {
   config: ForceConfig;
@@ -47,46 +44,44 @@ const DAG_MODES = [
 
 export function ForceEngineTab({ config, onUpdate, onReheat, onStop }: ForceEngineTabProps) {
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Simulation Control */}
-      <section className="space-y-4">
-        <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
-          <Play className="w-4 h-4 text-primary" />
-          Simulation Control
+      <CollapsibleSection
+        icon={<Play className="w-4 h-4 text-primary" />}
+        title="Simulation Control"
+        defaultOpen={true}
+      >
+        <div className="space-y-3">
+          <div className="flex gap-2">
+            <Button
+              variant="default"
+              className="flex-1 gap-2"
+              onClick={onReheat}
+            >
+              <RotateCcw className="w-4 h-4" />
+              Reheat
+            </Button>
+            <Button
+              variant="outline"
+              className="flex-1 gap-2"
+              onClick={onStop}
+            >
+              <Pause className="w-4 h-4" />
+              Stop
+            </Button>
+          </div>
+          <p className="text-xs text-muted-foreground text-center">
+            Reheat restarts physics, Stop freezes the layout
+          </p>
         </div>
-
-        <div className="flex gap-2">
-          <Button
-            variant="default"
-            className="flex-1 gap-2"
-            onClick={onReheat}
-          >
-            <RotateCcw className="w-4 h-4" />
-            Reheat Simulation
-          </Button>
-          <Button
-            variant="outline"
-            className="flex-1 gap-2"
-            onClick={onStop}
-          >
-            <Pause className="w-4 h-4" />
-            Stop Engine
-          </Button>
-        </div>
-        <p className="text-xs text-muted-foreground text-center">
-          Reheat restarts physics, Stop freezes the layout
-        </p>
-      </section>
-
-      <Separator />
+      </CollapsibleSection>
 
       {/* Layout Mode */}
-      <section className="space-y-4">
-        <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
-          <GitBranch className="w-4 h-4 text-primary" />
-          Layout Mode (DAG)
-        </div>
-
+      <CollapsibleSection
+        icon={<GitBranch className="w-4 h-4 text-primary" />}
+        title="Layout Mode (DAG)"
+        defaultOpen={false}
+      >
         <div className="space-y-4 p-3 rounded-lg bg-card border border-border">
           {/* DAG Mode */}
           <div className="space-y-2">
@@ -135,17 +130,14 @@ export function ForceEngineTab({ config, onUpdate, onReheat, onStop }: ForceEngi
             </div>
           )}
         </div>
-      </section>
-
-      <Separator />
+      </CollapsibleSection>
 
       {/* Physics Tuning */}
-      <section className="space-y-4">
-        <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
-          <Settings2 className="w-4 h-4 text-primary" />
-          Physics Tuning
-        </div>
-
+      <CollapsibleSection
+        icon={<Settings2 className="w-4 h-4 text-primary" />}
+        title="Physics Tuning"
+        defaultOpen={false}
+      >
         <div className="space-y-4 p-3 rounded-lg bg-card border border-border">
           {/* Alpha Decay */}
           <div className="space-y-2">
@@ -187,17 +179,14 @@ export function ForceEngineTab({ config, onUpdate, onReheat, onStop }: ForceEngi
             </p>
           </div>
         </div>
-      </section>
-
-      <Separator />
+      </CollapsibleSection>
 
       {/* Force Parameters */}
-      <section className="space-y-4">
-        <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
-          <Magnet className="w-4 h-4 text-primary" />
-          Force Parameters
-        </div>
-
+      <CollapsibleSection
+        icon={<Magnet className="w-4 h-4 text-primary" />}
+        title="Force Parameters"
+        defaultOpen={false}
+      >
         <div className="space-y-4 p-3 rounded-lg bg-card border border-border">
           {/* Charge Strength */}
           <div className="space-y-2">
@@ -259,17 +248,14 @@ export function ForceEngineTab({ config, onUpdate, onReheat, onStop }: ForceEngi
             </p>
           </div>
         </div>
-      </section>
-
-      <Separator />
+      </CollapsibleSection>
 
       {/* Warmup/Cooldown */}
-      <section className="space-y-4">
-        <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
-          <Timer className="w-4 h-4 text-primary" />
-          Warmup & Cooldown
-        </div>
-
+      <CollapsibleSection
+        icon={<Timer className="w-4 h-4 text-primary" />}
+        title="Warmup & Cooldown"
+        defaultOpen={false}
+      >
         <div className="space-y-4 p-3 rounded-lg bg-card border border-border">
           {/* Warmup Ticks */}
           <div className="space-y-2">
@@ -287,7 +273,7 @@ export function ForceEngineTab({ config, onUpdate, onReheat, onStop }: ForceEngi
               step={10}
             />
             <p className="text-xs text-muted-foreground">
-              Pre-calculate layout before rendering (faster initial display)
+              Pre-calculate layout before rendering
             </p>
           </div>
 
@@ -328,7 +314,7 @@ export function ForceEngineTab({ config, onUpdate, onReheat, onStop }: ForceEngi
             </p>
           </div>
         </div>
-      </section>
+      </CollapsibleSection>
     </div>
   );
 }

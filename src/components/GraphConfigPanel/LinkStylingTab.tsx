@@ -1,12 +1,11 @@
 /**
- * LinkStylingTab - Link/edge visual configuration
+ * LinkStylingTab - Combined link/edge configuration with topology settings
  */
 
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
 import { Input } from '@/components/ui/input';
 import {
   Select,
@@ -20,15 +19,20 @@ import {
   MoveRight,
   Sparkles,
   Palette,
-  Waves,
+  GitBranch,
+  Tags,
 } from 'lucide-react';
-import { LinkConfig } from '@/hooks/useGraphConfig';
+import { LinkConfig, TopologyConfig, LinkStyle } from '@/hooks/useGraphConfig';
 import { ColorPicker } from './ColorPicker';
+import { CollapsibleSection } from './CollapsibleSection';
 
 interface LinkStylingTabProps {
   config: LinkConfig;
+  topologyConfig: TopologyConfig;
   is3D: boolean;
   onUpdate: (updates: Partial<LinkConfig>) => void;
+  onTopologyUpdate: (updates: Partial<TopologyConfig>) => void;
+  onTopologyStyleUpdate: (linkType: keyof TopologyConfig["styles"], updates: Partial<LinkStyle>) => void;
 }
 
 const DASH_PRESETS = [
@@ -39,16 +43,210 @@ const DASH_PRESETS = [
   { value: '20,5', label: 'Long Dash' },
 ];
 
-export function LinkStylingTab({ config, is3D, onUpdate }: LinkStylingTabProps) {
-  return (
-    <div className="space-y-6">
-      {/* Geometric Properties */}
-      <section className="space-y-4">
-        <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
-          <Link2 className="w-4 h-4 text-primary" />
-          Geometric Properties
-        </div>
+const LINE_STYLES = [
+  { value: "solid", label: "Solid" },
+  { value: "dashed", label: "Dashed" },
+  { value: "dotted", label: "Dotted" },
+];
 
+const LINK_TYPE_INFO = {
+  hierarchy: {
+    label: "Hierarchy",
+    description: "Parent-child folder structure",
+    icon: GitBranch,
+  },
+  backlink: {
+    label: "Backlinks",
+    description: "Wikilink connections between notes",
+    icon: Link2,
+  },
+  tag: {
+    label: "Tags",
+    description: "Shared tag connections",
+    icon: Tags,
+  },
+};
+
+export function LinkStylingTab({ 
+  config, 
+  topologyConfig, 
+  is3D, 
+  onUpdate, 
+  onTopologyUpdate,
+  onTopologyStyleUpdate 
+}: LinkStylingTabProps) {
+  return (
+    <div className="space-y-4">
+      {/* Link Types (Topology) */}
+      <CollapsibleSection
+        icon={<GitBranch className="w-4 h-4 text-primary" />}
+        title="Link Types"
+        defaultOpen={true}
+      >
+        <div className="space-y-3">
+          {/* Hierarchy Toggle */}
+          <div className="flex items-center justify-between p-3 rounded-lg bg-card border border-border">
+            <div className="flex items-center gap-3">
+              <GitBranch className="w-4 h-4 text-muted-foreground" />
+              <div>
+                <Label className="font-medium text-sm">Hierarchical Links</Label>
+                <p className="text-xs text-muted-foreground">Parent-child folder structure</p>
+              </div>
+            </div>
+            <Switch
+              checked={topologyConfig.showHierarchy}
+              onCheckedChange={(checked) => onTopologyUpdate({ showHierarchy: checked })}
+            />
+          </div>
+
+          {/* Backlinks Toggle */}
+          <div className="flex items-center justify-between p-3 rounded-lg bg-card border border-border">
+            <div className="flex items-center gap-3">
+              <Link2 className="w-4 h-4 text-muted-foreground" />
+              <div>
+                <Label className="font-medium text-sm">Backlink Connections</Label>
+                <p className="text-xs text-muted-foreground">Wikilinks between notes</p>
+              </div>
+            </div>
+            <Switch
+              checked={topologyConfig.showBacklinks}
+              onCheckedChange={(checked) => onTopologyUpdate({ showBacklinks: checked })}
+            />
+          </div>
+
+          {/* Tags Toggle */}
+          <div className="flex items-center justify-between p-3 rounded-lg bg-card border border-border">
+            <div className="flex items-center gap-3">
+              <Tags className="w-4 h-4 text-muted-foreground" />
+              <div>
+                <Label className="font-medium text-sm">Tag-Based Edges</Label>
+                <p className="text-xs text-muted-foreground">Connect notes sharing tags</p>
+              </div>
+            </div>
+            <Switch
+              checked={topologyConfig.showTags}
+              onCheckedChange={(checked) => onTopologyUpdate({ showTags: checked })}
+            />
+          </div>
+
+          {/* Tag Threshold */}
+          <div className="p-3 rounded-lg bg-card border border-border">
+            <div className="flex items-center justify-between mb-3">
+              <Label className="font-medium text-sm">Tag Threshold</Label>
+              <Badge variant="outline" className="font-mono">
+                {topologyConfig.tagThreshold} {topologyConfig.tagThreshold === 1 ? "tag" : "tags"}
+              </Badge>
+            </div>
+            <Slider
+              value={[topologyConfig.tagThreshold]}
+              onValueChange={([value]) => onTopologyUpdate({ tagThreshold: value })}
+              min={1}
+              max={5}
+              step={1}
+            />
+            <p className="text-xs text-muted-foreground mt-2">
+              Minimum shared tags to create a connection
+            </p>
+          </div>
+        </div>
+      </CollapsibleSection>
+
+      {/* Per-Type Styling */}
+      <CollapsibleSection
+        icon={<Palette className="w-4 h-4 text-primary" />}
+        title="Link Type Styling"
+        defaultOpen={false}
+      >
+        <div className="space-y-4">
+          {(["hierarchy", "backlink", "tag"] as const).map((linkType) => {
+            const info = LINK_TYPE_INFO[linkType];
+            const style = topologyConfig.styles[linkType];
+            const Icon = info.icon;
+
+            return (
+              <div key={linkType} className="p-3 rounded-lg bg-card border border-border space-y-3">
+                <div className="flex items-center gap-2">
+                  <Icon className="w-4 h-4 text-muted-foreground" />
+                  <Label className="font-medium text-sm">{info.label}</Label>
+                </div>
+
+                {/* Color Selection with HSL/HEX picker */}
+                <ColorPicker
+                  label="Color"
+                  value={style.color}
+                  onChange={(color) => onTopologyStyleUpdate(linkType, { color })}
+                />
+
+                {/* Line Style */}
+                <div className="space-y-2">
+                  <Label className="text-xs text-muted-foreground">Line Style</Label>
+                  <Select
+                    value={style.lineStyle}
+                    onValueChange={(value: "solid" | "dashed" | "dotted") =>
+                      onTopologyStyleUpdate(linkType, { lineStyle: value })
+                    }
+                  >
+                    <SelectTrigger className="w-full h-8">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {LINE_STYLES.map((ls) => (
+                        <SelectItem key={ls.value} value={ls.value}>
+                          <div className="flex items-center gap-2">
+                            <div
+                              className="w-8 h-0.5 bg-foreground"
+                              style={{
+                                borderBottom: `2px ${ls.value} currentColor`,
+                                background: "none",
+                              }}
+                            />
+                            {ls.label}
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Opacity & Width */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-2">
+                    <Label className="text-xs text-muted-foreground">
+                      Opacity ({Math.round(style.opacity * 100)}%)
+                    </Label>
+                    <Slider
+                      value={[style.opacity]}
+                      onValueChange={([value]) => onTopologyStyleUpdate(linkType, { opacity: value })}
+                      min={0.1}
+                      max={1}
+                      step={0.1}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-xs text-muted-foreground">
+                      Width ({style.width}px)
+                    </Label>
+                    <Slider
+                      value={[style.width]}
+                      onValueChange={([value]) => onTopologyStyleUpdate(linkType, { width: value })}
+                      min={0.5}
+                      max={5}
+                      step={0.5}
+                    />
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </CollapsibleSection>
+
+      {/* Geometric Properties */}
+      <CollapsibleSection
+        icon={<Link2 className="w-4 h-4 text-primary" />}
+        title="Geometric Properties"
+        defaultOpen={false}
+      >
         <div className="space-y-4 p-3 rounded-lg bg-card border border-border">
           {/* Link Width */}
           <div className="space-y-2">
@@ -106,21 +304,18 @@ export function LinkStylingTab({ config, is3D, onUpdate }: LinkStylingTabProps) 
             </div>
           )}
         </div>
-      </section>
-
-      <Separator />
+      </CollapsibleSection>
 
       {/* Visual Differentiation */}
-      <section className="space-y-4">
-        <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
-          <Palette className="w-4 h-4 text-primary" />
-          Visual Differentiation
-        </div>
-
+      <CollapsibleSection
+        icon={<Palette className="w-4 h-4 text-primary" />}
+        title="Visual Appearance"
+        defaultOpen={false}
+      >
         <div className="space-y-4 p-3 rounded-lg bg-card border border-border">
           {/* Link Color */}
           <ColorPicker
-            label="Link Color"
+            label="Default Link Color"
             value={config.color}
             onChange={(color) => onUpdate({ color })}
           />
@@ -184,17 +379,14 @@ export function LinkStylingTab({ config, is3D, onUpdate }: LinkStylingTabProps) 
             </div>
           </div>
         </div>
-      </section>
+      </CollapsibleSection>
 
-      <Separator />
-
-      {/* Directionality - Arrows */}
-      <section className="space-y-4">
-        <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
-          <MoveRight className="w-4 h-4 text-primary" />
-          Directional Arrows
-        </div>
-
+      {/* Directional Arrows */}
+      <CollapsibleSection
+        icon={<MoveRight className="w-4 h-4 text-primary" />}
+        title="Directional Arrows"
+        defaultOpen={false}
+      >
         <div className="space-y-4 p-3 rounded-lg bg-card border border-border">
           {/* Enable Arrows */}
           <div className="flex items-center justify-between">
@@ -249,17 +441,14 @@ export function LinkStylingTab({ config, is3D, onUpdate }: LinkStylingTabProps) 
             </>
           )}
         </div>
-      </section>
+      </CollapsibleSection>
 
-      <Separator />
-
-      {/* Directionality - Particles */}
-      <section className="space-y-4">
-        <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
-          <Sparkles className="w-4 h-4 text-primary" />
-          Particle Flow Animation
-        </div>
-
+      {/* Particle Flow Animation */}
+      <CollapsibleSection
+        icon={<Sparkles className="w-4 h-4 text-primary" />}
+        title="Particle Animation"
+        defaultOpen={false}
+      >
         <div className="space-y-4 p-3 rounded-lg bg-card border border-border">
           {/* Enable Particles */}
           <div className="flex items-center justify-between">
@@ -335,7 +524,7 @@ export function LinkStylingTab({ config, is3D, onUpdate }: LinkStylingTabProps) 
             </>
           )}
         </div>
-      </section>
+      </CollapsibleSection>
     </div>
   );
 }

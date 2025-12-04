@@ -10,6 +10,9 @@ export enum EventType {
   NOTE_DELETED = 'NOTE_DELETED',
   FOLDER_CREATED = 'FOLDER_CREATED',
   FOLDER_DELETED = 'FOLDER_DELETED',
+  NOTE_SYNC_REQUESTED = 'NOTE_SYNC_REQUESTED',
+  VAULT_SYNC_COMPLETE = 'VAULT_SYNC_COMPLETE',
+  LINK_DISCOVERED = 'LINK_DISCOVERED',
 }
 
 export interface DomainEvent {
@@ -42,6 +45,22 @@ export interface NoteUpdatedEvent extends DomainEvent {
   payload: {
     id: string;
     content: string;
+  };
+}
+
+export interface NoteSyncRequestedEvent extends DomainEvent {
+  type: EventType.NOTE_SYNC_REQUESTED;
+  payload: {
+    path: string[];
+    content: string;
+  };
+}
+
+export interface VaultSyncCompleteEvent extends DomainEvent {
+  type: EventType.VAULT_SYNC_COMPLETE;
+  payload: {
+    synced: number;
+    failed: number;
   };
 }
 

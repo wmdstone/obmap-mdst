@@ -9,9 +9,9 @@ import { downloadZip } from "@/lib/graphExport";
 import { importGraphFromZip } from "@/lib/graphImport";
 import { LinkManager } from "@/components/LinkManager";
 import { DynamicLinkManager } from "@/components/DynamicLinkManager";
+import { GraphMiniMap } from "@/components/GraphMiniMap";
 import { useTheme } from "@/hooks/useTheme";
-import { useGraphConfig } from "@/hooks/useGraphConfig";
-import { GraphConfigPanel } from "@/components/GraphConfigPanel";
+import { GraphConfigState } from "@/hooks/useGraphConfig";
 import {
   Popover,
   PopoverContent,
@@ -74,19 +74,81 @@ interface NetworkGraphProps {
   graphData: GraphData;
   setGraphData: (data: GraphData) => void;
   linkStyles?: LinkStyles;
+  graphConfig?: GraphConfigState;
+  graphRef?: React.MutableRefObject<any>;
 }
 
-export const NetworkGraph = ({ onNodeSelect, selectedNode, graphData, setGraphData, linkStyles }: NetworkGraphProps) => {
-  const graphRef = useRef<any>();
+// Default config for when not provided
+const defaultGraphConfig: GraphConfigState = {
+  nodes: {
+    relSize: 6,
+    resolution: 8,
+    visible: true,
+    opacity: 1.0,
+    autoColorBy: 'type',
+    folderColor: 'hsl(48, 100%, 60%)',
+    fileColor: 'hsl(270, 70%, 65%)',
+    selectedColor: 'hsl(270, 80%, 70%)',
+    labelField: 'name',
+    showLabels: true,
+    labelSize: 12,
+  },
+  links: {
+    width: 2,
+    curvature: 0,
+    curveRotation: 0,
+    color: 'hsl(var(--primary))',
+    opacity: 0.6,
+    dashArray: '',
+    arrowLength: 0,
+    arrowRelPos: 1,
+    showArrows: false,
+    particles: 0,
+    particleSpeed: 0.01,
+    particleWidth: 4,
+    particleColor: 'hsl(var(--accent))',
+    showParticles: false,
+  },
+  topology: {
+    showHierarchy: true,
+    showBacklinks: true,
+    showTags: true,
+    tagThreshold: 1,
+    styles: {
+      hierarchy: { color: "hsl(var(--primary))", lineStyle: "solid", opacity: 0.8, width: 2.5 },
+      backlink: { color: "hsl(var(--accent))", lineStyle: "dashed", opacity: 0.6, width: 2 },
+      tag: { color: "hsl(var(--secondary))", lineStyle: "dotted", opacity: 0.4, width: 1.5 },
+      semantic: { color: "hsl(var(--muted-foreground))", lineStyle: "dotted", opacity: 0.3, width: 1 },
+    },
+  },
+  forces: {
+    dagMode: 'null',
+    dagLevelDistance: 50,
+    alphaDecay: 0.02,
+    velocityDecay: 0.3,
+    chargeStrength: -300,
+    linkDistance: 100,
+    centerStrength: 1,
+    warmupTicks: 100,
+    cooldownTicks: 100,
+    cooldownTime: 15000,
+  },
+};
+
+export const NetworkGraph = ({ 
+  onNodeSelect, 
+  selectedNode, 
+  graphData, 
+  setGraphData, 
+  linkStyles,
+  graphConfig: externalGraphConfig,
+  graphRef: externalGraphRef,
+}: NetworkGraphProps) => {
+  const internalGraphRef = useRef<any>();
+  const graphRef = externalGraphRef || internalGraphRef;
   const { theme } = useTheme();
-  const {
-    config: graphConfig,
-    setDimensions,
-    updateNodeConfig,
-    updateLinkConfig,
-    updateForceConfig,
-    resetConfig,
-  } = useGraphConfig();
+  const graphConfig = externalGraphConfig || defaultGraphConfig;
+  
   const [searchQuery, setSearchQuery] = useState("");
   const [linkMode, setLinkMode] = useState(false);
   const [linkSource, setLinkSource] = useState<string | null>(null);
@@ -107,7 +169,6 @@ export const NetworkGraph = ({ onNodeSelect, selectedNode, graphData, setGraphDa
     theme.colors.linkColor,
     theme.colors.nodeGlow,
     theme.colors.accent,
-    graphConfig.dimensions,
     graphConfig.nodes,
     graphConfig.links,
   ]);
@@ -136,23 +197,6 @@ export const NetworkGraph = ({ onNodeSelect, selectedNode, graphData, setGraphDa
     graphConfig.forces.velocityDecay,
     graphConfig.forces.alphaDecay,
   ]);
-
-  // Reheat simulation handler
-  const handleReheatSimulation = useCallback(() => {
-    if (graphRef.current?.d3ReheatSimulation) {
-      graphRef.current.d3ReheatSimulation();
-      toast.success('Simulation reheated');
-    }
-  }, []);
-
-  // Stop simulation handler
-  const handleStopSimulation = useCallback(() => {
-    if (graphRef.current) {
-      // Set alpha to 0 to stop the simulation
-      graphRef.current.pauseAnimation?.();
-      toast.info('Simulation stopped');
-    }
-  }, []);
 
   const handleNodeClick = useCallback((node: Node) => {
     if (linkMode) {
@@ -372,7 +416,7 @@ export const NetworkGraph = ({ onNodeSelect, selectedNode, graphData, setGraphDa
             <Link2 className="w-4 h-4 mr-2" />
             {linkMode ? "Cancel" : "Link"}
           </Button>
-          
+
           <Button
             onClick={handleExport}
             variant="secondary"
@@ -512,18 +556,6 @@ export const NetworkGraph = ({ onNodeSelect, selectedNode, graphData, setGraphDa
               </div>
             </PopoverContent>
           </Popover>
-
-          {/* Graph Configuration Panel */}
-          <GraphConfigPanel
-            config={graphConfig}
-            onDimensionsChange={setDimensions}
-            onNodeConfigUpdate={updateNodeConfig}
-            onLinkConfigUpdate={updateLinkConfig}
-            onForceConfigUpdate={updateForceConfig}
-            onReset={resetConfig}
-            onReheatSimulation={handleReheatSimulation}
-            onStopSimulation={handleStopSimulation}
-          />
         </div>
         
         <div className="relative">
@@ -559,136 +591,146 @@ export const NetworkGraph = ({ onNodeSelect, selectedNode, graphData, setGraphDa
         key={graphKey}
         ref={graphRef}
         graphData={filteredData}
-        nodeLabel={(node: any) => {
-          if (graphConfig.nodes.labelField === 'id') return node.id;
-          return `${node.type === "folder" ? "📁" : "📄"} ${node.name} (depth: ${node.depth})`;
-        }}
-        nodeColor={(node: any) => {
-          if (!graphConfig.nodes.visible) return 'transparent';
-          if (selectedNode?.id === node.id) return graphConfig.nodes.selectedColor;
-          
-          // Auto-color based on config
-          switch (graphConfig.nodes.autoColorBy) {
-            case 'type':
-              return node.type === "folder" ? graphConfig.nodes.folderColor : graphConfig.nodes.fileColor;
-            case 'depth':
-              const hue = (node.depth * 40) % 360;
-              return `hsl(${hue}, 70%, 55%)`;
-            case 'tags':
-              if (node.tags && node.tags.length > 0) {
-                const tagHash = node.tags[0].split('').reduce((a: number, b: string) => a + b.charCodeAt(0), 0);
-                return `hsl(${tagHash % 360}, 70%, 55%)`;
-              }
-              return graphConfig.nodes.fileColor;
-            default:
-              return node.type === "folder" ? graphConfig.nodes.folderColor : graphConfig.nodes.fileColor;
-          }
-        }}
-        nodeRelSize={graphConfig.nodes.relSize}
-        nodeVal={(node: any) => node.type === "folder" ? 1.5 : 1}
-        nodeVisibility={graphConfig.nodes.visible}
-        linkColor={(link: any) => {
-          const linkType = link.type as keyof typeof linkStyles | undefined;
-          if (linkStyles && linkType && linkStyles[linkType]) {
-            const style = linkStyles[linkType];
-            return style.color.replace(')', ` / ${style.opacity})`).replace('hsl(', 'hsla(');
-          }
-          // Use graphConfig link settings as fallback
-          return graphConfig.links.color.replace(')', ` / ${graphConfig.links.opacity})`).replace('hsl(', 'hsla(');
-        }}
-        linkWidth={(link: any) => {
-          const linkType = link.type as keyof typeof linkStyles | undefined;
-          if (linkStyles && linkType && linkStyles[linkType]) {
-            return linkStyles[linkType].width;
-          }
-          return graphConfig.links.width;
-        }}
-        linkLineDash={(link: any) => {
-          const linkType = link.type as keyof typeof linkStyles | undefined;
-          if (linkStyles && linkType && linkStyles[linkType]) {
-            const style = linkStyles[linkType];
-            switch (style.lineStyle) {
-              case "dashed": return [8, 4];
-              case "dotted": return [2, 3];
-              default: return [];
-            }
-          }
-          // Use graphConfig dashArray
-          if (graphConfig.links.dashArray) {
-            return graphConfig.links.dashArray.split(',').map(Number);
-          }
-          return [];
-        }}
-        linkCurvature={graphConfig.links.curvature}
-        linkDirectionalArrowLength={graphConfig.links.showArrows ? graphConfig.links.arrowLength : 0}
-        linkDirectionalArrowRelPos={graphConfig.links.arrowRelPos}
-        linkDirectionalParticles={graphConfig.links.showParticles ? graphConfig.links.particles : 0}
-        linkDirectionalParticleSpeed={graphConfig.links.particleSpeed}
-        linkDirectionalParticleWidth={graphConfig.links.particleWidth}
-        onNodeClick={handleNodeClick}
-        nodeCanvasObject={(node: any, ctx: CanvasRenderingContext2D, globalScale: number) => {
-          if (!graphConfig.nodes.visible) return;
-          
-          const label = node.name;
-          const fontSize = graphConfig.nodes.labelSize / globalScale;
-          const iconSize = (graphConfig.nodes.labelSize + 2) / globalScale;
-          const isFolder = node.type === "folder";
-          ctx.font = `${fontSize}px Inter, sans-serif`;
-          const textWidth = ctx.measureText(label).width;
-          const bckgDimensions = [textWidth + iconSize + 6, fontSize + 2];
-
-          // Draw node circle with glow
-          const nodeSize = (isFolder ? 10 : 8) * (graphConfig.nodes.relSize / 6);
-          ctx.beginPath();
-          ctx.arc(node.x, node.y, nodeSize, 0, 2 * Math.PI);
-          
-          // Set fill color with opacity
-          let fillColor = graphConfig.nodes.fileColor;
-          if (selectedNode?.id === node.id) {
-            fillColor = graphConfig.nodes.selectedColor;
-          } else if (isFolder) {
-            fillColor = graphConfig.nodes.folderColor;
-          }
-          
-          ctx.globalAlpha = graphConfig.nodes.opacity;
-          ctx.fillStyle = fillColor;
-          
-          ctx.shadowBlur = 10;
-          ctx.shadowColor = fillColor.replace(')', ' / 0.8)').replace('hsl(', 'hsla(');
-          ctx.fill();
-          ctx.shadowBlur = 0;
-          ctx.globalAlpha = 1;
-
-          // Draw label if enabled
-          if (graphConfig.nodes.showLabels) {
-            ctx.fillStyle = "hsl(var(--card) / 0.95)";
-            ctx.fillRect(
-              node.x - bckgDimensions[0] / 2,
-              node.y + 14,
-              bckgDimensions[0],
-              bckgDimensions[1]
-            );
-
-            ctx.textAlign = "left";
-            ctx.textBaseline = "middle";
-            ctx.fillStyle = "hsl(var(--card-foreground))";
+          nodeLabel={(node: any) => {
+            if (graphConfig.nodes.labelField === 'id') return node.id;
+            return `${node.type === "folder" ? "📁" : "📄"} ${node.name} (depth: ${node.depth})`;
+          }}
+          nodeColor={(node: any) => {
+            if (!graphConfig.nodes.visible) return 'transparent';
+            if (selectedNode?.id === node.id) return graphConfig.nodes.selectedColor;
             
-            const icon = isFolder ? "📁" : "📄";
-            ctx.fillText(icon, node.x - bckgDimensions[0] / 2 + 2, node.y + 15 + fontSize / 2);
-            ctx.fillText(label, node.x - bckgDimensions[0] / 2 + iconSize + 4, node.y + 15 + fontSize / 2);
-          }
-        }}
-        backgroundColor={`hsl(${theme.colors.canvasBackground})`}
-        enableNodeDrag={true}
-        enableZoomInteraction={true}
-        enablePanInteraction={true}
-        dagMode={graphConfig.forces.dagMode === 'null' ? null : graphConfig.forces.dagMode}
-        dagLevelDistance={graphConfig.forces.dagLevelDistance}
-        cooldownTicks={graphConfig.forces.cooldownTicks}
-        cooldownTime={graphConfig.forces.cooldownTime}
-        d3AlphaDecay={graphConfig.forces.alphaDecay}
-        d3VelocityDecay={graphConfig.forces.velocityDecay}
-        warmupTicks={graphConfig.forces.warmupTicks}
+            // Auto-color based on config
+            switch (graphConfig.nodes.autoColorBy) {
+              case 'type':
+                return node.type === "folder" ? graphConfig.nodes.folderColor : graphConfig.nodes.fileColor;
+              case 'depth':
+                const hue = (node.depth * 40) % 360;
+                return `hsl(${hue}, 70%, 55%)`;
+              case 'tags':
+                if (node.tags && node.tags.length > 0) {
+                  const tagHash = node.tags[0].split('').reduce((a: number, b: string) => a + b.charCodeAt(0), 0);
+                  return `hsl(${tagHash % 360}, 70%, 55%)`;
+                }
+                return graphConfig.nodes.fileColor;
+              default:
+                return node.type === "folder" ? graphConfig.nodes.folderColor : graphConfig.nodes.fileColor;
+            }
+          }}
+          nodeRelSize={graphConfig.nodes.relSize}
+          nodeVal={(node: any) => node.type === "folder" ? 1.5 : 1}
+          nodeVisibility={graphConfig.nodes.visible}
+          linkColor={(link: any) => {
+            const linkType = link.type as keyof typeof linkStyles | undefined;
+            if (linkStyles && linkType && linkStyles[linkType]) {
+              const style = linkStyles[linkType];
+              return style.color.replace(')', ` / ${style.opacity})`).replace('hsl(', 'hsla(');
+            }
+            // Use graphConfig link settings as fallback
+            return graphConfig.links.color.replace(')', ` / ${graphConfig.links.opacity})`).replace('hsl(', 'hsla(');
+          }}
+          linkWidth={(link: any) => {
+            const linkType = link.type as keyof typeof linkStyles | undefined;
+            if (linkStyles && linkType && linkStyles[linkType]) {
+              return linkStyles[linkType].width;
+            }
+            return graphConfig.links.width;
+          }}
+          linkLineDash={(link: any) => {
+            const linkType = link.type as keyof typeof linkStyles | undefined;
+            if (linkStyles && linkType && linkStyles[linkType]) {
+              const style = linkStyles[linkType];
+              switch (style.lineStyle) {
+                case "dashed": return [8, 4];
+                case "dotted": return [2, 3];
+                default: return [];
+              }
+            }
+            // Use graphConfig dashArray
+            if (graphConfig.links.dashArray) {
+              return graphConfig.links.dashArray.split(',').map(Number);
+            }
+            return [];
+          }}
+          linkCurvature={graphConfig.links.curvature}
+          linkDirectionalArrowLength={graphConfig.links.showArrows ? graphConfig.links.arrowLength : 0}
+          linkDirectionalArrowRelPos={graphConfig.links.arrowRelPos}
+          linkDirectionalParticles={graphConfig.links.showParticles ? graphConfig.links.particles : 0}
+          linkDirectionalParticleSpeed={graphConfig.links.particleSpeed}
+          linkDirectionalParticleWidth={graphConfig.links.particleWidth}
+          onNodeClick={handleNodeClick}
+          nodeCanvasObject={(node: any, ctx: CanvasRenderingContext2D, globalScale: number) => {
+            if (!graphConfig.nodes.visible) return;
+            
+            const label = node.name;
+            const fontSize = graphConfig.nodes.labelSize / globalScale;
+            const iconSize = (graphConfig.nodes.labelSize + 2) / globalScale;
+            const isFolder = node.type === "folder";
+            ctx.font = `${fontSize}px Inter, sans-serif`;
+            const textWidth = ctx.measureText(label).width;
+            const bckgDimensions = [textWidth + iconSize + 6, fontSize + 2];
+
+            // Draw node circle with glow
+            const nodeSize = (isFolder ? 10 : 8) * (graphConfig.nodes.relSize / 6);
+            ctx.beginPath();
+            ctx.arc(node.x, node.y, nodeSize, 0, 2 * Math.PI);
+            
+            // Set fill color with opacity
+            let fillColor = graphConfig.nodes.fileColor;
+            if (selectedNode?.id === node.id) {
+              fillColor = graphConfig.nodes.selectedColor;
+            } else if (isFolder) {
+              fillColor = graphConfig.nodes.folderColor;
+            }
+            
+            ctx.globalAlpha = graphConfig.nodes.opacity;
+            ctx.fillStyle = fillColor;
+            
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = fillColor.replace(')', ' / 0.8)').replace('hsl(', 'hsla(');
+            ctx.fill();
+            ctx.shadowBlur = 0;
+            ctx.globalAlpha = 1;
+
+            // Draw label if enabled
+            if (graphConfig.nodes.showLabels) {
+              ctx.fillStyle = "hsl(var(--card) / 0.95)";
+              ctx.fillRect(
+                node.x - bckgDimensions[0] / 2,
+                node.y + 14,
+                bckgDimensions[0],
+                bckgDimensions[1]
+              );
+
+              ctx.textAlign = "left";
+              ctx.textBaseline = "middle";
+              ctx.fillStyle = "hsl(var(--card-foreground))";
+              
+              const icon = isFolder ? "📁" : "📄";
+              ctx.fillText(icon, node.x - bckgDimensions[0] / 2 + 2, node.y + 15 + fontSize / 2);
+              ctx.fillText(label, node.x - bckgDimensions[0] / 2 + iconSize + 4, node.y + 15 + fontSize / 2);
+            }
+          }}
+          backgroundColor={`hsl(${theme.colors.canvasBackground})`}
+          enableNodeDrag={true}
+          enableZoomInteraction={true}
+          enablePanInteraction={true}
+          dagMode={graphConfig.forces.dagMode === 'null' ? null : graphConfig.forces.dagMode}
+          dagLevelDistance={graphConfig.forces.dagLevelDistance}
+          cooldownTicks={graphConfig.forces.cooldownTicks}
+          cooldownTime={graphConfig.forces.cooldownTime}
+          d3AlphaDecay={graphConfig.forces.alphaDecay}
+          d3VelocityDecay={graphConfig.forces.velocityDecay}
+          warmupTicks={graphConfig.forces.warmupTicks}
+        />
+
+      {/* Mini-Map */}
+      <GraphMiniMap
+        nodes={filteredData.nodes}
+        links={filteredData.links}
+        graphRef={graphRef}
+        folderColor={graphConfig.nodes.folderColor}
+        fileColor={graphConfig.nodes.fileColor}
+        selectedNodeId={selectedNode?.id}
       />
     </div>
   );
