@@ -1,13 +1,14 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, Database, FolderOpen, ArrowLeft, RefreshCw } from "lucide-react";
+import { Plus, Database, FolderOpen, ArrowLeft, RefreshCw, HardDrive, Zap, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { VaultCard } from "@/components/VaultCard";
 import { VaultBackupPanel } from "@/components/VaultBackupPanel";
 import { VaultBackupSettings } from "@/components/VaultBackupSettings";
 import { DatabaseSettings } from "@/components/DatabaseSettings";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { VaultModeSelector } from "@/components/VaultModeSelector";
+import { ExportToFileSystem } from "@/components/ExportToFileSystem";
+import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { getVaultManager } from "@/services/vault/VaultManagerSingleton";
 
@@ -30,8 +31,7 @@ interface Vault {
 export default function VaultDashboard() {
   const [vaults, setVaults] = useState<Vault[]>([]);
   const [activeVaultId, setActiveVaultId] = useState<string | null>(null);
-  const [newVaultName, setNewVaultName] = useState("");
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isVaultSelectorOpen, setIsVaultSelectorOpen] = useState(false);
   const [backups, setBackups] = useState<Record<string, any[]>>({});
   const [backupConfigs, setBackupConfigs] = useState<Record<string, any>>({});
   const [settingsVaultId, setSettingsVaultId] = useState<string | null>(null);
@@ -95,43 +95,68 @@ export default function VaultDashboard() {
     setBackupConfigs(configData);
   };
 
-  const handleCreateInMemoryVault = async () => {
-    if (!newVaultName.trim()) {
-      toast.error("Please enter a vault name");
-      return;
-    }
-
-    if (!isInitialized) {
-      toast.error("Vault system is still initializing. Please wait...");
-      return;
-    }
-
+  const handleCreateLocalVault = async (folderName: string): Promise<string | null> => {
     try {
-      console.log("Creating vault:", newVaultName);
-      const vaultId = await vaultManager.createInMemoryVault(newVaultName);
-      console.log("Vault created with ID:", vaultId);
-      vaultManager.startAutoBackup(vaultId);
-      console.log("Auto-backup started");
-      setNewVaultName("");
-      setIsDialogOpen(false);
-      await loadVaults();
-      toast.success(`Vault "${newVaultName}" created`);
+      // @ts-ignore - File System Access API
+      const dirHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
+      
+      // Create a subdirectory with the vault name
+      const vaultHandle = await dirHandle.getDirectoryHandle(
+        folderName.replace(/[^a-zA-Z0-9-_\s]/g, ""), 
+        { create: true }
+      );
+      
+      const vaultId = await vaultManager.openLocalFolderVault();
+      if (vaultId) {
+        await loadVaults();
+        toast.success(`Local vault "${folderName}" created`);
+        return vaultId;
+      }
+      return null;
     } catch (error) {
-      console.error("Vault creation error:", error);
-      toast.error(`Failed to create vault: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      if (error instanceof Error && error.name !== 'AbortError') {
+        throw error;
+      }
+      return null;
     }
   };
 
-  const handleOpenLocalFolder = async () => {
+  const handleOpenLocalVault = async (): Promise<string | null> => {
     try {
       const vaultId = await vaultManager.openLocalFolderVault();
       if (vaultId) {
-        loadVaults();
+        await loadVaults();
         toast.success("Local folder vault opened");
+        return vaultId;
       }
+      return null;
     } catch (error) {
-      toast.error("Failed to open local folder");
+      if (error instanceof Error && error.name !== 'AbortError') {
+        throw error;
+      }
+      return null;
     }
+  };
+
+  const handleCreateInMemoryVault = async (name: string): Promise<string | null> => {
+    if (!isInitialized) {
+      throw new Error("Vault system is still initializing. Please wait...");
+    }
+
+    try {
+      const vaultId = await vaultManager.createInMemoryVault(name);
+      vaultManager.startAutoBackup(vaultId);
+      await loadVaults();
+      toast.success(`In-Memory vault "${name}" created`);
+      return vaultId;
+    } catch (error) {
+      console.error("Vault creation error:", error);
+      throw error;
+    }
+  };
+
+  const handleVaultCreated = (vaultId: string) => {
+    handleSelectVault(vaultId);
   };
 
   const handleSelectVault = async (vaultId: string) => {
@@ -224,6 +249,14 @@ export default function VaultDashboard() {
     }
   };
 
+  const getVaultNodes = (vaultId: string) => {
+    const vault = vaultManager.getVault(vaultId);
+    if (vault) {
+      return vault.graphService.getGraphData().nodes;
+    }
+    return [];
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b border-border bg-card/50">
@@ -269,34 +302,13 @@ export default function VaultDashboard() {
                 </>
               )}
 
-              <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button variant="outline" className="gap-2" disabled={!isInitialized}>
-                    <Database className="w-4 h-4" />
-                    New Vault
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Create In-Memory Vault</DialogTitle>
-                  </DialogHeader>
-                  <div className="space-y-4 pt-4">
-                    <Input
-                      placeholder="Enter vault name..."
-                      value={newVaultName}
-                      onChange={(e) => setNewVaultName(e.target.value)}
-                      onKeyDown={(e) => e.key === "Enter" && handleCreateInMemoryVault()}
-                    />
-                    <Button onClick={handleCreateInMemoryVault} className="w-full">
-                      Create Vault
-                    </Button>
-                  </div>
-                </DialogContent>
-              </Dialog>
-
-              <Button onClick={handleOpenLocalFolder} className="gap-2" disabled={!isInitialized}>
-                <FolderOpen className="w-4 h-4" />
-                Open Local Folder
+              <Button 
+                onClick={() => setIsVaultSelectorOpen(true)} 
+                className="gap-2" 
+                disabled={!isInitialized}
+              >
+                <Plus className="w-4 h-4" />
+                New Vault
               </Button>
             </div>
           </div>
@@ -315,18 +327,48 @@ export default function VaultDashboard() {
             <Database className="w-16 h-16 text-muted-foreground mb-4" />
             <h2 className="text-xl font-semibold mb-2">No vaults yet</h2>
             <p className="text-muted-foreground mb-6">
-              Create an in-memory vault or open a local folder to get started
+              Choose where you want your workspace data to live
             </p>
-            <div className="flex gap-3">
-              <Button onClick={() => setIsDialogOpen(true)} variant="outline">
-                <Plus className="w-4 h-4 mr-2" />
-                Create In-Memory Vault
-              </Button>
-              <Button onClick={handleOpenLocalFolder}>
-                <FolderOpen className="w-4 h-4 mr-2" />
-                Open Local Folder
-              </Button>
+            <div className="grid md:grid-cols-2 gap-4 max-w-2xl">
+              <div 
+                className="p-6 rounded-lg border bg-card hover:border-primary cursor-pointer transition-all group"
+                onClick={() => setIsVaultSelectorOpen(true)}
+              >
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="p-2 rounded-lg bg-primary/10 text-primary">
+                    <HardDrive className="w-5 h-5" />
+                  </div>
+                  <div className="font-medium group-hover:text-primary transition-colors">Local Native</div>
+                  <Badge variant="secondary" className="text-xs">Permanent</Badge>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Store as files on your computer
+                </p>
+              </div>
+
+              <div 
+                className="p-6 rounded-lg border bg-card hover:border-primary cursor-pointer transition-all group"
+                onClick={() => setIsVaultSelectorOpen(true)}
+              >
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="p-2 rounded-lg bg-amber-500/10 text-amber-500">
+                    <Zap className="w-5 h-5" />
+                  </div>
+                  <div className="font-medium group-hover:text-primary transition-colors">In-Memory</div>
+                  <Badge variant="outline" className="text-xs">Ephemeral</Badge>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Fast temporary workspace in browser
+                </p>
+              </div>
             </div>
+            <Button 
+              onClick={() => setIsVaultSelectorOpen(true)} 
+              className="mt-6"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Create Your First Vault
+            </Button>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -344,23 +386,49 @@ export default function VaultDashboard() {
                   onSelect={() => handleSelectVault(vault.id)}
                   onDelete={() => handleDeleteVault(vault.id)}
                 />
-                {vault.type === 'in-memory' && backups[vault.id] && (
-                  <div className="flex gap-2">
-                    <VaultBackupPanel
-                      vaultId={vault.id}
-                      backups={backups[vault.id] || []}
-                      onRestore={(backupId) => handleRestoreBackup(vault.id, backupId)}
-                      onDelete={(backupId) => handleDeleteBackup(vault.id, backupId)}
-                      onManualBackup={() => handleManualBackup(vault.id)}
-                      onOpenSettings={() => setSettingsVaultId(vault.id)}
-                    />
-                  </div>
-                )}
+                
+                {/* Actions row for each vault */}
+                <div className="flex gap-2 flex-wrap">
+                  {vault.type === 'in-memory' && (
+                    <>
+                      {backups[vault.id] && (
+                        <VaultBackupPanel
+                          vaultId={vault.id}
+                          backups={backups[vault.id] || []}
+                          onRestore={(backupId) => handleRestoreBackup(vault.id, backupId)}
+                          onDelete={(backupId) => handleDeleteBackup(vault.id, backupId)}
+                          onManualBackup={() => handleManualBackup(vault.id)}
+                          onOpenSettings={() => setSettingsVaultId(vault.id)}
+                        />
+                      )}
+                      <ExportToFileSystem 
+                        vaultName={vault.name}
+                        nodes={getVaultNodes(vault.id)}
+                        trigger={
+                          <Button variant="outline" size="sm" className="text-xs">
+                            <Download className="w-3 h-3 mr-1" />
+                            Save Permanently
+                          </Button>
+                        }
+                      />
+                    </>
+                  )}
+                </div>
               </div>
             ))}
           </div>
         )}
       </main>
+
+      {/* Vault Mode Selector Dialog */}
+      <VaultModeSelector
+        open={isVaultSelectorOpen}
+        onOpenChange={setIsVaultSelectorOpen}
+        onCreateLocalVault={handleCreateLocalVault}
+        onOpenLocalVault={handleOpenLocalVault}
+        onCreateInMemoryVault={handleCreateInMemoryVault}
+        onVaultCreated={handleVaultCreated}
+      />
 
       {settingsVaultId && backupConfigs[settingsVaultId] && (
         <VaultBackupSettings

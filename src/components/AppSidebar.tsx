@@ -48,6 +48,7 @@ interface AppSidebarProps {
   onNodeMove?: (nodeId: string, newParentId: string | null) => void;
   isVaultMode: boolean;
   vaultName: string | null;
+  vaultType?: 'in-memory' | 'local-folder';
   onCloseVault: () => void;
   graphConfigTrigger: React.ReactNode;
   onImportComplete?: (importedNodes: Node[], updatedNodes?: Node[]) => void;
@@ -60,6 +61,7 @@ export function AppSidebar({
   onNodeMove,
   isVaultMode,
   vaultName,
+  vaultType,
   onCloseVault,
   graphConfigTrigger,
   onImportComplete,

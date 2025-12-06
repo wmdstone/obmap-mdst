@@ -1,8 +1,9 @@
-import { Database, FolderOpen, Trash2, Clock, Network, FileText, Tag, Link2 } from "lucide-react";
+import { HardDrive, Zap, Trash2, Clock, Network, FileText, Tag, Link2, AlertTriangle, FolderOpen } from "lucide-react";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { formatDistanceToNow } from "date-fns";
 
 interface VaultCardProps {
@@ -41,15 +42,34 @@ export const VaultCard = ({
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-3">
             {type === 'in-memory' ? (
-              <Database className="w-5 h-5 text-primary" />
+              <div className="p-2 rounded-lg bg-amber-500/10">
+                <Zap className="w-5 h-5 text-amber-500" />
+              </div>
             ) : (
-              <FolderOpen className="w-5 h-5 text-primary" />
+              <div className="p-2 rounded-lg bg-primary/10">
+                <HardDrive className="w-5 h-5 text-primary" />
+              </div>
             )}
             <div>
               <CardTitle className="text-lg">{name}</CardTitle>
-              <Badge variant="secondary" className="mt-1 text-xs">
-                {type === 'in-memory' ? 'In-Memory' : 'Local Folder'}
-              </Badge>
+              <div className="flex items-center gap-2 mt-1">
+                <Badge 
+                  variant={type === 'in-memory' ? 'outline' : 'secondary'} 
+                  className="text-xs"
+                >
+                  {type === 'in-memory' ? 'In-Memory' : 'Local Native'}
+                </Badge>
+                {type === 'in-memory' && (
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <AlertTriangle className="w-3 h-3 text-amber-500" />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p className="text-xs">Data may be lost if browser cache is cleared</p>
+                    </TooltipContent>
+                  </Tooltip>
+                )}
+              </div>
             </div>
           </div>
           {isActive && (
@@ -87,7 +107,7 @@ export const VaultCard = ({
                 </span>
               </div>
               <div className="flex items-center gap-2">
-                <Database className="w-3 h-3 text-muted-foreground" />
+                <FolderOpen className="w-3 h-3 text-muted-foreground" />
                 <span className="text-muted-foreground">
                   <span className="font-medium text-foreground">{stats.folderCount}</span> folders
                 </span>
