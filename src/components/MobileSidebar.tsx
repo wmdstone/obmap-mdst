@@ -22,6 +22,7 @@ interface MobileSidebarProps {
   onNodeMove?: (nodeId: string, newParentId: string | null) => void;
   isVaultMode: boolean;
   vaultName: string | null;
+  vaultType?: 'in-memory' | 'local-folder';
   onCloseVault: () => void;
   graphConfigTrigger: React.ReactNode;
   onImportComplete?: (importedNodes: Node[], updatedNodes?: Node[]) => void;
@@ -34,6 +35,7 @@ export function MobileSidebar({
   onNodeMove,
   isVaultMode,
   vaultName,
+  vaultType,
   onCloseVault,
   graphConfigTrigger,
   onImportComplete,
@@ -64,6 +66,7 @@ export function MobileSidebar({
           onNodeMove={onNodeMove}
           isVaultMode={isVaultMode}
           vaultName={vaultName}
+          vaultType={vaultType}
           onCloseVault={onCloseVault}
           graphConfigTrigger={graphConfigTrigger}
           onImportComplete={onImportComplete}
