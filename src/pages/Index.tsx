@@ -5,6 +5,7 @@ import { AppSidebar } from '@/components/AppSidebar';
 import { MobileSidebar } from '@/components/MobileSidebar';
 import { ThemeCustomizer } from '@/components/ThemeCustomizer';
 import { GraphConfigPanel } from '@/components/GraphConfigPanel';
+import { VaultRequiredGate } from '@/components/VaultRequiredGate';
 import {
 	PWAInstallPrompt,
 	PWAStatusBadge,
@@ -197,10 +198,21 @@ const Index = () => {
 			updateUndoRedoState(activeVault.id);
 		} else {
 			setCurrentVaultId(null);
-			setNodes(getDemoData().nodes);
+			setNodes([]);
 			setCanUndo(false);
 			setCanRedo(false);
 		}
+	};
+
+	const handleVaultCreated = (vaultId: string) => {
+		setCurrentVaultId(vaultId);
+		const vault = vaultManager.getVault(vaultId);
+		if (vault) {
+			const vaultGraphData = vault.graphService.getGraphData();
+			setNodes(vaultGraphData.nodes);
+			updateUndoRedoState(vaultId);
+		}
+		toast.success('Vault created and activated');
 	};
 
 	const updateUndoRedoState = (vaultId: string) => {
@@ -477,6 +489,10 @@ const Index = () => {
 	);
 
 	return (
+		<VaultRequiredGate
+			isVaultActive={!!currentVaultId}
+			onVaultCreated={handleVaultCreated}
+		>
 		<div className='flex h-screen overflow-hidden bg-background w-full'>
 			{/* Offline Status Alert */}
 			<div className='fixed top-16 left-1/2 -translate-x-1/2 z-50 w-[90%] max-w-md'>
@@ -637,6 +653,7 @@ const Index = () => {
 				showOfflineStatus={true}
 			/>
 		</div>
+		</VaultRequiredGate>
 	);
 };
 
