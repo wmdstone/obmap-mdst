@@ -180,15 +180,22 @@ export function GraphMiniMap({
         // Ignore zoom errors
       }
     }
-
-    animationRef.current = requestAnimationFrame(render);
   }, [nodes, links, size, getBounds, folderColor, fileColor, selectedNodeId, graphRef]);
 
+  // Periodic render with throttling (not in render callback to avoid infinite loop)
   useEffect(() => {
-    if (isExpanded) {
+    if (!isExpanded) return;
+    
+    // Initial render
+    render();
+    
+    // Periodic updates for viewport tracking
+    const intervalId = setInterval(() => {
       render();
-    }
+    }, 100);
+    
     return () => {
+      clearInterval(intervalId);
       if (animationRef.current) {
         cancelAnimationFrame(animationRef.current);
       }

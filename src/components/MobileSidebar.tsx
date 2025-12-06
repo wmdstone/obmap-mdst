@@ -24,7 +24,7 @@ interface MobileSidebarProps {
   vaultName: string | null;
   onCloseVault: () => void;
   graphConfigTrigger: React.ReactNode;
-  onImportComplete?: (importedNodes: Node[]) => void;
+  onImportComplete?: (importedNodes: Node[], updatedNodes?: Node[]) => void;
 }
 
 export function MobileSidebar({

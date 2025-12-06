@@ -11,6 +11,7 @@ import {
   Check,
   AlertCircle,
   ChevronDown,
+  Settings2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -32,8 +33,11 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { toast } from "sonner";
-import { importExportService, ImportResult, ExportOptions, GraphNode } from "@/services/import-export/ImportExportService";
+import { importExportService, ImportResult, ExportOptions, GraphNode, DuplicateStrategy } from "@/services/import-export/ImportExportService";
 
 interface Node {
   id: string;
@@ -51,7 +55,7 @@ interface Node {
 
 interface ImportExportPanelProps {
   nodes: Node[];
-  onImportComplete: (importedNodes: Node[]) => void;
+  onImportComplete: (importedNodes: Node[], updatedNodes?: Node[]) => void;
 }
 
 export const ImportExportPanel = ({ nodes, onImportComplete }: ImportExportPanelProps) => {
@@ -61,11 +65,17 @@ export const ImportExportPanel = ({ nodes, onImportComplete }: ImportExportPanel
   const [lastResult, setLastResult] = useState<ImportResult | null>(null);
   const [selectedExportNodes, setSelectedExportNodes] = useState<Set<string>>(new Set());
   const [includeMedia, setIncludeMedia] = useState(true);
+  const [duplicateStrategy, setDuplicateStrategy] = useState<DuplicateStrategy>('rename');
+  const [showImportSettings, setShowImportSettings] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const folderInputRef = useRef<HTMLInputElement>(null);
   const zipInputRef = useRef<HTMLInputElement>(null);
   const mediaInputRef = useRef<HTMLInputElement>(null);
+  
+  // Use ref to always have latest nodes (fixes stale closure issue)
+  const nodesRef = useRef<Node[]>(nodes);
+  nodesRef.current = nodes;
 
   const handleFileImport = async (files: FileList | null, type: string) => {
     if (!files || files.length === 0) return;
@@ -75,18 +85,28 @@ export const ImportExportPanel = ({ nodes, onImportComplete }: ImportExportPanel
 
     try {
       setImportProgress(30);
-      const result = await importExportService.importFiles(files, nodes as GraphNode[]);
+      // Use nodesRef.current to get the LATEST nodes, not stale closure
+      const result = await importExportService.importFiles(files, nodesRef.current as GraphNode[], duplicateStrategy);
       setImportProgress(100);
       setLastResult(result);
 
-      if (result.nodes.length > 0) {
-        // Merge imported nodes with existing nodes
-        onImportComplete(result.nodes as Node[]);
-        toast.success(
-          `Imported ${result.folders} folders, ${result.files} files, ${result.media} media`
-        );
+      if (result.nodes.length > 0 || result.updatedNodes.length > 0) {
+        // Merge imported nodes with existing nodes and update modified ones
+        onImportComplete(result.nodes as Node[], result.updatedNodes as Node[]);
+        
+        const parts: string[] = [];
+        if (result.folders > 0) parts.push(`${result.folders} folders`);
+        if (result.files > 0) parts.push(`${result.files} files`);
+        if (result.media > 0) parts.push(`${result.media} media`);
+        if (result.overwritten > 0) parts.push(`${result.overwritten} overwritten`);
+        if (result.merged > 0) parts.push(`${result.merged} merged`);
+        if (result.skipped > 0) parts.push(`${result.skipped} skipped`);
+        
+        toast.success(`Imported: ${parts.join(', ')}`);
       } else if (result.errors.length > 0) {
         toast.warning(`Import completed with ${result.errors.length} errors`);
+      } else if (result.skipped > 0) {
+        toast.info(`Skipped ${result.skipped} duplicate items`);
       } else {
         toast.info('No supported files found to import');
       }
@@ -102,6 +122,7 @@ export const ImportExportPanel = ({ nodes, onImportComplete }: ImportExportPanel
       if (mediaInputRef.current) mediaInputRef.current.value = '';
     }
   };
+
 
   const handleExport = async (type: ExportOptions["type"]) => {
     const options: ExportOptions = {
@@ -218,6 +239,54 @@ export const ImportExportPanel = ({ nodes, onImportComplete }: ImportExportPanel
                 )}
               </div>
             )}
+
+            {/* Import Settings */}
+            <Collapsible open={showImportSettings} onOpenChange={setShowImportSettings}>
+              <CollapsibleTrigger asChild>
+                <Button variant="ghost" size="sm" className="w-full justify-between mb-3">
+                  <span className="flex items-center gap-2">
+                    <Settings2 className="w-4 h-4" />
+                    Import Settings
+                  </span>
+                  <ChevronDown className={`w-4 h-4 transition-transform ${showImportSettings ? 'rotate-180' : ''}`} />
+                </Button>
+              </CollapsibleTrigger>
+              <CollapsibleContent className="space-y-3 pb-4">
+                <div className="p-3 border rounded-lg bg-muted/30 space-y-3">
+                  <p className="text-xs font-medium text-muted-foreground">When duplicate names are found:</p>
+                  <RadioGroup 
+                    value={duplicateStrategy} 
+                    onValueChange={(v) => setDuplicateStrategy(v as DuplicateStrategy)}
+                    className="space-y-2"
+                  >
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="rename" id="rename" />
+                      <Label htmlFor="rename" className="text-sm cursor-pointer">
+                        Auto-rename (e.g., "file (1)")
+                      </Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="overwrite" id="overwrite" />
+                      <Label htmlFor="overwrite" className="text-sm cursor-pointer">
+                        Overwrite existing
+                      </Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="skip" id="skip" />
+                      <Label htmlFor="skip" className="text-sm cursor-pointer">
+                        Skip duplicates
+                      </Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="merge" id="merge" />
+                      <Label htmlFor="merge" className="text-sm cursor-pointer">
+                        Merge content (append)
+                      </Label>
+                    </div>
+                  </RadioGroup>
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
 
             <div className="grid grid-cols-2 gap-3">
               {/* Files */}
