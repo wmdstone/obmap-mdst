@@ -496,6 +496,7 @@ const Index = () => {
 							? vaultManager.getVault(currentVaultId)?.name || null
 							: null
 					}
+					vaultType={currentVaultId ? vaultManager.getVault(currentVaultId)?.type : undefined}
 					onCloseVault={handleCloseVault}
 					graphConfigTrigger={graphConfigTrigger}
 					onImportComplete={async (importedNodes, updatedNodes) => {
@@ -543,6 +544,7 @@ const Index = () => {
 						? vaultManager.getVault(currentVaultId)?.name || null
 						: null
 				}
+				vaultType={currentVaultId ? vaultManager.getVault(currentVaultId)?.type : undefined}
 				onCloseVault={handleCloseVault}
 				graphConfigTrigger={graphConfigTrigger}
 				onImportComplete={async (importedNodes, updatedNodes) => {
