@@ -37,6 +37,54 @@ import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
 
+// Resolve CSS variable colors to actual HSL values for canvas rendering
+function resolveColor(color: string): string {
+	// If it's already a resolved HSL/HSLA value (no CSS variables), return as-is
+	if (!color.includes('var(')) {
+		return color;
+	}
+	
+	// Extract the CSS variable name
+	const varMatch = color.match(/var\(--([^)]+)\)/);
+	if (!varMatch) return color;
+	
+	const varName = varMatch[1];
+	
+	// Get the computed value from CSS
+	const computedValue = getComputedStyle(document.documentElement)
+		.getPropertyValue(`--${varName}`)
+		.trim();
+	
+	if (!computedValue) return color;
+	
+	// Replace the var() with the actual value
+	return color.replace(`var(--${varName})`, computedValue);
+}
+
+// Convert color to HSLA with opacity for canvas
+function colorWithOpacity(color: string, opacity: number): string {
+	const resolved = resolveColor(color);
+	
+	// If already hsla, adjust opacity
+	if (resolved.startsWith('hsla(')) {
+		return resolved.replace(/,\s*[\d.]+\)$/, `, ${opacity})`);
+	}
+	
+	// If hsl, convert to hsla
+	if (resolved.startsWith('hsl(')) {
+		return resolved.replace('hsl(', 'hsla(').replace(')', `, ${opacity})`);
+	}
+	
+	// If it's just HSL values without the function wrapper (from CSS var)
+	const hslMatch = resolved.match(/^([\d.]+)\s+([\d.]+)%?\s+([\d.]+)%?$/);
+	if (hslMatch) {
+		return `hsla(${hslMatch[1]}, ${hslMatch[2]}%, ${hslMatch[3]}%, ${opacity})`;
+	}
+	
+	// Return as-is if we can't parse it
+	return resolved;
+}
+
 interface Node {
 	id: string;
 	name: string;
@@ -611,14 +659,14 @@ export const NetworkGraph = ({
 				nodeColor={(node: any) => {
 					if (!graphConfig.nodes.visible) return 'transparent';
 					if (selectedNode?.id === node.id)
-						return graphConfig.nodes.selectedColor;
+						return resolveColor(graphConfig.nodes.selectedColor);
 
 					// Auto-color based on config
 					switch (graphConfig.nodes.autoColorBy) {
 						case 'type':
 							return node.type === 'folder'
-								? graphConfig.nodes.folderColor
-								: graphConfig.nodes.fileColor;
+								? resolveColor(graphConfig.nodes.folderColor)
+								: resolveColor(graphConfig.nodes.fileColor);
 						case 'depth':
 							const hue = (node.depth * 40) % 360;
 							return `hsl(${hue}, 70%, 55%)`;
@@ -629,11 +677,11 @@ export const NetworkGraph = ({
 									.reduce((a: number, b: string) => a + b.charCodeAt(0), 0);
 								return `hsl(${tagHash % 360}, 70%, 55%)`;
 							}
-							return graphConfig.nodes.fileColor;
+							return resolveColor(graphConfig.nodes.fileColor);
 						default:
 							return node.type === 'folder'
-								? graphConfig.nodes.folderColor
-								: graphConfig.nodes.fileColor;
+								? resolveColor(graphConfig.nodes.folderColor)
+								: resolveColor(graphConfig.nodes.fileColor);
 					}
 				}}
 				nodeRelSize={graphConfig.nodes.relSize}
@@ -643,14 +691,10 @@ export const NetworkGraph = ({
 					const linkType = link.type as keyof typeof linkStyles | undefined;
 					if (linkStyles && linkType && linkStyles[linkType]) {
 						const style = linkStyles[linkType];
-						return style.color
-							.replace(')', ` / ${style.opacity})`)
-							.replace('hsl(', 'hsla(');
+						return colorWithOpacity(style.color, style.opacity);
 					}
 					// Use graphConfig link settings as fallback
-					return graphConfig.links.color
-						.replace(')', ` / ${graphConfig.links.opacity})`)
-						.replace('hsl(', 'hsla(');
+					return colorWithOpacity(graphConfig.links.color, graphConfig.links.opacity);
 				}}
 				linkWidth={(link: any) => {
 					const linkType = link.type as keyof typeof linkStyles | undefined;
@@ -688,6 +732,7 @@ export const NetworkGraph = ({
 				}
 				linkDirectionalParticleSpeed={graphConfig.links.particleSpeed}
 				linkDirectionalParticleWidth={graphConfig.links.particleWidth}
+				linkDirectionalParticleColor={() => resolveColor(graphConfig.links.particleColor)}
 				onNodeClick={handleNodeClick}
 				nodeCanvasObject={(
 					node: any,
@@ -711,27 +756,25 @@ export const NetworkGraph = ({
 					ctx.arc(node.x, node.y, nodeSize, 0, 2 * Math.PI);
 
 					// Set fill color with opacity
-					let fillColor = graphConfig.nodes.fileColor;
+					let fillColor = resolveColor(graphConfig.nodes.fileColor);
 					if (selectedNode?.id === node.id) {
-						fillColor = graphConfig.nodes.selectedColor;
+						fillColor = resolveColor(graphConfig.nodes.selectedColor);
 					} else if (isFolder) {
-						fillColor = graphConfig.nodes.folderColor;
+						fillColor = resolveColor(graphConfig.nodes.folderColor);
 					}
 
 					ctx.globalAlpha = graphConfig.nodes.opacity;
 					ctx.fillStyle = fillColor;
 
 					ctx.shadowBlur = 10;
-					ctx.shadowColor = fillColor
-						.replace(')', ' / 0.8)')
-						.replace('hsl(', 'hsla(');
+					ctx.shadowColor = colorWithOpacity(fillColor, 0.8);
 					ctx.fill();
 					ctx.shadowBlur = 0;
 					ctx.globalAlpha = 1;
 
 					// Draw label if enabled
 					if (graphConfig.nodes.showLabels) {
-						ctx.fillStyle = 'hsl(var(--card) / 0.95)';
+						ctx.fillStyle = colorWithOpacity(resolveColor('hsl(var(--card))'), 0.95);
 						ctx.fillRect(
 							node.x - bckgDimensions[0] / 2,
 							node.y + 14,
@@ -741,7 +784,7 @@ export const NetworkGraph = ({
 
 						ctx.textAlign = 'left';
 						ctx.textBaseline = 'middle';
-						ctx.fillStyle = 'hsl(var(--card-foreground))';
+						ctx.fillStyle = resolveColor('hsl(var(--card-foreground))');
 
 						const icon = isFolder ? '📁' : '📄';
 						ctx.fillText(
