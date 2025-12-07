@@ -141,6 +141,7 @@ const defaultGraphConfig: GraphConfigState = {
 	nodes: {
 		relSize: 6,
 		resolution: 8,
+		shape: 'circle',
 		visible: true,
 		opacity: 1.0,
 		autoColorBy: 'type',
@@ -150,6 +151,10 @@ const defaultGraphConfig: GraphConfigState = {
 		labelField: 'name',
 		showLabels: true,
 		labelSize: 12,
+		labelColor: 'hsl(0, 0%, 100%)',
+		labelFontStyle: 'normal',
+		labelBackground: true,
+		labelBackgroundColor: 'hsl(0, 0%, 0%)',
 	},
 	links: {
 		width: 2,
@@ -745,16 +750,30 @@ export const NetworkGraph = ({
 					const fontSize = graphConfig.nodes.labelSize / globalScale;
 					const iconSize = (graphConfig.nodes.labelSize + 2) / globalScale;
 					const isFolder = node.type === 'folder';
-					ctx.font = `${fontSize}px Inter, sans-serif`;
+					
+					// Build font string based on style
+					let fontStyle = '';
+					switch (graphConfig.nodes.labelFontStyle) {
+						case 'bold':
+							fontStyle = 'bold ';
+							break;
+						case 'italic':
+							fontStyle = 'italic ';
+							break;
+						case 'bold-italic':
+							fontStyle = 'bold italic ';
+							break;
+						default:
+							fontStyle = '';
+					}
+					
+					ctx.font = `${fontStyle}${fontSize}px Inter, sans-serif`;
 					const textWidth = ctx.measureText(label).width;
-					const bckgDimensions = [textWidth + iconSize + 6, fontSize + 2];
+					const bckgDimensions = [textWidth + iconSize + 6, fontSize + 4];
 
-					// Draw node circle with glow
-					const nodeSize =
-						(isFolder ? 10 : 8) * (graphConfig.nodes.relSize / 6);
-					ctx.beginPath();
-					ctx.arc(node.x, node.y, nodeSize, 0, 2 * Math.PI);
-
+					// Draw node shape with glow
+					const nodeSize = (isFolder ? 10 : 8) * (graphConfig.nodes.relSize / 6);
+					
 					// Set fill color with opacity
 					let fillColor = resolveColor(graphConfig.nodes.fileColor);
 					if (selectedNode?.id === node.id) {
@@ -765,26 +784,65 @@ export const NetworkGraph = ({
 
 					ctx.globalAlpha = graphConfig.nodes.opacity;
 					ctx.fillStyle = fillColor;
-
 					ctx.shadowBlur = 10;
 					ctx.shadowColor = colorWithOpacity(fillColor, 0.8);
+
+					// Draw shape based on config
+					ctx.beginPath();
+					switch (graphConfig.nodes.shape) {
+						case 'square':
+							ctx.rect(node.x - nodeSize, node.y - nodeSize, nodeSize * 2, nodeSize * 2);
+							break;
+						case 'diamond':
+							ctx.moveTo(node.x, node.y - nodeSize);
+							ctx.lineTo(node.x + nodeSize, node.y);
+							ctx.lineTo(node.x, node.y + nodeSize);
+							ctx.lineTo(node.x - nodeSize, node.y);
+							ctx.closePath();
+							break;
+						case 'triangle':
+							ctx.moveTo(node.x, node.y - nodeSize);
+							ctx.lineTo(node.x + nodeSize, node.y + nodeSize * 0.8);
+							ctx.lineTo(node.x - nodeSize, node.y + nodeSize * 0.8);
+							ctx.closePath();
+							break;
+						case 'hexagon':
+							const hexRadius = nodeSize;
+							for (let i = 0; i < 6; i++) {
+								const angle = (Math.PI / 3) * i - Math.PI / 6;
+								const hx = node.x + hexRadius * Math.cos(angle);
+								const hy = node.y + hexRadius * Math.sin(angle);
+								if (i === 0) ctx.moveTo(hx, hy);
+								else ctx.lineTo(hx, hy);
+							}
+							ctx.closePath();
+							break;
+						case 'circle':
+						default:
+							ctx.arc(node.x, node.y, nodeSize, 0, 2 * Math.PI);
+							break;
+					}
+					
 					ctx.fill();
 					ctx.shadowBlur = 0;
 					ctx.globalAlpha = 1;
 
 					// Draw label if enabled
 					if (graphConfig.nodes.showLabels) {
-						ctx.fillStyle = colorWithOpacity(resolveColor('hsl(var(--card))'), 0.95);
-						ctx.fillRect(
-							node.x - bckgDimensions[0] / 2,
-							node.y + 14,
-							bckgDimensions[0],
-							bckgDimensions[1]
-						);
+						// Draw label background if enabled
+						if (graphConfig.nodes.labelBackground) {
+							ctx.fillStyle = colorWithOpacity(resolveColor(graphConfig.nodes.labelBackgroundColor), 0.85);
+							ctx.fillRect(
+								node.x - bckgDimensions[0] / 2,
+								node.y + 14,
+								bckgDimensions[0],
+								bckgDimensions[1]
+							);
+						}
 
 						ctx.textAlign = 'left';
 						ctx.textBaseline = 'middle';
-						ctx.fillStyle = resolveColor('hsl(var(--card-foreground))');
+						ctx.fillStyle = resolveColor(graphConfig.nodes.labelColor);
 
 						const icon = isFolder ? '📁' : '📄';
 						ctx.fillText(
