@@ -14,6 +14,9 @@ export interface NodeConfig {
   relSize: number;          // nodeRelSize (default: 4)
   resolution: number;       // nodeResolution (geometry detail)
   
+  // Shape
+  shape: 'circle' | 'square' | 'diamond' | 'triangle' | 'hexagon';
+  
   // Visibility & Transparency
   visible: boolean;         // nodeVisibility
   opacity: number;          // nodeOpacity (0.0-1.0)
@@ -28,6 +31,10 @@ export interface NodeConfig {
   labelField: 'name' | 'id' | 'custom';  // nodeLabel source
   showLabels: boolean;
   labelSize: number;
+  labelColor: string;
+  labelFontStyle: 'normal' | 'bold' | 'italic' | 'bold-italic';
+  labelBackground: boolean;
+  labelBackgroundColor: string;
 }
 
 export interface LinkStyle {
@@ -122,6 +129,7 @@ export interface GraphConfigState {
 const defaultNodeConfig: NodeConfig = {
   relSize: 6,
   resolution: 8,
+  shape: 'circle',
   visible: true,
   opacity: 1.0,
   autoColorBy: 'type',
@@ -131,6 +139,10 @@ const defaultNodeConfig: NodeConfig = {
   labelField: 'name',
   showLabels: true,
   labelSize: 12,
+  labelColor: 'hsl(0, 0%, 100%)',
+  labelFontStyle: 'normal',
+  labelBackground: true,
+  labelBackgroundColor: 'hsl(0, 0%, 0%)',
 };
 
 const defaultLinkConfig: LinkConfig = {
