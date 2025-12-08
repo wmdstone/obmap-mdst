@@ -1,14 +1,17 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, Database, FolderOpen, ArrowLeft, RefreshCw, HardDrive, Zap, Download } from "lucide-react";
+import { Plus, Database, ArrowLeft, RefreshCw, HardDrive, Zap, Download, BarChart3, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { VaultCard } from "@/components/VaultCard";
 import { VaultBackupPanel } from "@/components/VaultBackupPanel";
-import { VaultBackupSettings } from "@/components/VaultBackupSettings";
+import { VaultBackupSettingsContent } from "@/components/VaultBackupSettings";
+import { VaultComparisonView } from "@/components/VaultComparisonView";
 import { DatabaseSettings } from "@/components/DatabaseSettings";
 import { VaultModeSelector } from "@/components/VaultModeSelector";
 import { ExportToFileSystem } from "@/components/ExportToFileSystem";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { getVaultManager } from "@/services/vault/VaultManagerSingleton";
 
@@ -36,6 +39,11 @@ export default function VaultDashboard() {
   const [backupConfigs, setBackupConfigs] = useState<Record<string, any>>({});
   const [settingsVaultId, setSettingsVaultId] = useState<string | null>(null);
   const [isSyncing, setIsSyncing] = useState(false);
+  
+  // Comparison mode state
+  const [isCompareMode, setIsCompareMode] = useState(false);
+  const [selectedForComparison, setSelectedForComparison] = useState<Set<string>>(new Set());
+  
   const vaultManager = getVaultManager();
   const syncService = vaultManager.getSyncService();
   const navigate = useNavigate();
@@ -257,6 +265,26 @@ export default function VaultDashboard() {
     return [];
   };
 
+  // Comparison mode handlers
+  const toggleVaultSelection = (vaultId: string) => {
+    setSelectedForComparison(prev => {
+      const next = new Set(prev);
+      if (next.has(vaultId)) {
+        next.delete(vaultId);
+      } else {
+        next.add(vaultId);
+      }
+      return next;
+    });
+  };
+
+  const comparisonVaults = vaults.filter(v => selectedForComparison.has(v.id));
+
+  const handleExitCompareMode = () => {
+    setIsCompareMode(false);
+    setSelectedForComparison(new Set());
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b border-border bg-card/50">
@@ -273,6 +301,24 @@ export default function VaultDashboard() {
             </div>
 
             <div className="flex items-center gap-3">
+              {/* Compare Mode Toggle */}
+              {vaults.length >= 2 && (
+                <Button
+                  variant={isCompareMode ? "secondary" : "outline"}
+                  size="sm"
+                  onClick={() => isCompareMode ? handleExitCompareMode() : setIsCompareMode(true)}
+                  className="gap-2"
+                >
+                  <BarChart3 className="w-4 h-4" />
+                  {isCompareMode ? "Exit Compare" : "Compare"}
+                  {isCompareMode && selectedForComparison.size > 0 && (
+                    <Badge variant="default" className="ml-1 px-1.5 py-0 text-xs">
+                      {selectedForComparison.size}
+                    </Badge>
+                  )}
+                </Button>
+              )}
+
               <DatabaseSettings
                 onConfigSave={handleSaveDatabaseConfig}
                 currentConfig={syncService.getConfig()}
@@ -371,51 +417,103 @@ export default function VaultDashboard() {
             </Button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {vaults.map((vault) => (
-              <div key={vault.id} className="space-y-3">
-                <VaultCard
-                  id={vault.id}
-                  name={vault.name}
-                  type={vault.type}
-                  nodeCount={vault.nodeCount}
-                  linkCount={vault.linkCount}
-                  lastModified={vault.lastModified}
-                  stats={vault.stats}
-                  isActive={vault.id === activeVaultId}
-                  onSelect={() => handleSelectVault(vault.id)}
-                  onDelete={() => handleDeleteVault(vault.id)}
-                />
-                
-                {/* Actions row for each vault */}
-                <div className="flex gap-2 flex-wrap">
-                  {vault.type === 'in-memory' && (
-                    <>
-                      {backups[vault.id] && (
-                        <VaultBackupPanel
-                          vaultId={vault.id}
-                          backups={backups[vault.id] || []}
-                          onRestore={(backupId) => handleRestoreBackup(vault.id, backupId)}
-                          onDelete={(backupId) => handleDeleteBackup(vault.id, backupId)}
-                          onManualBackup={() => handleManualBackup(vault.id)}
-                          onOpenSettings={() => setSettingsVaultId(vault.id)}
-                        />
-                      )}
-                      <ExportToFileSystem 
-                        vaultName={vault.name}
-                        nodes={getVaultNodes(vault.id)}
-                        trigger={
-                          <Button variant="outline" size="sm" className="text-xs">
-                            <Download className="w-3 h-3 mr-1" />
-                            Save Permanently
-                          </Button>
+          <div className="space-y-8">
+            {/* Comparison View - Shows when vaults are selected for comparison */}
+            {isCompareMode && comparisonVaults.length > 0 && (
+              <VaultComparisonView
+                vaults={comparisonVaults}
+                onRemoveVault={(vaultId) => toggleVaultSelection(vaultId)}
+                onClose={handleExitCompareMode}
+              />
+            )}
+
+            {/* Compare mode instruction */}
+            {isCompareMode && comparisonVaults.length === 0 && (
+              <div className="bg-muted/30 border border-dashed border-border rounded-lg p-6 text-center">
+                <BarChart3 className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
+                <p className="text-sm text-muted-foreground">
+                  Select vaults below to compare their statistics
+                </p>
+              </div>
+            )}
+
+            {/* Vault Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {vaults.map((vault) => (
+                <div key={vault.id} className="space-y-3 relative">
+                  {/* Compare mode checkbox overlay */}
+                  {isCompareMode && (
+                    <div 
+                      className="absolute -top-2 -left-2 z-10"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleVaultSelection(vault.id);
+                      }}
+                    >
+                      <div className={`
+                        w-7 h-7 rounded-full flex items-center justify-center cursor-pointer
+                        transition-all shadow-md
+                        ${selectedForComparison.has(vault.id) 
+                          ? 'bg-primary text-primary-foreground' 
+                          : 'bg-card border border-border hover:border-primary'
                         }
-                      />
-                    </>
+                      `}>
+                        {selectedForComparison.has(vault.id) ? (
+                          <Check className="w-4 h-4" />
+                        ) : (
+                          <span className="text-xs text-muted-foreground">+</span>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  <div className={isCompareMode && selectedForComparison.has(vault.id) ? 'ring-2 ring-primary rounded-lg' : ''}>
+                    <VaultCard
+                      id={vault.id}
+                      name={vault.name}
+                      type={vault.type}
+                      nodeCount={vault.nodeCount}
+                      linkCount={vault.linkCount}
+                      lastModified={vault.lastModified}
+                      stats={vault.stats}
+                      isActive={vault.id === activeVaultId}
+                      onSelect={() => isCompareMode ? toggleVaultSelection(vault.id) : handleSelectVault(vault.id)}
+                      onDelete={() => handleDeleteVault(vault.id)}
+                    />
+                  </div>
+                  
+                  {/* Actions row for each vault */}
+                  {!isCompareMode && (
+                    <div className="flex gap-2 flex-wrap">
+                      {vault.type === 'in-memory' && (
+                        <>
+                          {backups[vault.id] && (
+                            <VaultBackupPanel
+                              vaultId={vault.id}
+                              backups={backups[vault.id] || []}
+                              onRestore={(backupId) => handleRestoreBackup(vault.id, backupId)}
+                              onDelete={(backupId) => handleDeleteBackup(vault.id, backupId)}
+                              onManualBackup={() => handleManualBackup(vault.id)}
+                              onOpenSettings={() => setSettingsVaultId(vault.id)}
+                            />
+                          )}
+                          <ExportToFileSystem 
+                            vaultName={vault.name}
+                            nodes={getVaultNodes(vault.id)}
+                            trigger={
+                              <Button variant="outline" size="sm" className="text-xs">
+                                <Download className="w-3 h-3 mr-1" />
+                                Save Permanently
+                              </Button>
+                            }
+                          />
+                        </>
+                      )}
+                    </div>
                   )}
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         )}
       </main>
@@ -431,15 +529,20 @@ export default function VaultDashboard() {
       />
 
       {settingsVaultId && backupConfigs[settingsVaultId] && (
-        <VaultBackupSettings
-          vaultId={settingsVaultId}
-          config={backupConfigs[settingsVaultId]}
-          onSave={(config) => {
-            handleSaveBackupConfig(settingsVaultId, config);
-            setSettingsVaultId(null);
-          }}
-          trigger={<div />}
-        />
+        <Dialog open={!!settingsVaultId} onOpenChange={(open) => !open && setSettingsVaultId(null)}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Backup Settings</DialogTitle>
+            </DialogHeader>
+            <VaultBackupSettingsContent
+              config={backupConfigs[settingsVaultId]}
+              onSave={(config) => {
+                handleSaveBackupConfig(settingsVaultId, config);
+                setSettingsVaultId(null);
+              }}
+            />
+          </DialogContent>
+        </Dialog>
       )}
     </div>
   );

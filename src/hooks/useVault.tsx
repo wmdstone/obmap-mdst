@@ -4,12 +4,16 @@
  * This hook serves as the interface between the UI and the service layers,
  * coordinating the Persistence Service (filesystem operations) and 
  * Graph Service (graph computation and relationships).
+ * 
+ * Graph configuration is stored inside the vault as .vault-config.json
+ * making it portable with the vault folder.
  */
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { toast } from 'sonner';
 import { FileSystemService } from '@/services/persistence/FileSystemService';
 import { GraphService } from '@/services/graph/GraphService';
+import type { GraphConfigState } from '@/hooks/useGraphConfig';
 
 interface Node {
   id: string;
@@ -38,11 +42,22 @@ interface VaultHandle {
   vaultName: string | null;
 }
 
+interface VaultConfig {
+  graphConfig?: GraphConfigState;
+  backupConfig?: {
+    autoBackup: boolean;
+    backupInterval: number;
+    maxBackups: number;
+  };
+  [key: string]: any;
+}
+
 export const useVault = () => {
   const [vaultHandle, setVaultHandle] = useState<VaultHandle>({
     directoryHandle: null,
     vaultName: null,
   });
+  const [vaultConfig, setVaultConfig] = useState<VaultConfig | null>(null);
 
   // Service instances
   const persistenceService = useRef(new FileSystemService());
@@ -61,6 +76,10 @@ export const useVault = () => {
         directoryHandle: result.handle,
         vaultName: result.vaultName,
       });
+
+      // Load vault config from .vault-config.json
+      const config = await persistenceService.current.readVaultConfig();
+      setVaultConfig(config);
 
       toast.success(`Vault "${result.vaultName}" opened successfully`);
 
@@ -82,6 +101,51 @@ export const useVault = () => {
     }
   };
 
+  /**
+   * Get the current vault's graph configuration
+   */
+  const getGraphConfig = useCallback((): GraphConfigState | null => {
+    return vaultConfig?.graphConfig || null;
+  }, [vaultConfig]);
+
+  /**
+   * Save graph configuration to the vault's .vault-config.json
+   */
+  const saveGraphConfig = useCallback(async (graphConfig: GraphConfigState): Promise<boolean> => {
+    const newConfig: VaultConfig = {
+      ...vaultConfig,
+      graphConfig,
+    };
+    
+    const success = await persistenceService.current.writeVaultConfig(newConfig);
+    if (success) {
+      setVaultConfig(newConfig);
+    }
+    return success;
+  }, [vaultConfig]);
+
+  /**
+   * Get backup configuration
+   */
+  const getBackupConfig = useCallback(() => {
+    return vaultConfig?.backupConfig || null;
+  }, [vaultConfig]);
+
+  /**
+   * Save backup configuration to the vault
+   */
+  const saveBackupConfig = useCallback(async (backupConfig: VaultConfig['backupConfig']): Promise<boolean> => {
+    const newConfig: VaultConfig = {
+      ...vaultConfig,
+      backupConfig,
+    };
+    
+    const success = await persistenceService.current.writeVaultConfig(newConfig);
+    if (success) {
+      setVaultConfig(newConfig);
+    }
+    return success;
+  }, [vaultConfig]);
 
   const saveNodeToFile = async (node: Node): Promise<boolean> => {
     if (!persistenceService.current.isOpen()) {
@@ -118,14 +182,20 @@ export const useVault = () => {
     persistenceService.current.closeVault();
 
     setVaultHandle({ directoryHandle: null, vaultName: null });
+    setVaultConfig(null);
     toast.info('Vault closed');
   };
 
   return {
     vaultHandle,
+    vaultConfig,
     selectVault,
     saveNodeToFile,
     closeVault,
     isVaultMode: !!vaultHandle.directoryHandle,
+    getGraphConfig,
+    saveGraphConfig,
+    getBackupConfig,
+    saveBackupConfig,
   };
 };

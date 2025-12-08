@@ -12,6 +12,12 @@ import { VaultBackupService } from './VaultBackupService';
 import { DatabaseSyncService } from '../database/DatabaseSyncService';
 import { FileSystemService } from '../persistence/FileSystemService';
 
+interface BackupConfig {
+  timeIntervalMinutes: number;
+  changeThreshold: number;
+  maxSnapshots: number;
+}
+
 interface Vault {
   id: string;
   name: string;
@@ -22,6 +28,8 @@ interface Vault {
   directoryHandle?: FileSystemDirectoryHandle;
   createdAt: number;
   lastModified: number;
+  graphConfig?: any; // Per-vault graph configuration
+  backupConfig?: BackupConfig; // Per-vault backup configuration
 }
 
 export class VaultManager {
@@ -105,6 +113,8 @@ export class VaultManager {
       type: vaultData.metadata.type,
       graphService,
       history,
+      graphConfig: vaultData.graphConfig || null,
+      backupConfig: vaultData.backupConfig || null,
       createdAt: vaultData.metadata.createdAt,
       lastModified: vaultData.metadata.lastModified,
     };
@@ -157,6 +167,9 @@ export class VaultManager {
       await persistenceService.readVaultStructure(result.handle);
       graphService.finalizeGraph();
 
+      // Read embedded vault config from .vault-config.json
+      const embeddedConfig = await persistenceService.readVaultConfig();
+
       const vault: Vault = {
         id: vaultId,
         name: result.vaultName,
@@ -167,6 +180,8 @@ export class VaultManager {
         directoryHandle: result.handle,
         createdAt: Date.now(),
         lastModified: Date.now(),
+        graphConfig: embeddedConfig?.graphConfig || null,
+        backupConfig: embeddedConfig?.backupConfig || null,
       };
 
       this.vaults.set(vaultId, vault);
@@ -349,7 +364,34 @@ export class VaultManager {
       },
       graphData,
       history: vault.history.getState(),
+      graphConfig: vault.graphConfig || undefined,
+      backupConfig: vault.backupConfig || undefined,
     });
+  }
+
+  // Graph config management
+  getGraphConfig(vaultId: string): any | null {
+    const vault = this.vaults.get(vaultId);
+    return vault?.graphConfig || null;
+  }
+
+  async setGraphConfig(vaultId: string, config: any): Promise<void> {
+    const vault = this.vaults.get(vaultId);
+    if (!vault) return;
+    
+    vault.graphConfig = config;
+    vault.lastModified = Date.now();
+
+    // For local-folder vaults, write to .vault-config.json in the vault directory
+    if (vault.type === 'local-folder' && vault.persistenceService) {
+      await vault.persistenceService.writeVaultConfig({
+        graphConfig: config,
+        backupConfig: vault.backupConfig || undefined,
+      });
+    } else {
+      // For in-memory vaults, persist to IndexedDB
+      await this.persistVault(vault);
+    }
   }
 
   async saveCurrentVault(): Promise<void> {
@@ -409,13 +451,29 @@ export class VaultManager {
   }
 
   getBackupConfig(vaultId: string) {
+    const vault = this.vaults.get(vaultId);
+    // Return per-vault config if available, otherwise get from backup service
+    if (vault?.backupConfig) {
+      return vault.backupConfig;
+    }
     return this.backupService.getConfig(vaultId);
   }
 
-  setBackupConfig(vaultId: string, config: any): void {
+  async setBackupConfig(vaultId: string, config: any): Promise<void> {
+    const vault = this.vaults.get(vaultId);
+    if (!vault) return;
+
+    // Store config in vault for persistence
+    vault.backupConfig = config;
+    vault.lastModified = Date.now();
+    
+    // Update backup service
     this.backupService.setConfig(vaultId, config);
     
-    // Restart auto backup
+    // Persist to storage
+    await this.persistVault(vault);
+    
+    // Restart auto backup with new config
     this.backupService.stopAutoBackup(vaultId);
     this.backupService.startAutoBackup(vaultId, async () => {
       await this.createBackup(vaultId);

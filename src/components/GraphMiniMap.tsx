@@ -91,8 +91,8 @@ export function GraphMiniMap({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isExpanded, setIsExpanded] = useState(true);
   const [isLarge, setIsLarge] = useState(false);
-  const [viewport, setViewport] = useState({ x: 0, y: 0, width: 0, height: 0 });
   const animationRef = useRef<number>();
+  const viewportRef = useRef({ x: 0, y: 0, width: 0, height: 0 });
 
   const size = isLarge ? { width: 280, height: 200 } : { width: 180, height: 130 };
 
@@ -222,7 +222,8 @@ export function GraphMiniMap({
         ctx.fillStyle = colorWithOpacity(resolveColor('hsl(var(--primary))'), 0.1);
         ctx.fillRect(mapVpX, mapVpY, mapVpWidth, mapVpHeight);
 
-        setViewport({ x: vpX, y: vpY, width: vpWidth, height: vpHeight });
+        // Store viewport in ref (not state to avoid re-renders)
+        viewportRef.current = { x: vpX, y: vpY, width: vpWidth, height: vpHeight };
       } catch (e) {
         // Ignore zoom errors
       }

@@ -5,7 +5,7 @@
  * for react-force-graph 2D rendering
  */
 
-import { useState, useCallback, useEffect, useMemo } from 'react';
+import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 
 // ============= TYPE DEFINITIONS =============
 
@@ -231,8 +231,40 @@ interface Link {
   type?: "hierarchy" | "tag" | "backlink" | "semantic";
 }
 
-export const useGraphConfig = (nodes: Node[] = [], links: Link[] = []) => {
+interface UseGraphConfigOptions {
+  vaultId?: string | null;
+  onConfigChange?: (config: GraphConfigState) => void;
+  initialConfig?: GraphConfigState | null;
+}
+
+export const useGraphConfig = (
+  nodes: Node[] = [], 
+  links: Link[] = [],
+  options: UseGraphConfigOptions = {}
+) => {
+  const { vaultId, onConfigChange, initialConfig } = options;
+  
   const [config, setConfig] = useState<GraphConfigState>(() => {
+    // If initial config provided (from vault), use it
+    if (initialConfig) {
+      return {
+        ...defaultConfig,
+        ...initialConfig,
+        nodes: { ...defaultNodeConfig, ...initialConfig.nodes },
+        links: { ...defaultLinkConfig, ...initialConfig.links },
+        topology: { 
+          ...defaultTopologyConfig, 
+          ...initialConfig.topology,
+          styles: {
+            ...defaultTopologyConfig.styles,
+            ...initialConfig.topology?.styles,
+          },
+        },
+        forces: { ...defaultForceConfig, ...initialConfig.forces },
+      };
+    }
+    
+    // Fallback to localStorage for global default
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
       try {
@@ -260,10 +292,47 @@ export const useGraphConfig = (nodes: Node[] = [], links: Link[] = []) => {
     return defaultConfig;
   });
 
-  // Persist to localStorage
+  // Update config when vault changes
+  useEffect(() => {
+    if (initialConfig) {
+      setConfig({
+        ...defaultConfig,
+        ...initialConfig,
+        nodes: { ...defaultNodeConfig, ...initialConfig.nodes },
+        links: { ...defaultLinkConfig, ...initialConfig.links },
+        topology: { 
+          ...defaultTopologyConfig, 
+          ...initialConfig.topology,
+          styles: {
+            ...defaultTopologyConfig.styles,
+            ...initialConfig.topology?.styles,
+          },
+        },
+        forces: { ...defaultForceConfig, ...initialConfig.forces },
+      });
+    }
+  }, [vaultId, initialConfig]);
+
+  // Track if config has been changed by user (not initial load)
+  const isInitialMount = useRef(true);
+  const previousConfig = useRef<GraphConfigState | null>(null);
+
+  // Persist to localStorage (fallback) and notify parent only on actual changes
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(config));
-  }, [config]);
+    
+    // Only notify parent of changes after initial mount and if config actually changed
+    if (!isInitialMount.current && onConfigChange && previousConfig.current !== null) {
+      // Deep compare to avoid unnecessary updates
+      const configChanged = JSON.stringify(previousConfig.current) !== JSON.stringify(config);
+      if (configChanged) {
+        onConfigChange(config);
+      }
+    }
+    
+    isInitialMount.current = false;
+    previousConfig.current = config;
+  }, [config, onConfigChange]);
 
   // Calculate link statistics
   const stats = useMemo<LinkStats>(() => {

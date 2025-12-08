@@ -19,7 +19,7 @@ import { toast } from 'sonner';
 import { extractMentions } from '@/lib/markdownParser';
 import { getVaultManager } from '@/services/vault/VaultManagerSingleton';
 import { useAutoLinks } from '@/hooks/useAutoLinks';
-import { useGraphConfig } from '@/hooks/useGraphConfig';
+import { useGraphConfig, GraphConfigState } from '@/hooks/useGraphConfig';
 
 interface Node {
 	id: string;
@@ -56,6 +56,7 @@ const Index = () => {
 	const [selectedNode, setSelectedNode] = useState<Node | null>(null);
 	const vaultManager = getVaultManager();
 	const [currentVaultId, setCurrentVaultId] = useState<string | null>(null);
+	const [vaultGraphConfig, setVaultGraphConfig] = useState<GraphConfigState | null>(null);
 	const [canUndo, setCanUndo] = useState(false);
 	const [canRedo, setCanRedo] = useState(false);
 	const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
@@ -143,7 +144,14 @@ const Index = () => {
 		tagThreshold: 1,
 	});
 
-	// Graph configuration with stats
+	// Callback to save graph config to vault's .vault-config.json (local-folder) or IndexedDB (in-memory)
+	const handleGraphConfigChange = useCallback(async (config: GraphConfigState) => {
+		if (currentVaultId) {
+			await vaultManager.setGraphConfig(currentVaultId, config);
+		}
+	}, [currentVaultId, vaultManager]);
+
+	// Graph configuration with stats - connected to per-vault storage
 	const {
 		config: graphConfig,
 		stats: graphStats,
@@ -153,7 +161,11 @@ const Index = () => {
 		updateTopologyStyle,
 		updateForceConfig,
 		resetConfig,
-	} = useGraphConfig(nodes, tempAutoLinks);
+	} = useGraphConfig(nodes, tempAutoLinks, {
+		vaultId: currentVaultId,
+		initialConfig: vaultGraphConfig,
+		onConfigChange: handleGraphConfigChange,
+	});
 
 	// Auto-generate links with actual config
 	const autoLinks = useAutoLinks(nodes, {
@@ -189,31 +201,38 @@ const Index = () => {
 		initVaultManager();
 	}, []);
 
-	const loadActiveVault = () => {
+	const loadActiveVault = useCallback(() => {
 		const activeVault = vaultManager.getActiveVault();
 		if (activeVault) {
 			setCurrentVaultId(activeVault.id);
 			const vaultGraphData = activeVault.graphService.getGraphData();
 			setNodes(vaultGraphData.nodes);
+			// Load per-vault graph config (from .vault-config.json for local-folder, IndexedDB for in-memory)
+			const savedGraphConfig = vaultManager.getGraphConfig(activeVault.id);
+			setVaultGraphConfig(savedGraphConfig);
 			updateUndoRedoState(activeVault.id);
 		} else {
 			setCurrentVaultId(null);
 			setNodes([]);
+			setVaultGraphConfig(null);
 			setCanUndo(false);
 			setCanRedo(false);
 		}
-	};
+	}, [vaultManager]);
 
-	const handleVaultCreated = (vaultId: string) => {
+	const handleVaultCreated = useCallback((vaultId: string) => {
 		setCurrentVaultId(vaultId);
 		const vault = vaultManager.getVault(vaultId);
 		if (vault) {
 			const vaultGraphData = vault.graphService.getGraphData();
 			setNodes(vaultGraphData.nodes);
+			// Load per-vault graph config (will be null for new vaults)
+			const savedGraphConfig = vaultManager.getGraphConfig(vaultId);
+			setVaultGraphConfig(savedGraphConfig);
 			updateUndoRedoState(vaultId);
 		}
 		toast.success('Vault created and activated');
-	};
+	}, [vaultManager]);
 
 	const updateUndoRedoState = (vaultId: string) => {
 		setCanUndo(vaultManager.canUndo(vaultId));

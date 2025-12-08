@@ -254,4 +254,43 @@ export class FileSystemService {
   isOpen(): boolean {
     return this.vaultHandle !== null;
   }
+
+  getHandle(): FileSystemDirectoryHandle | null {
+    return this.vaultHandle;
+  }
+
+  /**
+   * Read vault config from .vault-config.json
+   */
+  async readVaultConfig(): Promise<Record<string, any> | null> {
+    if (!this.vaultHandle) return null;
+
+    try {
+      const fileHandle = await this.vaultHandle.getFileHandle('.vault-config.json');
+      const file = await fileHandle.getFile();
+      const content = await file.text();
+      return JSON.parse(content);
+    } catch {
+      // File doesn't exist or can't be read
+      return null;
+    }
+  }
+
+  /**
+   * Write vault config to .vault-config.json
+   */
+  async writeVaultConfig(config: Record<string, any>): Promise<boolean> {
+    if (!this.vaultHandle) return false;
+
+    try {
+      const fileHandle = await this.vaultHandle.getFileHandle('.vault-config.json', { create: true });
+      const writable = await fileHandle.createWritable();
+      await writable.write(JSON.stringify(config, null, 2));
+      await writable.close();
+      return true;
+    } catch (error) {
+      console.error('[FileSystemService] Failed to write vault config:', error);
+      return false;
+    }
+  }
 }
