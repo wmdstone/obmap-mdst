@@ -1,8 +1,12 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, Database, ArrowLeft, RefreshCw, HardDrive, Zap, Download, BarChart3, Check } from "lucide-react";
+import { 
+  Plus, Database, ArrowLeft, RefreshCw, HardDrive, Zap, 
+  BarChart3, Check, User, LogOut, Loader2
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { VaultCard } from "@/components/VaultCard";
 import { VaultBackupPanel } from "@/components/VaultBackupPanel";
 import { VaultBackupSettingsContent } from "@/components/VaultBackupSettings";
@@ -10,10 +14,12 @@ import { VaultComparisonView } from "@/components/VaultComparisonView";
 import { DatabaseSettings } from "@/components/DatabaseSettings";
 import { VaultModeSelector } from "@/components/VaultModeSelector";
 import { ExportToFileSystem } from "@/components/ExportToFileSystem";
+import { ProfileSettings } from "@/components/profile/ProfileSettings";
+import { AvatarUpload } from "@/components/profile/AvatarUpload";
 import { Badge } from "@/components/ui/badge";
-import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { getVaultManager } from "@/services/vault/VaultManagerSingleton";
+import { useAuth } from "@/hooks/useAuth";
 
 interface Vault {
   id: string;
@@ -39,6 +45,7 @@ export default function VaultDashboard() {
   const [backupConfigs, setBackupConfigs] = useState<Record<string, any>>({});
   const [settingsVaultId, setSettingsVaultId] = useState<string | null>(null);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [activeTab, setActiveTab] = useState("profile");
   
   // Comparison mode state
   const [isCompareMode, setIsCompareMode] = useState(false);
@@ -47,6 +54,7 @@ export default function VaultDashboard() {
   const vaultManager = getVaultManager();
   const syncService = vaultManager.getSyncService();
   const navigate = useNavigate();
+  const { user, profile, loading: authLoading, signOut } = useAuth();
 
   const [isInitialized, setIsInitialized] = useState(false);
 
@@ -285,6 +293,19 @@ export default function VaultDashboard() {
     setSelectedForComparison(new Set());
   };
 
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/auth');
+  };
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b border-border bg-card/50">
@@ -294,231 +315,294 @@ export default function VaultDashboard() {
               <Button variant="ghost" size="icon" onClick={() => navigate("/")}>
                 <ArrowLeft className="w-5 h-5" />
               </Button>
-              <div>
-                <h1 className="text-2xl font-bold">Vault Manager</h1>
-                <p className="text-sm text-muted-foreground">Manage your knowledge vaults</p>
+              <div className="flex items-center gap-3">
+                {user && <AvatarUpload size="sm" />}
+                <div>
+                  <h1 className="text-2xl font-bold">Account Manager</h1>
+                  <p className="text-sm text-muted-foreground">
+                    {profile?.display_name || profile?.email || 'Manage your account & vaults'}
+                  </p>
+                </div>
               </div>
             </div>
 
             <div className="flex items-center gap-3">
-              {/* Compare Mode Toggle */}
-              {vaults.length >= 2 && (
-                <Button
-                  variant={isCompareMode ? "secondary" : "outline"}
-                  size="sm"
-                  onClick={() => isCompareMode ? handleExitCompareMode() : setIsCompareMode(true)}
-                  className="gap-2"
-                >
-                  <BarChart3 className="w-4 h-4" />
-                  {isCompareMode ? "Exit Compare" : "Compare"}
-                  {isCompareMode && selectedForComparison.size > 0 && (
-                    <Badge variant="default" className="ml-1 px-1.5 py-0 text-xs">
-                      {selectedForComparison.size}
-                    </Badge>
-                  )}
+              {user && (
+                <Button variant="outline" size="sm" onClick={handleSignOut}>
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Sign Out
                 </Button>
               )}
-
-              <DatabaseSettings
-                onConfigSave={handleSaveDatabaseConfig}
-                currentConfig={syncService.getConfig()}
-                isConnected={syncService.isConnected()}
-              />
-
-              {syncService.isConnected() && (
-                <>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handlePullFromCloud}
-                    disabled={isSyncing}
-                  >
-                    <RefreshCw className={`w-4 h-4 mr-2 ${isSyncing ? 'animate-spin' : ''}`} />
-                    Pull
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleSyncToCloud}
-                    disabled={isSyncing}
-                  >
-                    <RefreshCw className={`w-4 h-4 mr-2 ${isSyncing ? 'animate-spin' : ''}`} />
-                    Sync
-                  </Button>
-                </>
-              )}
-
-              <Button 
-                onClick={() => setIsVaultSelectorOpen(true)} 
-                className="gap-2" 
-                disabled={!isInitialized}
-              >
-                <Plus className="w-4 h-4" />
-                New Vault
-              </Button>
             </div>
           </div>
         </div>
       </header>
 
       <main className="container mx-auto px-6 py-8">
-        {!isInitialized ? (
-          <div className="flex flex-col items-center justify-center py-20 text-center">
-            <Database className="w-16 h-16 text-muted-foreground mb-4 animate-pulse" />
-            <h2 className="text-xl font-semibold mb-2">Initializing Vault System...</h2>
-            <p className="text-muted-foreground">Please wait while we set up your vault storage</p>
-          </div>
-        ) : vaults.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 text-center">
-            <Database className="w-16 h-16 text-muted-foreground mb-4" />
-            <h2 className="text-xl font-semibold mb-2">No vaults yet</h2>
-            <p className="text-muted-foreground mb-6">
-              Choose where you want your workspace data to live
-            </p>
-            <div className="grid md:grid-cols-2 gap-4 max-w-2xl">
-              <div 
-                className="p-6 rounded-lg border bg-card hover:border-primary cursor-pointer transition-all group"
-                onClick={() => setIsVaultSelectorOpen(true)}
-              >
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="p-2 rounded-lg bg-primary/10 text-primary">
-                    <HardDrive className="w-5 h-5" />
-                  </div>
-                  <div className="font-medium group-hover:text-primary transition-colors">Local Native</div>
-                  <Badge variant="secondary" className="text-xs">Permanent</Badge>
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  Store as files on your computer
-                </p>
-              </div>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+          <TabsList className="grid w-full max-w-md grid-cols-3">
+            <TabsTrigger value="profile" className="gap-2">
+              <User className="w-4 h-4" />
+              Profile
+            </TabsTrigger>
+            <TabsTrigger value="vaults" className="gap-2">
+              <Database className="w-4 h-4" />
+              Vaults
+            </TabsTrigger>
+            <TabsTrigger value="sync" className="gap-2">
+              <RefreshCw className="w-4 h-4" />
+              Sync
+            </TabsTrigger>
+          </TabsList>
 
-              <div 
-                className="p-6 rounded-lg border bg-card hover:border-primary cursor-pointer transition-all group"
-                onClick={() => setIsVaultSelectorOpen(true)}
-              >
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="p-2 rounded-lg bg-amber-500/10 text-amber-500">
-                    <Zap className="w-5 h-5" />
-                  </div>
-                  <div className="font-medium group-hover:text-primary transition-colors">In-Memory</div>
-                  <Badge variant="outline" className="text-xs">Ephemeral</Badge>
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  Fast temporary workspace in browser
+          {/* Profile Tab */}
+          <TabsContent value="profile" className="space-y-6">
+            {user ? (
+              <ProfileSettings />
+            ) : (
+              <div className="flex flex-col items-center justify-center py-20 text-center">
+                <User className="w-16 h-16 text-muted-foreground mb-4" />
+                <h2 className="text-xl font-semibold mb-2">Not Signed In</h2>
+                <p className="text-muted-foreground mb-6">
+                  Sign in to manage your profile and sync data across devices
                 </p>
+                <Button onClick={() => navigate('/auth')}>
+                  Sign In
+                </Button>
+              </div>
+            )}
+          </TabsContent>
+
+          {/* Vaults Tab */}
+          <TabsContent value="vaults" className="space-y-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-xl font-semibold">Knowledge Vaults</h2>
+                <p className="text-sm text-muted-foreground">Manage your knowledge vaults</p>
+              </div>
+              <div className="flex items-center gap-3">
+                {vaults.length >= 2 && (
+                  <Button
+                    variant={isCompareMode ? "secondary" : "outline"}
+                    size="sm"
+                    onClick={() => isCompareMode ? handleExitCompareMode() : setIsCompareMode(true)}
+                    className="gap-2"
+                  >
+                    <BarChart3 className="w-4 h-4" />
+                    {isCompareMode ? "Exit Compare" : "Compare"}
+                    {isCompareMode && selectedForComparison.size > 0 && (
+                      <Badge variant="default" className="ml-1 px-1.5 py-0 text-xs">
+                        {selectedForComparison.size}
+                      </Badge>
+                    )}
+                  </Button>
+                )}
+                <Button 
+                  onClick={() => setIsVaultSelectorOpen(true)} 
+                  className="gap-2" 
+                  disabled={!isInitialized}
+                >
+                  <Plus className="w-4 h-4" />
+                  New Vault
+                </Button>
               </div>
             </div>
-            <Button 
-              onClick={() => setIsVaultSelectorOpen(true)} 
-              className="mt-6"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Create Your First Vault
-            </Button>
-          </div>
-        ) : (
-          <div className="space-y-8">
-            {/* Comparison View - Shows when vaults are selected for comparison */}
-            {isCompareMode && comparisonVaults.length > 0 && (
-              <VaultComparisonView
-                vaults={comparisonVaults}
-                onRemoveVault={(vaultId) => toggleVaultSelection(vaultId)}
-                onClose={handleExitCompareMode}
-              />
-            )}
 
-            {/* Compare mode instruction */}
-            {isCompareMode && comparisonVaults.length === 0 && (
-              <div className="bg-muted/30 border border-dashed border-border rounded-lg p-6 text-center">
-                <BarChart3 className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
-                <p className="text-sm text-muted-foreground">
-                  Select vaults below to compare their statistics
-                </p>
+            {!isInitialized ? (
+              <div className="flex flex-col items-center justify-center py-20 text-center">
+                <Database className="w-16 h-16 text-muted-foreground mb-4 animate-pulse" />
+                <h2 className="text-xl font-semibold mb-2">Initializing Vault System...</h2>
+                <p className="text-muted-foreground">Please wait while we set up your vault storage</p>
               </div>
-            )}
-
-            {/* Vault Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {vaults.map((vault) => (
-                <div key={vault.id} className="space-y-3 relative">
-                  {/* Compare mode checkbox overlay */}
-                  {isCompareMode && (
-                    <div 
-                      className="absolute -top-2 -left-2 z-10"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        toggleVaultSelection(vault.id);
-                      }}
-                    >
-                      <div className={`
-                        w-7 h-7 rounded-full flex items-center justify-center cursor-pointer
-                        transition-all shadow-md
-                        ${selectedForComparison.has(vault.id) 
-                          ? 'bg-primary text-primary-foreground' 
-                          : 'bg-card border border-border hover:border-primary'
-                        }
-                      `}>
-                        {selectedForComparison.has(vault.id) ? (
-                          <Check className="w-4 h-4" />
-                        ) : (
-                          <span className="text-xs text-muted-foreground">+</span>
-                        )}
+            ) : vaults.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-20 text-center">
+                <Database className="w-16 h-16 text-muted-foreground mb-4" />
+                <h2 className="text-xl font-semibold mb-2">No vaults yet</h2>
+                <p className="text-muted-foreground mb-6">
+                  Choose where you want your workspace data to live
+                </p>
+                <div className="grid md:grid-cols-2 gap-4 max-w-2xl">
+                  <div 
+                    className="p-6 rounded-lg border bg-card hover:border-primary cursor-pointer transition-all group"
+                    onClick={() => setIsVaultSelectorOpen(true)}
+                  >
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="p-2 rounded-lg bg-primary/10 text-primary">
+                        <HardDrive className="w-5 h-5" />
                       </div>
+                      <div className="font-medium group-hover:text-primary transition-colors">Local Native</div>
+                      <Badge variant="secondary" className="text-xs">Permanent</Badge>
                     </div>
-                  )}
-
-                  <div className={isCompareMode && selectedForComparison.has(vault.id) ? 'ring-2 ring-primary rounded-lg' : ''}>
-                    <VaultCard
-                      id={vault.id}
-                      name={vault.name}
-                      type={vault.type}
-                      nodeCount={vault.nodeCount}
-                      linkCount={vault.linkCount}
-                      lastModified={vault.lastModified}
-                      stats={vault.stats}
-                      isActive={vault.id === activeVaultId}
-                      onSelect={() => isCompareMode ? toggleVaultSelection(vault.id) : handleSelectVault(vault.id)}
-                      onDelete={() => handleDeleteVault(vault.id)}
-                    />
+                    <p className="text-sm text-muted-foreground">
+                      Store as files on your computer
+                    </p>
                   </div>
-                  
-                  {/* Actions row for each vault */}
-                  {!isCompareMode && (
-                    <div className="flex gap-2 flex-wrap">
-                      {vault.type === 'in-memory' && (
-                        <>
-                          {backups[vault.id] && (
-                            <VaultBackupPanel
-                              vaultId={vault.id}
-                              backups={backups[vault.id] || []}
-                              onRestore={(backupId) => handleRestoreBackup(vault.id, backupId)}
-                              onDelete={(backupId) => handleDeleteBackup(vault.id, backupId)}
-                              onManualBackup={() => handleManualBackup(vault.id)}
-                              onOpenSettings={() => setSettingsVaultId(vault.id)}
-                            />
-                          )}
-                          <ExportToFileSystem 
+
+                  <div 
+                    className="p-6 rounded-lg border bg-card hover:border-primary cursor-pointer transition-all group"
+                    onClick={() => setIsVaultSelectorOpen(true)}
+                  >
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="p-2 rounded-lg bg-amber-500/10 text-amber-500">
+                        <Zap className="w-5 h-5" />
+                      </div>
+                      <div className="font-medium group-hover:text-primary transition-colors">In-Memory</div>
+                      <Badge variant="outline" className="text-xs">Ephemeral</Badge>
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      Fast temporary workspace in browser
+                    </p>
+                  </div>
+                </div>
+                <Button 
+                  onClick={() => setIsVaultSelectorOpen(true)} 
+                  className="mt-6"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Create Your First Vault
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-8">
+                {/* Comparison View */}
+                {isCompareMode && comparisonVaults.length > 0 && (
+                  <VaultComparisonView
+                    vaults={comparisonVaults}
+                    onRemoveVault={(vaultId) => toggleVaultSelection(vaultId)}
+                    onClose={handleExitCompareMode}
+                  />
+                )}
+
+                {isCompareMode && comparisonVaults.length === 0 && (
+                  <div className="bg-muted/30 border border-dashed border-border rounded-lg p-6 text-center">
+                    <BarChart3 className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
+                    <p className="text-sm text-muted-foreground">
+                      Select vaults below to compare their statistics
+                    </p>
+                  </div>
+                )}
+
+                {/* Vault Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {vaults.map((vault) => (
+                    <div key={vault.id} className="space-y-3 relative">
+                      {isCompareMode && (
+                        <div 
+                          className="absolute -top-2 -left-2 z-10"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleVaultSelection(vault.id);
+                          }}
+                        >
+                          <div className={`
+                            w-7 h-7 rounded-full flex items-center justify-center cursor-pointer
+                            transition-all shadow-md
+                            ${selectedForComparison.has(vault.id) 
+                              ? 'bg-primary text-primary-foreground' 
+                              : 'bg-card border border-border hover:border-primary'
+                            }
+                          `}>
+                            {selectedForComparison.has(vault.id) ? (
+                              <Check className="w-4 h-4" />
+                            ) : (
+                              <span className="text-xs text-muted-foreground">+</span>
+                            )}
+                          </div>
+                        </div>
+                      )}
+
+                      <div className={isCompareMode && selectedForComparison.has(vault.id) ? 'ring-2 ring-primary rounded-lg' : ''}>
+                        <VaultCard
+                          id={vault.id}
+                          name={vault.name}
+                          type={vault.type}
+                          nodeCount={vault.nodeCount}
+                          linkCount={vault.linkCount}
+                          lastModified={vault.lastModified}
+                          stats={vault.stats}
+                          isActive={vault.id === activeVaultId}
+                          onSelect={() => isCompareMode ? toggleVaultSelection(vault.id) : handleSelectVault(vault.id)}
+                          onDelete={() => handleDeleteVault(vault.id)}
+                        />
+                      </div>
+
+                      {vault.type === 'in-memory' && !isCompareMode && (
+                        <div className="flex gap-2">
+                          <VaultBackupPanel
+                            vaultId={vault.id}
+                            backups={backups[vault.id] || []}
+                            onRestore={(backupId) => handleRestoreBackup(vault.id, backupId)}
+                            onDelete={(backupId) => handleDeleteBackup(vault.id, backupId)}
+                            onManualBackup={() => handleManualBackup(vault.id)}
+                            onOpenSettings={() => setSettingsVaultId(vault.id)}
+                          />
+                          <ExportToFileSystem
                             vaultName={vault.name}
                             nodes={getVaultNodes(vault.id)}
-                            trigger={
-                              <Button variant="outline" size="sm" className="text-xs">
-                                <Download className="w-3 h-3 mr-1" />
-                                Save Permanently
-                              </Button>
-                            }
                           />
-                        </>
+                        </div>
                       )}
                     </div>
-                  )}
+                  ))}
                 </div>
-              ))}
+              </div>
+            )}
+          </TabsContent>
+
+          {/* Sync Tab */}
+          <TabsContent value="sync" className="space-y-6">
+            <div className="max-w-2xl mx-auto space-y-6">
+              <div>
+                <h2 className="text-xl font-semibold mb-2">Database Sync</h2>
+                <p className="text-sm text-muted-foreground">
+                  Connect to a database to sync your vaults across devices
+                </p>
+              </div>
+
+              <div className="space-y-4">
+                <DatabaseSettings
+                  onConfigSave={handleSaveDatabaseConfig}
+                  currentConfig={syncService.getConfig()}
+                  isConnected={syncService.isConnected()}
+                />
+
+                {syncService.isConnected() && (
+                  <div className="flex gap-3 pt-4">
+                    <Button
+                      variant="outline"
+                      onClick={handlePullFromCloud}
+                      disabled={isSyncing}
+                      className="flex-1"
+                    >
+                      <RefreshCw className={`w-4 h-4 mr-2 ${isSyncing ? 'animate-spin' : ''}`} />
+                      Pull from Cloud
+                    </Button>
+                    <Button
+                      onClick={handleSyncToCloud}
+                      disabled={isSyncing}
+                      className="flex-1"
+                    >
+                      <RefreshCw className={`w-4 h-4 mr-2 ${isSyncing ? 'animate-spin' : ''}`} />
+                      Push to Cloud
+                    </Button>
+                  </div>
+                )}
+
+                {!syncService.isConnected() && (
+                  <div className="bg-muted/30 border border-dashed border-border rounded-lg p-6 text-center">
+                    <Database className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
+                    <p className="text-sm text-muted-foreground">
+                      Configure database settings above to enable cloud sync
+                    </p>
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
-        )}
+          </TabsContent>
+        </Tabs>
       </main>
 
-      {/* Vault Mode Selector Dialog */}
+      {/* Vault Selector Dialog */}
       <VaultModeSelector
         open={isVaultSelectorOpen}
         onOpenChange={setIsVaultSelectorOpen}
@@ -528,22 +612,20 @@ export default function VaultDashboard() {
         onVaultCreated={handleVaultCreated}
       />
 
-      {settingsVaultId && backupConfigs[settingsVaultId] && (
-        <Dialog open={!!settingsVaultId} onOpenChange={(open) => !open && setSettingsVaultId(null)}>
-          <DialogContent className="max-w-md">
-            <DialogHeader>
-              <DialogTitle>Backup Settings</DialogTitle>
-            </DialogHeader>
+      {/* Vault Settings Dialog */}
+      <Dialog open={!!settingsVaultId} onOpenChange={() => setSettingsVaultId(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Vault Settings</DialogTitle>
+          </DialogHeader>
+          {settingsVaultId && (
             <VaultBackupSettingsContent
-              config={backupConfigs[settingsVaultId]}
-              onSave={(config) => {
-                handleSaveBackupConfig(settingsVaultId, config);
-                setSettingsVaultId(null);
-              }}
+              config={backupConfigs[settingsVaultId] || { timeIntervalMinutes: 5, changeThreshold: 10, maxSnapshots: 30 }}
+              onSave={(config) => handleSaveBackupConfig(settingsVaultId, config)}
             />
-          </DialogContent>
-        </Dialog>
-      )}
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
