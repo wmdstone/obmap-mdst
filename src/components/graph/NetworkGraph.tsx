@@ -409,7 +409,7 @@ export const NetworkGraph = ({
 	].filter(Boolean);
 
 	return (
-		<div className='relative w-full h-screen bg-graph-bg'>
+		<div className='relative w-full h-full flex-1 bg-graph-bg'>
 			<div className='absolute top-4 left-4 z-10 flex flex-col gap-2'>
 				<div className='flex gap-2 flex-wrap'>
 					<Button

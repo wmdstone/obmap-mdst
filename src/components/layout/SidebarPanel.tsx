@@ -1,11 +1,11 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Separator } from "@/components/ui/separator";
-import { X, ChevronRight, ChevronDown, Folder, FileText, FolderOpen, Image, Music, Video } from "lucide-react";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { X, ChevronRight, ChevronDown, Folder, FileText, FolderOpen, Image, Music, Video, GripVertical, FileArchive } from "lucide-react";
 import { ImportExportPanel } from "@/components/layout/ImportExportPanel";
 import type { RibbonTool } from "./IconRibbon";
 
@@ -35,6 +35,10 @@ interface SidebarPanelProps {
   onImportComplete?: (importedNodes: Node[], updatedNodes?: Node[]) => void;
 }
 
+const MIN_WIDTH = 200;
+const MAX_WIDTH = 400;
+const DEFAULT_WIDTH = 256;
+
 export function SidebarPanel({
   activeTool,
   onClose,
@@ -52,6 +56,10 @@ export function SidebarPanel({
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
   const [draggedNode, setDraggedNode] = useState<Node | null>(null);
   const [dragOverNode, setDragOverNode] = useState<string | null>(null);
+  const [width, setWidth] = useState(DEFAULT_WIDTH);
+  const [isResizing, setIsResizing] = useState(false);
+  const [importExportOpen, setImportExportOpen] = useState(false);
+  const panelRef = useRef<HTMLDivElement>(null);
 
   const toggleFolder = useCallback((folderId: string, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -124,6 +132,35 @@ export function SidebarPanel({
     setDraggedNode(null);
   };
 
+  // Resize handlers
+  const handleResizeStart = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsResizing(true);
+  }, []);
+
+  useEffect(() => {
+    const handleResizeMove = (e: MouseEvent) => {
+      if (!isResizing || !panelRef.current) return;
+      const panelRect = panelRef.current.getBoundingClientRect();
+      const newWidth = e.clientX - panelRect.left;
+      setWidth(Math.max(MIN_WIDTH, Math.min(MAX_WIDTH, newWidth)));
+    };
+
+    const handleResizeEnd = () => {
+      setIsResizing(false);
+    };
+
+    if (isResizing) {
+      document.addEventListener("mousemove", handleResizeMove);
+      document.addEventListener("mouseup", handleResizeEnd);
+    }
+
+    return () => {
+      document.removeEventListener("mousemove", handleResizeMove);
+      document.removeEventListener("mouseup", handleResizeEnd);
+    };
+  }, [isResizing]);
+
   const getNodeIcon = (node: Node) => {
     if (node.type === "folder") {
       return <Folder className="w-4 h-4 shrink-0 text-yellow-500" />;
@@ -166,19 +203,19 @@ export function SidebarPanel({
             onDragLeave={handleDragLeave}
             onDrop={(e) => handleDrop(node, e)}
           >
-            <button
+            <div
               onClick={() => onNodeSelect(node)}
               className={cn(
-                "w-full flex items-center gap-2 px-2 py-1.5 text-sm rounded-md transition-colors",
+                "w-full flex items-center gap-2 px-2 py-1.5 text-sm rounded-md transition-colors cursor-pointer",
                 "hover:bg-accent/50",
                 selectedNode?.id === node.id && "bg-accent text-accent-foreground font-medium"
               )}
               style={{ paddingLeft: `${level * 12 + 8}px` }}
             >
               {isFolder && hasChildren && (
-                <button onClick={(e) => toggleFolder(node.id, e)} className="p-0.5 hover:bg-accent rounded">
+                <span onClick={(e) => toggleFolder(node.id, e)} className="p-0.5 hover:bg-accent rounded cursor-pointer">
                   {isExpanded ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
-                </button>
+                </span>
               )}
               {isFolder && !hasChildren && <span className="w-4" />}
               {getNodeIcon(node)}
@@ -188,7 +225,7 @@ export function SidebarPanel({
                   {node.tags.length}
                 </Badge>
               )}
-            </button>
+            </div>
           </div>
           {hasChildren && isExpanded && <div>{children.map((child) => renderNode(child, level + 1))}</div>}
         </div>
@@ -213,7 +250,14 @@ export function SidebarPanel({
   if (!activeTool) return null;
 
   return (
-    <div className="w-64 h-full bg-sidebar border-r border-sidebar-border flex flex-col animate-slide-in-right">
+    <div
+      ref={panelRef}
+      className={cn(
+        "h-full bg-sidebar border-r border-sidebar-border flex flex-col relative",
+        "animate-in slide-in-from-left-2 duration-200 ease-out"
+      )}
+      style={{ width: `${width}px` }}
+    >
       {/* Panel Header */}
       <div className="h-12 px-3 flex items-center justify-between border-b border-sidebar-border shrink-0">
         <span className="text-sm font-medium text-sidebar-foreground">{panelTitles[activeTool]}</span>
@@ -278,7 +322,29 @@ export function SidebarPanel({
         {activeTool === "import-export" && (
           <div className="p-3">
             <p className="text-xs text-muted-foreground mb-3">Import files or export your vault.</p>
-            <ImportExportPanel nodes={nodes} onImportComplete={onImportComplete || (() => {})} />
+            <Sheet open={importExportOpen} onOpenChange={setImportExportOpen}>
+              <SheetTrigger asChild>
+                <Button variant="outline" size="sm" className="gap-2 w-full">
+                  <FileArchive className="w-4 h-4" />
+                  Open Import/Export
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-full sm:max-w-xl overflow-y-auto">
+                <SheetHeader>
+                  <SheetTitle>Import / Export</SheetTitle>
+                </SheetHeader>
+                <div className="mt-4">
+                  <ImportExportPanel 
+                    nodes={nodes} 
+                    onImportComplete={(imported, updated) => {
+                      onImportComplete?.(imported, updated);
+                      setImportExportOpen(false);
+                    }} 
+                    isSheet 
+                  />
+                </div>
+              </SheetContent>
+            </Sheet>
           </div>
         )}
 
@@ -305,6 +371,20 @@ export function SidebarPanel({
             </Button>
           </div>
         )}
+      </div>
+
+      {/* Resize Handle */}
+      <div
+        className={cn(
+          "absolute top-0 right-0 w-1 h-full cursor-col-resize group",
+          "hover:bg-primary/50 transition-colors",
+          isResizing && "bg-primary/50"
+        )}
+        onMouseDown={handleResizeStart}
+      >
+        <div className="absolute top-1/2 right-0 -translate-y-1/2 translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
+          <GripVertical className="w-3 h-3 text-muted-foreground" />
+        </div>
       </div>
     </div>
   );

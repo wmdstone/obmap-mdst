@@ -195,7 +195,7 @@ export function UnifiedLayout({
     );
   }
 
-  // Mobile Layout
+  // Mobile Layout - Single Sheet for sidebar
   return (
     <div className="h-screen w-full flex flex-col overflow-hidden bg-background">
       {/* Mobile Header */}
@@ -206,7 +206,7 @@ export function UnifiedLayout({
               <Menu className="w-5 h-5" />
             </Button>
           </SheetTrigger>
-          <SheetContent side="left" className="p-0 w-[280px]">
+          <SheetContent side="left" className="p-0 w-[300px]">
             <div className="flex h-full">
               <IconRibbon
                 activeTool={activeTool}

@@ -51,7 +51,7 @@ export function WorkspacePane({ type, children, isEmpty, onQuickAction }: Worksp
   }
 
   return (
-    <div className="flex-1 min-h-0 overflow-hidden bg-background">
+    <div className="flex-1 min-h-0 flex flex-col overflow-hidden bg-background">
       {children}
     </div>
   );
