@@ -4,15 +4,16 @@
  * Handles persistent storage of vault metadata, graph data, and history
  */
 
-interface VaultMetadata {
-  id: string;
-  name: string;
-  type: 'in-memory' | 'local-folder';
-  createdAt: number;
-  lastModified: number;
-  nodeCount: number;
-  linkCount: number;
-}
+import { 
+  VaultMetadata, 
+  VaultData, 
+  VaultGraphConfig, 
+  BackupConfig,
+  StorageStrategy 
+} from './types';
+
+// Re-export for backwards compatibility
+export type { VaultGraphConfig, BackupConfig as VaultBackupConfig };
 
 interface BackupSnapshot {
   id: string;
@@ -23,35 +24,6 @@ interface BackupSnapshot {
   nodeCount: number;
   linkCount: number;
   description: string;
-}
-
-// Graph configuration types for per-vault storage
-export interface VaultGraphConfig {
-  nodes?: any;
-  links?: any;
-  topology?: any;
-  forces?: any;
-}
-
-// Backup configuration for per-vault storage
-export interface VaultBackupConfig {
-  timeIntervalMinutes: number;
-  changeThreshold: number;
-  maxSnapshots: number;
-}
-
-interface VaultData {
-  metadata: VaultMetadata;
-  graphData: {
-    nodes: any[];
-    links: any[];
-  };
-  history: {
-    past: any[];
-    future: any[];
-  };
-  graphConfig?: VaultGraphConfig;
-  backupConfig?: VaultBackupConfig;
 }
 
 const DB_NAME = 'VaultManagerDB';

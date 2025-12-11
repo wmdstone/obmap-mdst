@@ -3,6 +3,7 @@ import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import type { Json } from '@/integrations/supabase/types';
+import { vaultSyncService } from '@/services/vault/VaultSyncService';
 
 interface Profile {
   id: string;
@@ -220,10 +221,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signOut = async () => {
+    // Clear local vault data for session-based persistence
+    try {
+      await vaultSyncService.clearLocalData();
+      console.log('Local vault data cleared on logout');
+    } catch (error) {
+      console.error('Failed to clear local vault data:', error);
+    }
+    
     await supabase.auth.signOut();
     setUser(null);
     setSession(null);
     setProfile(null);
+    
+    // Clear any other session-specific local storage
+    localStorage.removeItem('auth_rate_limit');
+    localStorage.removeItem('graphConfig');
   };
 
   const resetPassword = async (email: string) => {

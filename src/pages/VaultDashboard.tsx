@@ -1,30 +1,33 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { 
-  Plus, Database, ArrowLeft, RefreshCw, HardDrive, Zap, 
-  BarChart3, Check, User, LogOut, Loader2
+  Plus, Database, ArrowLeft, HardDrive, Zap, 
+  BarChart3, User, LogOut, Loader2, Cloud, Check
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { VaultCard } from "@/components/VaultCard";
-import { VaultBackupPanel } from "@/components/VaultBackupPanel";
-import { VaultBackupSettingsContent } from "@/components/VaultBackupSettings";
-import { VaultComparisonView } from "@/components/VaultComparisonView";
-import { DatabaseSettings } from "@/components/DatabaseSettings";
-import { VaultModeSelector } from "@/components/VaultModeSelector";
-import { ExportToFileSystem } from "@/components/ExportToFileSystem";
+import { VaultCard } from "@/components/vault/VaultCard";
+import { VaultBackupPanel } from "@/components/vault/VaultBackupPanel";
+import { VaultBackupSettingsContent } from "@/components/vault/VaultBackupSettings";
+import { VaultComparisonView } from "@/components/vault/VaultComparisonView";
+import { VaultModeSelector } from "@/components/vault/VaultModeSelector";
+import { ExportToFileSystem } from "@/components/vault/ExportToFileSystem";
 import { ProfileSettings } from "@/components/profile/ProfileSettings";
 import { AvatarUpload } from "@/components/profile/AvatarUpload";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { getVaultManager } from "@/services/vault/VaultManagerSingleton";
 import { useAuth } from "@/hooks/useAuth";
+import { useVaultSync } from "@/hooks/useVaultSync";
+
+import { StorageStrategy } from "@/services/vault/types";
 
 interface Vault {
   id: string;
   name: string;
   type: 'in-memory' | 'local-folder';
+  storageStrategy: StorageStrategy;
   nodeCount: number;
   linkCount: number;
   lastModified: number;
@@ -44,7 +47,6 @@ export default function VaultDashboard() {
   const [backups, setBackups] = useState<Record<string, any[]>>({});
   const [backupConfigs, setBackupConfigs] = useState<Record<string, any>>({});
   const [settingsVaultId, setSettingsVaultId] = useState<string | null>(null);
-  const [isSyncing, setIsSyncing] = useState(false);
   const [activeTab, setActiveTab] = useState("profile");
   
   // Comparison mode state
@@ -52,9 +54,9 @@ export default function VaultDashboard() {
   const [selectedForComparison, setSelectedForComparison] = useState<Set<string>>(new Set());
   
   const vaultManager = getVaultManager();
-  const syncService = vaultManager.getSyncService();
   const navigate = useNavigate();
   const { user, profile, loading: authLoading, signOut } = useAuth();
+  const { syncStatus, syncProgress, syncVaultToCloud, deleteCloudVault, isAuthenticated } = useVaultSync();
 
   const [isInitialized, setIsInitialized] = useState(false);
 
@@ -86,6 +88,7 @@ export default function VaultDashboard() {
         id: v.id,
         name: v.name,
         type: v.type,
+        storageStrategy: v.storageStrategy,
         nodeCount: graphData.nodes.length,
         linkCount: graphData.links.length,
         lastModified: v.lastModified,
@@ -184,7 +187,16 @@ export default function VaultDashboard() {
 
   const handleDeleteVault = async (vaultId: string) => {
     if (confirm("Are you sure you want to delete this vault? All backups will also be deleted.")) {
-      await vaultManager.deleteVault(vaultId);
+      const { cloudId, wasCloudVault } = await vaultManager.deleteVault(vaultId);
+      
+      // If it was a cloud vault, also delete from cloud
+      if (wasCloudVault && cloudId && isAuthenticated) {
+        const result = await deleteCloudVault(cloudId);
+        if (!result.success) {
+          console.warn('Failed to delete cloud vault:', result.error);
+        }
+      }
+      
       await loadVaults();
       toast.success("Vault deleted");
     }
@@ -216,54 +228,23 @@ export default function VaultDashboard() {
     await loadVaults();
   };
 
-  const handleSaveDatabaseConfig = async (config: any): Promise<boolean> => {
-    const success = await syncService.setConfig(config);
-    if (success) {
-      toast.success('Database connected successfully');
-    }
-    return success;
-  };
-
-  const handleSyncToCloud = async () => {
-    if (!syncService.isConnected()) {
-      toast.error('No database connected. Configure database sync first.');
-      return;
-    }
-
-    setIsSyncing(true);
-    try {
-      for (const vault of vaults) {
-        if (vault.type === 'in-memory') {
-          await vaultManager.syncVaultToCloud(vault.id);
-        }
+  const handleStorageStrategyChange = async (vaultId: string, strategy: StorageStrategy) => {
+    const { needsCloudSync } = await vaultManager.setStorageStrategy(vaultId, strategy);
+    await loadVaults();
+    
+    // If set to cloud strategy and authenticated, sync immediately
+    if (needsCloudSync && isAuthenticated) {
+      const result = await syncVaultToCloud(vaultId);
+      if (result.success) {
+        toast.success(`Vault set to "Cloud Sync" and synced to cloud`);
+      } else {
+        toast.error(`Storage updated but sync failed: ${result.error}`);
       }
-      toast.success('All vaults synced to cloud');
-    } catch (error) {
-      toast.error('Failed to sync vaults');
-      console.error('Sync error:', error);
-    } finally {
-      setIsSyncing(false);
+    } else {
+      toast.success(`Storage strategy updated to "${strategy === 'cloud' ? 'Cloud Sync' : 'Local Only'}"`);
     }
   };
 
-  const handlePullFromCloud = async () => {
-    if (!syncService.isConnected()) {
-      toast.error('No database connected. Configure database sync first.');
-      return;
-    }
-
-    setIsSyncing(true);
-    try {
-      await vaultManager.pullVaultsFromCloud();
-      await loadVaults();
-      toast.success('Vaults pulled from cloud');
-    } catch (error) {
-      toast.error('Failed to pull vaults');
-      console.error('Pull error:', error);
-    } finally {
-      setIsSyncing(false);
-    }
-  };
 
   const getVaultNodes = (vaultId: string) => {
     const vault = vaultManager.getVault(vaultId);
@@ -340,7 +321,7 @@ export default function VaultDashboard() {
 
       <main className="container mx-auto px-6 py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full max-w-md grid-cols-3">
+          <TabsList className="grid w-full max-w-xs grid-cols-2">
             <TabsTrigger value="profile" className="gap-2">
               <User className="w-4 h-4" />
               Profile
@@ -348,10 +329,6 @@ export default function VaultDashboard() {
             <TabsTrigger value="vaults" className="gap-2">
               <Database className="w-4 h-4" />
               Vaults
-            </TabsTrigger>
-            <TabsTrigger value="sync" className="gap-2">
-              <RefreshCw className="w-4 h-4" />
-              Sync
             </TabsTrigger>
           </TabsList>
 
@@ -516,13 +493,16 @@ export default function VaultDashboard() {
                           id={vault.id}
                           name={vault.name}
                           type={vault.type}
+                          storageStrategy={vault.storageStrategy}
                           nodeCount={vault.nodeCount}
                           linkCount={vault.linkCount}
                           lastModified={vault.lastModified}
                           stats={vault.stats}
                           isActive={vault.id === activeVaultId}
+                          isAuthenticated={!!user}
                           onSelect={() => isCompareMode ? toggleVaultSelection(vault.id) : handleSelectVault(vault.id)}
                           onDelete={() => handleDeleteVault(vault.id)}
+                          onStorageStrategyChange={(strategy) => handleStorageStrategyChange(vault.id, strategy)}
                         />
                       </div>
 
@@ -547,57 +527,6 @@ export default function VaultDashboard() {
                 </div>
               </div>
             )}
-          </TabsContent>
-
-          {/* Sync Tab */}
-          <TabsContent value="sync" className="space-y-6">
-            <div className="max-w-2xl mx-auto space-y-6">
-              <div>
-                <h2 className="text-xl font-semibold mb-2">Database Sync</h2>
-                <p className="text-sm text-muted-foreground">
-                  Connect to a database to sync your vaults across devices
-                </p>
-              </div>
-
-              <div className="space-y-4">
-                <DatabaseSettings
-                  onConfigSave={handleSaveDatabaseConfig}
-                  currentConfig={syncService.getConfig()}
-                  isConnected={syncService.isConnected()}
-                />
-
-                {syncService.isConnected() && (
-                  <div className="flex gap-3 pt-4">
-                    <Button
-                      variant="outline"
-                      onClick={handlePullFromCloud}
-                      disabled={isSyncing}
-                      className="flex-1"
-                    >
-                      <RefreshCw className={`w-4 h-4 mr-2 ${isSyncing ? 'animate-spin' : ''}`} />
-                      Pull from Cloud
-                    </Button>
-                    <Button
-                      onClick={handleSyncToCloud}
-                      disabled={isSyncing}
-                      className="flex-1"
-                    >
-                      <RefreshCw className={`w-4 h-4 mr-2 ${isSyncing ? 'animate-spin' : ''}`} />
-                      Push to Cloud
-                    </Button>
-                  </div>
-                )}
-
-                {!syncService.isConnected() && (
-                  <div className="bg-muted/30 border border-dashed border-border rounded-lg p-6 text-center">
-                    <Database className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
-                    <p className="text-sm text-muted-foreground">
-                      Configure database settings above to enable cloud sync
-                    </p>
-                  </div>
-                )}
-              </div>
-            </div>
           </TabsContent>
         </Tabs>
       </main>

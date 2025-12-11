@@ -16,9 +16,9 @@ import {
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
-import { LinkManager } from '@/components/LinkManager';
-import { DynamicLinkManager } from '@/components/DynamicLinkManager';
-import { GraphMiniMap } from '@/components/GraphMiniMap';
+import { LinkManager } from '@/components/graph/LinkManager';
+import { DynamicLinkManager } from '@/components/graph/DynamicLinkManager';
+import { GraphMiniMap } from '@/components/graph/GraphMiniMap';
 import { useTheme } from '@/hooks/useTheme';
 import { GraphConfigState } from '@/hooks/useGraphConfig';
 import {

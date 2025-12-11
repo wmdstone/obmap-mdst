@@ -7,12 +7,15 @@ import {
   Network, 
   FileText, 
   Link2,
-  Lock
+  Lock,
+  Cloud
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { VaultModeSelector } from "./VaultModeSelector";
 import { getVaultManager } from "@/services/vault/VaultManagerSingleton";
+import { useAuth } from "@/hooks/useAuth";
+import { vaultSyncService } from "@/services/vault/VaultSyncService";
 
 interface VaultRequiredGateProps {
   isVaultActive: boolean;
@@ -27,16 +30,32 @@ export const VaultRequiredGate = ({
 }: VaultRequiredGateProps) => {
   const [isVaultSelectorOpen, setIsVaultSelectorOpen] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
   const vaultManager = getVaultManager();
   const navigate = useNavigate();
+  const { user, session } = useAuth();
+  const isAuthenticated = !!user && !!session;
 
   useEffect(() => {
     const init = async () => {
       await vaultManager.initialize();
       setIsInitialized(true);
+      
+      // If authenticated, sync from cloud to check for existing vaults
+      if (isAuthenticated) {
+        setIsSyncing(true);
+        const result = await vaultSyncService.syncFromCloud(vaultManager);
+        setIsSyncing(false);
+        
+        // If we synced vaults and there's an active one, notify parent
+        const activeVault = vaultManager.getActiveVault();
+        if (activeVault) {
+          onVaultCreated(activeVault.id);
+        }
+      }
     };
     init();
-  }, []);
+  }, [isAuthenticated]);
 
   const handleCreateLocalVault = async (folderName: string): Promise<string | null> => {
     try {
@@ -75,6 +94,12 @@ export const VaultRequiredGate = ({
 
   const handleVaultCreated = async (vaultId: string) => {
     await vaultManager.switchVault(vaultId);
+    
+    // If authenticated, sync the new vault to cloud
+    if (isAuthenticated) {
+      await vaultSyncService.syncVaultToCloud(vaultManager, vaultId);
+    }
+    
     onVaultCreated(vaultId);
   };
 
@@ -106,9 +131,21 @@ export const VaultRequiredGate = ({
             </h1>
             <p className="text-lg text-muted-foreground max-w-lg mx-auto">
               Create or open a vault to start building your connected knowledge base.
-              Your vault is your workspace — choose where your data lives.
+              {isAuthenticated ? (
+                <span className="block mt-1 text-primary">Your vaults sync automatically to the cloud.</span>
+              ) : (
+                <span className="block mt-1">Sign in to enable cloud sync.</span>
+              )}
             </p>
           </div>
+
+          {/* Syncing indicator */}
+          {isSyncing && (
+            <div className="flex items-center justify-center gap-2 text-primary">
+              <Cloud className="w-5 h-5 animate-pulse" />
+              <span>Syncing your vaults from cloud...</span>
+            </div>
+          )}
 
           {/* Features preview */}
           <div className="grid md:grid-cols-3 gap-4 py-6">
@@ -123,9 +160,19 @@ export const VaultRequiredGate = ({
               <span className="text-xs text-muted-foreground">Write with wikilinks</span>
             </div>
             <div className="flex flex-col items-center gap-2 p-4 rounded-lg bg-card/50 border border-border/50">
-              <Link2 className="w-6 h-6 text-primary" />
-              <span className="text-sm font-medium">Auto-linking</span>
-              <span className="text-xs text-muted-foreground">Smart backlinks</span>
+              {isAuthenticated ? (
+                <>
+                  <Cloud className="w-6 h-6 text-primary" />
+                  <span className="text-sm font-medium">Cloud Sync</span>
+                  <span className="text-xs text-muted-foreground">Access anywhere</span>
+                </>
+              ) : (
+                <>
+                  <Link2 className="w-6 h-6 text-primary" />
+                  <span className="text-sm font-medium">Auto-linking</span>
+                  <span className="text-xs text-muted-foreground">Smart backlinks</span>
+                </>
+              )}
             </div>
           </div>
 
@@ -154,16 +201,22 @@ export const VaultRequiredGate = ({
               className="group p-5 rounded-xl border bg-card hover:border-primary hover:shadow-lg transition-all text-left"
             >
               <div className="flex items-center gap-3 mb-3">
-                <div className="p-2 rounded-lg bg-amber-500/10 text-amber-500 group-hover:bg-amber-500 group-hover:text-white transition-colors">
-                  <Zap className="w-5 h-5" />
+                <div className={`p-2 rounded-lg ${isAuthenticated ? 'bg-blue-500/10 text-blue-500 group-hover:bg-blue-500' : 'bg-amber-500/10 text-amber-500 group-hover:bg-amber-500'} group-hover:text-white transition-colors`}>
+                  {isAuthenticated ? <Cloud className="w-5 h-5" /> : <Zap className="w-5 h-5" />}
                 </div>
                 <div>
-                  <div className="font-medium group-hover:text-primary transition-colors">In-Memory</div>
-                  <Badge variant="outline" className="text-xs mt-0.5">Ephemeral</Badge>
+                  <div className="font-medium group-hover:text-primary transition-colors">
+                    {isAuthenticated ? "Cloud Vault" : "In-Memory"}
+                  </div>
+                  <Badge variant="outline" className="text-xs mt-0.5">
+                    {isAuthenticated ? "Synced" : "Ephemeral"}
+                  </Badge>
                 </div>
               </div>
               <p className="text-sm text-muted-foreground">
-                Fast temporary workspace in browser. Can export anytime.
+                {isAuthenticated 
+                  ? "Stored in cloud. Access from any device."
+                  : "Fast temporary workspace in browser. Can export anytime."}
               </p>
             </button>
           </div>
@@ -173,10 +226,10 @@ export const VaultRequiredGate = ({
             <Button 
               size="lg" 
               onClick={() => setIsVaultSelectorOpen(true)}
-              disabled={!isInitialized}
+              disabled={!isInitialized || isSyncing}
               className="px-8"
             >
-              {isInitialized ? "Create Your Vault" : "Initializing..."}
+              {!isInitialized ? "Initializing..." : isSyncing ? "Syncing..." : "Create Your Vault"}
             </Button>
             <p className="text-xs text-muted-foreground">
               Or{" "}
@@ -186,6 +239,17 @@ export const VaultRequiredGate = ({
               >
                 manage existing vaults
               </button>
+              {!isAuthenticated && (
+                <>
+                  {" | "}
+                  <button 
+                    onClick={() => navigate("/auth")} 
+                    className="text-primary hover:underline"
+                  >
+                    sign in for cloud sync
+                  </button>
+                </>
+              )}
             </p>
           </div>
         </div>

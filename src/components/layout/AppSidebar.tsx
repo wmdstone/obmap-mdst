@@ -18,7 +18,7 @@ import {
   Music,
   Video,
 } from "lucide-react";
-import { ImportExportPanel } from "@/components/ImportExportPanel";
+import { ImportExportPanel } from "@/components/layout/ImportExportPanel";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";

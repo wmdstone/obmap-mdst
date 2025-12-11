@@ -1,21 +1,28 @@
-import { HardDrive, Zap, Trash2, Clock, Network, FileText, Tag, Link2, AlertTriangle, FolderOpen } from "lucide-react";
+import { HardDrive, Zap, Trash2, Clock, Network, FileText, Tag, Link2, AlertTriangle, FolderOpen, Cloud, Settings } from "lucide-react";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { formatDistanceToNow } from "date-fns";
+import { StorageStrategy, STORAGE_STRATEGY_LABELS } from "@/services/vault/types";
+import { StorageStrategySelector, StorageStrategyBadge } from "./StorageStrategySelector";
+import { useState } from "react";
 
 interface VaultCardProps {
   id: string;
   name: string;
   type: 'in-memory' | 'local-folder';
+  storageStrategy: StorageStrategy;
   nodeCount: number;
   linkCount: number;
   lastModified: number;
   isActive: boolean;
+  isAuthenticated?: boolean;
   onSelect: () => void;
   onDelete: () => void;
+  onStorageStrategyChange?: (strategy: StorageStrategy) => void;
   stats?: {
     fileCount: number;
     folderCount: number;
@@ -28,38 +35,52 @@ interface VaultCardProps {
 export const VaultCard = ({
   name,
   type,
+  storageStrategy,
   nodeCount,
   linkCount,
   lastModified,
   isActive,
+  isAuthenticated = false,
   onSelect,
   onDelete,
+  onStorageStrategyChange,
   stats,
 }: VaultCardProps) => {
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+
+  const getVaultIcon = () => {
+    if (storageStrategy === 'cloud') {
+      return <Cloud className="w-5 h-5 text-blue-500" />;
+    }
+    if (type === 'in-memory') {
+      return <Zap className="w-5 h-5 text-amber-500" />;
+    }
+    return <HardDrive className="w-5 h-5 text-primary" />;
+  };
+
+  const getVaultIconBg = () => {
+    if (storageStrategy === 'cloud') {
+      return 'bg-blue-500/10';
+    }
+    if (type === 'in-memory') {
+      return 'bg-amber-500/10';
+    }
+    return 'bg-primary/10';
+  };
+
   return (
     <Card className={`cursor-pointer transition-all hover:shadow-lg ${isActive ? 'ring-2 ring-primary' : ''}`}>
       <CardHeader>
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-3">
-            {type === 'in-memory' ? (
-              <div className="p-2 rounded-lg bg-amber-500/10">
-                <Zap className="w-5 h-5 text-amber-500" />
-              </div>
-            ) : (
-              <div className="p-2 rounded-lg bg-primary/10">
-                <HardDrive className="w-5 h-5 text-primary" />
-              </div>
-            )}
+            <div className={`p-2 rounded-lg ${getVaultIconBg()}`}>
+              {getVaultIcon()}
+            </div>
             <div>
               <CardTitle className="text-lg">{name}</CardTitle>
               <div className="flex items-center gap-2 mt-1">
-                <Badge 
-                  variant={type === 'in-memory' ? 'outline' : 'secondary'} 
-                  className="text-xs"
-                >
-                  {type === 'in-memory' ? 'In-Memory' : 'Local Native'}
-                </Badge>
-                {type === 'in-memory' && (
+                <StorageStrategyBadge strategy={storageStrategy} />
+                {storageStrategy === 'memory' && (
                   <Tooltip>
                     <TooltipTrigger>
                       <AlertTriangle className="w-3 h-3 text-amber-500" />
@@ -72,9 +93,56 @@ export const VaultCard = ({
               </div>
             </div>
           </div>
-          {isActive && (
-            <Badge variant="default" className="text-xs">Active</Badge>
-          )}
+          <div className="flex items-center gap-2">
+            {isActive && (
+              <Badge variant="default" className="text-xs">Active</Badge>
+            )}
+            {type === 'in-memory' && onStorageStrategyChange && (
+              <Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
+                <DialogTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-8 w-8">
+                    <Settings className="w-4 h-4" />
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-md">
+                  <DialogHeader>
+                    <DialogTitle>Vault Storage Settings</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4 py-4">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Storage Strategy</label>
+                      <p className="text-xs text-muted-foreground">
+                        Choose where this vault's data is stored
+                      </p>
+                      <StorageStrategySelector
+                        value={storageStrategy}
+                        onChange={(strategy) => {
+                          onStorageStrategyChange(strategy);
+                          setIsSettingsOpen(false);
+                        }}
+                        isAuthenticated={isAuthenticated}
+                        disabled={storageStrategy === 'filesystem'}
+                      />
+                    </div>
+                    {storageStrategy === 'cloud' && (
+                      <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-3">
+                        <p className="text-xs text-blue-600 dark:text-blue-400">
+                          This vault will automatically sync to your cloud account when changes are made.
+                        </p>
+                      </div>
+                    )}
+                    {storageStrategy === 'memory' && (
+                      <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-3">
+                        <p className="text-xs text-amber-600 dark:text-amber-400">
+                          This vault is stored locally only. Enable "Cloud Sync" to back up to the cloud.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </DialogContent>
+              </Dialog>
+            )}
+          </div>
         </div>
       </CardHeader>
 

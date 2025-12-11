@@ -2,34 +2,35 @@
  * VaultManager - Multi-Vault Orchestrator
  * 
  * Manages multiple vaults (in-memory and local folder), handles switching,
- * and coordinates with VaultStorage for persistence
+ * and coordinates with VaultStorage for persistence.
+ * 
+ * Storage Strategies:
+ * - memory: IndexedDB only, never syncs to cloud
+ * - cloud: Supabase with RLS, auto-syncs
+ * - filesystem: Local folder (separate handling)
  */
 
 import { GraphService } from '../graph/GraphService';
 import { VaultStorage } from './VaultStorage';
 import { VaultHistory } from './VaultHistory';
 import { VaultBackupService } from './VaultBackupService';
-import { DatabaseSyncService } from '../database/DatabaseSyncService';
 import { FileSystemService } from '../persistence/FileSystemService';
+import { StorageStrategy, BackupConfig } from './types';
 
-interface BackupConfig {
-  timeIntervalMinutes: number;
-  changeThreshold: number;
-  maxSnapshots: number;
-}
-
-interface Vault {
+export interface Vault {
   id: string;
   name: string;
   type: 'in-memory' | 'local-folder';
+  storageStrategy: StorageStrategy;
+  cloudId?: string; // UUID from Supabase when synced
   graphService: GraphService;
   history: VaultHistory;
   persistenceService?: FileSystemService;
   directoryHandle?: FileSystemDirectoryHandle;
   createdAt: number;
   lastModified: number;
-  graphConfig?: any; // Per-vault graph configuration
-  backupConfig?: BackupConfig; // Per-vault backup configuration
+  graphConfig?: any;
+  backupConfig?: BackupConfig;
 }
 
 export class VaultManager {
@@ -37,14 +38,12 @@ export class VaultManager {
   private activeVaultId: string | null = null;
   private storage: VaultStorage;
   private backupService: VaultBackupService;
-  private syncService: DatabaseSyncService;
   private initialized: boolean = false;
   private initializationPromise: Promise<void> | null = null;
 
   constructor() {
     this.storage = new VaultStorage();
     this.backupService = new VaultBackupService();
-    this.syncService = new DatabaseSyncService();
   }
 
   async initialize(): Promise<void> {
@@ -107,10 +106,15 @@ export class VaultManager {
     const history = new VaultHistory();
     history.setState(vaultData.history);
 
+    // Default to 'memory' strategy for existing vaults without strategy defined
+    const storageStrategy: StorageStrategy = vaultData.metadata.storageStrategy || 'memory';
+
     return {
       id: vaultData.metadata.id,
       name: vaultData.metadata.name,
       type: vaultData.metadata.type,
+      storageStrategy,
+      cloudId: vaultData.metadata.cloudId,
       graphService,
       history,
       graphConfig: vaultData.graphConfig || null,
@@ -120,9 +124,9 @@ export class VaultManager {
     };
   }
 
-  async createInMemoryVault(name: string): Promise<string> {
+  async createInMemoryVault(name: string, storageStrategy: StorageStrategy = 'memory'): Promise<string> {
     try {
-      console.log("VaultManager: Creating vault", name);
+      console.log("VaultManager: Creating vault", name, "with strategy", storageStrategy);
       const vaultId = `vault-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
       const graphService = new GraphService();
       graphService.initialize();
@@ -131,6 +135,7 @@ export class VaultManager {
         id: vaultId,
         name,
         type: 'in-memory',
+        storageStrategy,
         graphService,
         history: new VaultHistory(),
         createdAt: Date.now(),
@@ -147,6 +152,43 @@ export class VaultManager {
       console.error("VaultManager: Error creating vault:", error);
       throw error;
     }
+  }
+
+  async setStorageStrategy(vaultId: string, strategy: StorageStrategy): Promise<{ needsCloudSync: boolean; cloudId?: string }> {
+    const vault = this.vaults.get(vaultId);
+    if (!vault) return { needsCloudSync: false };
+
+    const previousStrategy = vault.storageStrategy;
+    const previousCloudId = vault.cloudId;
+    vault.storageStrategy = strategy;
+    vault.lastModified = Date.now();
+
+    // If switching away from cloud, clear cloudId
+    if (previousStrategy === 'cloud' && strategy !== 'cloud') {
+      vault.cloudId = undefined;
+    }
+
+    await this.persistVault(vault);
+    console.log(`VaultManager: Changed vault ${vaultId} storage strategy from ${previousStrategy} to ${strategy}`);
+    
+    // Return whether we need to sync to cloud (newly set to cloud strategy)
+    return { 
+      needsCloudSync: strategy === 'cloud',
+      cloudId: previousCloudId
+    };
+  }
+
+  getStorageStrategy(vaultId: string): StorageStrategy | null {
+    const vault = this.vaults.get(vaultId);
+    return vault?.storageStrategy || null;
+  }
+
+  getCloudVaults(): Vault[] {
+    return Array.from(this.vaults.values()).filter(v => v.storageStrategy === 'cloud');
+  }
+
+  getMemoryVaults(): Vault[] {
+    return Array.from(this.vaults.values()).filter(v => v.storageStrategy === 'memory');
   }
 
   async openLocalFolderVault(): Promise<string | null> {
@@ -174,6 +216,7 @@ export class VaultManager {
         id: vaultId,
         name: result.vaultName,
         type: 'local-folder',
+        storageStrategy: 'filesystem', // File system vaults always use filesystem strategy
         graphService,
         history: new VaultHistory(),
         persistenceService,
@@ -192,6 +235,7 @@ export class VaultManager {
           id: vault.id,
           name: vault.name,
           type: vault.type,
+          storageStrategy: 'filesystem',
           createdAt: vault.createdAt,
           lastModified: vault.lastModified,
           nodeCount: graphService.getGraphData().nodes.length,
@@ -228,9 +272,12 @@ export class VaultManager {
     return true;
   }
 
-  async deleteVault(vaultId: string): Promise<void> {
+  async deleteVault(vaultId: string): Promise<{ cloudId?: string; wasCloudVault: boolean }> {
     const vault = this.vaults.get(vaultId);
-    if (!vault) return;
+    if (!vault) return { wasCloudVault: false };
+
+    const wasCloudVault = vault.storageStrategy === 'cloud';
+    const cloudId = vault.cloudId;
 
     if (vault.persistenceService) {
       vault.persistenceService.closeVault();
@@ -246,6 +293,8 @@ export class VaultManager {
     if (this.activeVaultId === vaultId) {
       this.activeVaultId = null;
     }
+
+    return { cloudId, wasCloudVault };
   }
 
   getActiveVault(): Vault | null {
@@ -357,6 +406,8 @@ export class VaultManager {
         id: vault.id,
         name: vault.name,
         type: vault.type,
+        storageStrategy: vault.storageStrategy,
+        cloudId: vault.cloudId,
         createdAt: vault.createdAt,
         lastModified: vault.lastModified,
         nodeCount: graphData.nodes.length,
@@ -367,6 +418,15 @@ export class VaultManager {
       graphConfig: vault.graphConfig || undefined,
       backupConfig: vault.backupConfig || undefined,
     });
+  }
+
+  // Set cloud ID after syncing to cloud
+  async setCloudId(vaultId: string, cloudId: string): Promise<void> {
+    const vault = this.vaults.get(vaultId);
+    if (!vault) return;
+    
+    vault.cloudId = cloudId;
+    await this.persistVault(vault);
   }
 
   // Graph config management
@@ -494,58 +554,5 @@ export class VaultManager {
 
   stopAutoBackup(vaultId: string): void {
     this.backupService.stopAutoBackup(vaultId);
-  }
-
-  // Database Sync Management
-  getSyncService(): DatabaseSyncService {
-    return this.syncService;
-  }
-
-  async syncVaultToCloud(vaultId: string): Promise<void> {
-    const vault = this.vaults.get(vaultId);
-    if (!vault || vault.type !== 'in-memory') return;
-
-    const graphData = vault.graphService.getGraphData();
-    await this.syncService.syncVault({
-      vaultId: vault.id,
-      name: vault.name,
-      type: vault.type,
-      nodes: graphData.nodes,
-      links: graphData.links,
-      lastModified: vault.lastModified,
-    });
-  }
-
-  async pullVaultsFromCloud(userId?: string): Promise<void> {
-    const cloudVaults = await this.syncService.pullVaults(userId);
-    
-    for (const cloudVault of cloudVaults) {
-      // Check if vault already exists locally
-      const existingVault = this.vaults.get(cloudVault.vaultId);
-      
-      if (!existingVault) {
-        // Create new vault from cloud data
-        const graphService = new GraphService();
-        graphService.initialize();
-        
-        cloudVault.nodes.forEach(node => {
-          graphService.setNode(node);
-        });
-        graphService.setLinks(cloudVault.links || []);
-
-        const vault: Vault = {
-          id: cloudVault.vaultId,
-          name: cloudVault.name,
-          type: 'in-memory',
-          graphService,
-          history: new VaultHistory(),
-          createdAt: Date.now(),
-          lastModified: cloudVault.lastModified,
-        };
-
-        this.vaults.set(vault.id, vault);
-        await this.persistVault(vault);
-      }
-    }
   }
 }

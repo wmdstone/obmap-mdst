@@ -7,8 +7,8 @@ import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { MarkdownRenderer } from "@/components/MarkdownRenderer";
-import { BacklinksPanel } from "@/components/BacklinksPanel";
+import { MarkdownRenderer } from "@/components/graph/MarkdownRenderer";
+import { BacklinksPanel } from "@/components/graph/BacklinksPanel";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Slider } from "@/components/ui/slider";
 
