@@ -472,6 +472,47 @@ const Index = () => {
 		);
 	};
 
+	const handleAddNode = useCallback(async (type: "folder" | "file") => {
+		// Only folders can have children - enforce this rule
+		const parentNode = selectedNode && selectedNode.type === "folder" ? selectedNode : null;
+
+		if (selectedNode && selectedNode.type === "file") {
+			toast.error('Files cannot contain children. Please select a folder or create at root level.');
+			return;
+		}
+
+		const depth = parentNode ? parentNode.depth + 1 : 0;
+
+		const newNode: Node = {
+			id: `node-${Date.now()}`,
+			name: type === "folder"
+				? `New Folder ${nodes.filter((n) => n.type === "folder").length + 1}`
+				: `New File ${nodes.filter((n) => n.type === "file").length + 1}`,
+			content: "",
+			type,
+			parentId: parentNode?.id || null,
+			depth,
+			tags: [],
+		};
+
+		const updatedNodes = [...nodes, newNode];
+		setNodes(updatedNodes);
+		setSelectedNode(newNode);
+
+		// Update vault if active
+		if (currentVaultId) {
+			const vault = vaultManager.getVault(currentVaultId);
+			if (vault) {
+				vault.graphService.setNode(newNode);
+				vault.history.addState(updatedNodes, []);
+				await saveVault();
+				updateUndoRedoState(currentVaultId);
+			}
+		}
+
+		toast.success(`${type === "folder" ? "Folder" : "File"} created!`);
+	}, [currentVaultId, nodes, saveVault, selectedNode, vaultManager]);
+
 	const handleWikilinkClick = (target: string) => {
 		// Find the node by name
 		const targetNode = graphData.nodes.find(
@@ -642,6 +683,7 @@ const Index = () => {
 				selectedNode={selectedNode}
 				onNodeSelect={setSelectedNode}
 				onNodeMove={handleNodeMove}
+				onAddNode={handleAddNode}
 				isVaultMode={!!currentVaultId}
 				vaultName={
 					currentVaultId

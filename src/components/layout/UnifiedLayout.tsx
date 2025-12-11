@@ -27,6 +27,7 @@ interface UnifiedLayoutProps {
   selectedNode: Node | null;
   onNodeSelect: (node: Node) => void;
   onNodeMove?: (nodeId: string, newParentId: string | null) => void;
+  onAddNode?: (type: "folder" | "file") => void;
   isVaultMode: boolean;
   vaultName: string | null;
   vaultType?: "in-memory" | "local-folder";
@@ -43,6 +44,7 @@ export function UnifiedLayout({
   selectedNode,
   onNodeSelect,
   onNodeMove,
+  onAddNode,
   isVaultMode,
   vaultName,
   vaultType,
@@ -159,6 +161,7 @@ export function UnifiedLayout({
             selectedNode={selectedNode}
             onNodeSelect={onNodeSelect}
             onNodeMove={onNodeMove}
+            onAddNode={onAddNode}
             isVaultMode={isVaultMode}
             vaultName={vaultName}
             vaultType={vaultType}
@@ -195,7 +198,7 @@ export function UnifiedLayout({
     );
   }
 
-  // Mobile Layout - Single Sheet for sidebar
+  // Mobile Layout - Single Sheet for sidebar (no duplicate sidebars)
   return (
     <div className="h-screen w-full flex flex-col overflow-hidden bg-background">
       {/* Mobile Header */}
@@ -206,36 +209,41 @@ export function UnifiedLayout({
               <Menu className="w-5 h-5" />
             </Button>
           </SheetTrigger>
-          <SheetContent side="left" className="p-0 w-[300px]">
+          <SheetContent side="left" className="p-0 w-[85vw] max-w-[320px]">
             <div className="flex h-full">
               <IconRibbon
                 activeTool={activeTool}
                 onToolSelect={(tool) => {
-                  handleToolSelect(tool);
                   if (tool === "vaults" || tool === "account") {
+                    navigate(tool === "vaults" ? "/vaults" : "/vaults");
                     setMobileMenuOpen(false);
+                    return;
                   }
+                  setActiveTool((prev) => (prev === tool ? null : tool));
                 }}
               />
-              {activeTool && activeTool !== "vaults" && activeTool !== "account" && (
-                <SidebarPanel
-                  activeTool={activeTool}
-                  onClose={handlePanelClose}
-                  nodes={nodes}
-                  selectedNode={selectedNode}
-                  onNodeSelect={(node) => {
-                    onNodeSelect(node);
-                    setMobileMenuOpen(false);
-                  }}
-                  onNodeMove={onNodeMove}
-                  isVaultMode={isVaultMode}
-                  vaultName={vaultName}
-                  vaultType={vaultType}
-                  onCloseVault={onCloseVault}
-                  graphConfigTrigger={graphConfigTrigger}
-                  onImportComplete={onImportComplete}
-                />
-              )}
+              <div className="flex-1 min-w-0">
+                {activeTool && activeTool !== "vaults" && activeTool !== "account" && (
+                  <SidebarPanel
+                    activeTool={activeTool}
+                    onClose={() => setActiveTool(null)}
+                    nodes={nodes}
+                    selectedNode={selectedNode}
+                    onNodeSelect={(node) => {
+                      onNodeSelect(node);
+                      setMobileMenuOpen(false);
+                    }}
+                    onNodeMove={onNodeMove}
+                    onAddNode={onAddNode}
+                    isVaultMode={isVaultMode}
+                    vaultName={vaultName}
+                    vaultType={vaultType}
+                    onCloseVault={onCloseVault}
+                    graphConfigTrigger={graphConfigTrigger}
+                    onImportComplete={onImportComplete}
+                  />
+                )}
+              </div>
             </div>
           </SheetContent>
         </Sheet>
