@@ -229,6 +229,7 @@ export const NetworkGraph = ({
 }: NetworkGraphProps) => {
 	const internalGraphRef = useRef<any>();
 	const graphRef = externalGraphRef || internalGraphRef;
+	const containerRef = useRef<HTMLDivElement>(null);
 	const { theme } = useTheme();
 	const graphConfig = externalGraphConfig || defaultGraphConfig;
 
@@ -239,6 +240,29 @@ export const NetworkGraph = ({
 	const [tagFilter, setTagFilter] = useState<string>('');
 	const [contentFilter, setContentFilter] = useState<string>('');
 	const [graphKey, setGraphKey] = useState(0);
+	const [dimensions, setDimensions] = useState({ width: 800, height: 600 });
+
+	// Track container size for responsive graph
+	useEffect(() => {
+		const updateDimensions = () => {
+			if (containerRef.current) {
+				const { width, height } = containerRef.current.getBoundingClientRect();
+				setDimensions({ width: width || 800, height: height || 600 });
+			}
+		};
+
+		updateDimensions();
+		const resizeObserver = new ResizeObserver(updateDimensions);
+		if (containerRef.current) {
+			resizeObserver.observe(containerRef.current);
+		}
+		window.addEventListener('resize', updateDimensions);
+
+		return () => {
+			resizeObserver.disconnect();
+			window.removeEventListener('resize', updateDimensions);
+		};
+	}, []);
 
 	// Force graph re-render when theme or graph config changes
 	useEffect(() => {
@@ -409,7 +433,7 @@ export const NetworkGraph = ({
 	].filter(Boolean);
 
 	return (
-		<div className='relative w-full h-full flex-1 bg-graph-bg'>
+		<div ref={containerRef} className='relative w-full h-full flex-1 bg-graph-bg'>
 			<div className='absolute top-4 left-4 z-10 flex flex-col gap-2'>
 				<div className='flex gap-2 flex-wrap'>
 					<Button
@@ -537,6 +561,8 @@ export const NetworkGraph = ({
 			<ForceGraph2D
 				key={graphKey}
 				ref={graphRef}
+				width={dimensions.width}
+				height={dimensions.height}
 				graphData={filteredData}
 				nodeLabel={(node: any) => {
 					if (graphConfig.nodes.labelField === 'id') return node.id;

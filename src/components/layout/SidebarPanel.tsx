@@ -5,8 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { X, ChevronRight, ChevronDown, Folder, FileText, FolderOpen, Image, Music, Video, GripVertical, FileArchive } from "lucide-react";
+import { X, ChevronRight, ChevronDown, Folder, FileText, FolderOpen, Image, Music, Video, GripVertical, FileArchive, FolderPlus, FilePlus, SortAsc, ChevronsUpDown } from "lucide-react";
 import { ImportExportPanel } from "@/components/layout/ImportExportPanel";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import type { RibbonTool } from "./IconRibbon";
 
 interface Node {
@@ -27,6 +29,7 @@ interface SidebarPanelProps {
   selectedNode: Node | null;
   onNodeSelect: (node: Node) => void;
   onNodeMove?: (nodeId: string, newParentId: string | null) => void;
+  onAddNode?: (type: "folder" | "file") => void;
   isVaultMode: boolean;
   vaultName: string | null;
   vaultType?: "in-memory" | "local-folder";
@@ -46,6 +49,7 @@ export function SidebarPanel({
   selectedNode,
   onNodeSelect,
   onNodeMove,
+  onAddNode,
   isVaultMode,
   vaultName,
   onCloseVault,
@@ -53,11 +57,13 @@ export function SidebarPanel({
   onImportComplete,
 }: SidebarPanelProps) {
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
   const [draggedNode, setDraggedNode] = useState<Node | null>(null);
   const [dragOverNode, setDragOverNode] = useState<string | null>(null);
   const [width, setWidth] = useState(DEFAULT_WIDTH);
   const [isResizing, setIsResizing] = useState(false);
+  const [sortBy, setSortBy] = useState<"name" | "type">("type");
   const [importExportOpen, setImportExportOpen] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
 
@@ -180,8 +186,10 @@ export function SidebarPanel({
       return nodes
         .filter((node) => node.parentId === parentId)
         .sort((a, b) => {
-          if (a.type === "folder" && b.type === "file") return -1;
-          if (a.type === "file" && b.type === "folder") return 1;
+          if (sortBy === "type") {
+            if (a.type === "folder" && b.type !== "folder") return -1;
+            if (a.type !== "folder" && b.type === "folder") return 1;
+          }
           return a.name.localeCompare(b.name);
         });
     };
@@ -238,6 +246,15 @@ export function SidebarPanel({
   const folderCount = nodes.filter((n) => n.type === "folder").length;
   const fileCount = nodes.filter((n) => n.type === "file").length;
 
+  const expandAll = () => {
+    const allFolderIds = nodes.filter(n => n.type === "folder").map(n => n.id);
+    setExpandedFolders(new Set(allFolderIds));
+  };
+
+  const collapseAll = () => {
+    setExpandedFolders(new Set());
+  };
+
   const panelTitles: Record<RibbonTool, string> = {
     files: "File Explorer",
     graph: "Graph Settings",
@@ -290,6 +307,53 @@ export function SidebarPanel({
               </div>
             )}
 
+            {/* File Explorer Toolbar */}
+            <div className="p-2 border-b border-sidebar-border flex items-center gap-1 shrink-0">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7"
+                onClick={() => onAddNode?.("folder")}
+                title="Add Folder"
+              >
+                <FolderPlus className="w-4 h-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7"
+                onClick={() => onAddNode?.("file")}
+                title="Add File"
+              >
+                <FilePlus className="w-4 h-4" />
+              </Button>
+              <div className="flex-1" />
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-7 w-7" title="Sort">
+                    <SortAsc className="w-4 h-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => setSortBy("name")}>
+                    Sort by Name {sortBy === "name" && "✓"}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setSortBy("type")}>
+                    Sort by Type {sortBy === "type" && "✓"}
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7"
+                onClick={expandedFolders.size > 0 ? collapseAll : expandAll}
+                title={expandedFolders.size > 0 ? "Collapse All" : "Expand All"}
+              >
+                <ChevronsUpDown className="w-4 h-4" />
+              </Button>
+            </div>
+
             {/* File Tree */}
             <ScrollArea className="flex-1">
               <div
@@ -329,7 +393,13 @@ export function SidebarPanel({
                   Open Import/Export
                 </Button>
               </SheetTrigger>
-              <SheetContent side="right" className="w-full sm:max-w-xl overflow-y-auto">
+              <SheetContent 
+                side={isMobile ? "bottom" : "right"} 
+                className={cn(
+                  "overflow-y-auto",
+                  isMobile ? "h-[85vh] rounded-t-xl" : "w-full sm:max-w-xl"
+                )}
+              >
                 <SheetHeader>
                   <SheetTitle>Import / Export</SheetTitle>
                 </SheetHeader>
