@@ -43,20 +43,20 @@ function resolveColor(color: string): string {
 	if (!color.includes('var(')) {
 		return color;
 	}
-	
+
 	// Extract the CSS variable name
 	const varMatch = color.match(/var\(--([^)]+)\)/);
 	if (!varMatch) return color;
-	
+
 	const varName = varMatch[1];
-	
+
 	// Get the computed value from CSS
 	const computedValue = getComputedStyle(document.documentElement)
 		.getPropertyValue(`--${varName}`)
 		.trim();
-	
+
 	if (!computedValue) return color;
-	
+
 	// Replace the var() with the actual value
 	return color.replace(`var(--${varName})`, computedValue);
 }
@@ -64,23 +64,23 @@ function resolveColor(color: string): string {
 // Convert color to HSLA with opacity for canvas
 function colorWithOpacity(color: string, opacity: number): string {
 	const resolved = resolveColor(color);
-	
+
 	// If already hsla, adjust opacity
 	if (resolved.startsWith('hsla(')) {
 		return resolved.replace(/,\s*[\d.]+\)$/, `, ${opacity})`);
 	}
-	
+
 	// If hsl, convert to hsla
 	if (resolved.startsWith('hsl(')) {
 		return resolved.replace('hsl(', 'hsla(').replace(')', `, ${opacity})`);
 	}
-	
+
 	// If it's just HSL values without the function wrapper (from CSS var)
 	const hslMatch = resolved.match(/^([\d.]+)\s+([\d.]+)%?\s+([\d.]+)%?$/);
 	if (hslMatch) {
 		return `hsla(${hslMatch[1]}, ${hslMatch[2]}%, ${hslMatch[3]}%, ${opacity})`;
 	}
-	
+
 	// Return as-is if we can't parse it
 	return resolved;
 }
@@ -238,8 +238,6 @@ export const NetworkGraph = ({
 	const [maxDepth, setMaxDepth] = useState<number>(10);
 	const [tagFilter, setTagFilter] = useState<string>('');
 	const [contentFilter, setContentFilter] = useState<string>('');
-	const [linkManagerOpen, setLinkManagerOpen] = useState(false);
-	const [dynamicLinkManagerOpen, setDynamicLinkManagerOpen] = useState(false);
 	const [graphKey, setGraphKey] = useState(0);
 
 	// Force graph re-render when theme or graph config changes
@@ -356,51 +354,6 @@ export const NetworkGraph = ({
 		onNodeSelect(newNode);
 	};
 
-	const handleAutoLink = () => {
-		const newLinks: Link[] = [];
-		const existingLinksSet = new Set(
-			graphData.links.map((link) => {
-				const sourceId =
-					typeof link.source === 'string' ? link.source : link.source.id;
-				const targetId =
-					typeof link.target === 'string' ? link.target : link.target.id;
-				return `${sourceId}-${targetId}`;
-			})
-		);
-
-		// Create hierarchy links based on parent-child relationships
-		graphData.nodes.forEach((node) => {
-			if (node.parentId) {
-				const linkKey = `${node.parentId}-${node.id}`;
-				if (!existingLinksSet.has(linkKey)) {
-					newLinks.push({
-						source: node.parentId,
-						target: node.id,
-					});
-				}
-			}
-		});
-
-		if (newLinks.length > 0) {
-			setGraphData({
-				...graphData,
-				links: [...graphData.links, ...newLinks],
-			});
-			toast.success(
-				`Auto-linked ${newLinks.length} node(s) based on hierarchy`
-			);
-		} else {
-			toast.info('All nodes are already properly linked');
-		}
-	};
-
-	const handleUpdateLinks = (updatedLinks: Link[]) => {
-		setGraphData({
-			...graphData,
-			links: updatedLinks,
-		});
-	};
-
 	const filteredData = {
 		nodes: graphData.nodes.filter((node) => {
 			// Depth filter
@@ -471,76 +424,6 @@ export const NetworkGraph = ({
 						<FilePlus className='w-4 h-4 mr-2' />
 						Add File
 					</Button>
-					<Button
-						onClick={() => {
-							setLinkMode(!linkMode);
-							setLinkSource(null);
-						}}
-						variant={linkMode ? 'default' : 'secondary'}
-						className={linkMode ? 'bg-accent hover:bg-accent/90' : ''}>
-						<Link2 className='w-4 h-4 mr-2' />
-						{linkMode ? 'Cancel' : 'Link'}
-					</Button>
-
-					<Sheet
-						open={linkManagerOpen}
-						onOpenChange={setLinkManagerOpen}>
-						<SheetTrigger asChild>
-							<Button
-								variant='secondary'
-								className='shadow-lg relative'>
-								<Network className='w-4 h-4 mr-2' />
-								Links
-								<Badge
-									variant='default'
-									className='ml-2 px-1.5 py-0 text-xs'>
-									{graphData.links.length}
-								</Badge>
-							</Button>
-						</SheetTrigger>
-						<SheetContent
-							side='right'
-							className='w-[400px] sm:w-[540px] p-0'>
-							<div className='h-full flex flex-col'>
-								<SheetHeader className='p-6 pb-4'>
-									<SheetTitle>Link Management</SheetTitle>
-								</SheetHeader>
-								<div className='flex-1 overflow-hidden px-6 pb-6'>
-									<LinkManager
-										nodes={graphData.nodes}
-										links={graphData.links}
-										onUpdateLinks={handleUpdateLinks}
-										onAutoLink={handleAutoLink}
-									/>
-								</div>
-							</div>
-						</SheetContent>
-					</Sheet>
-
-					<Sheet
-						open={dynamicLinkManagerOpen}
-						onOpenChange={setDynamicLinkManagerOpen}>
-						<SheetTrigger asChild>
-							<Button
-								variant='default'
-								className='shadow-lg bg-gradient-to-r from-primary to-accent'>
-								<Sparkles className='w-4 h-4 mr-2' />
-								Dynamic Links
-							</Button>
-						</SheetTrigger>
-						<SheetContent
-							side='right'
-							className='w-[400px] sm:w-[540px] overflow-y-auto'>
-							<SheetHeader className='pb-4'>
-								<SheetTitle>Dynamic Link Layers</SheetTitle>
-							</SheetHeader>
-							<DynamicLinkManager
-								nodes={graphData.nodes}
-								baseLinks={graphData.links}
-								onLinksUpdate={handleUpdateLinks}
-							/>
-						</SheetContent>
-					</Sheet>
 
 					<Popover>
 						<PopoverTrigger asChild>
@@ -699,7 +582,10 @@ export const NetworkGraph = ({
 						return colorWithOpacity(style.color, style.opacity);
 					}
 					// Use graphConfig link settings as fallback
-					return colorWithOpacity(graphConfig.links.color, graphConfig.links.opacity);
+					return colorWithOpacity(
+						graphConfig.links.color,
+						graphConfig.links.opacity
+					);
 				}}
 				linkWidth={(link: any) => {
 					const linkType = link.type as keyof typeof linkStyles | undefined;
@@ -737,7 +623,9 @@ export const NetworkGraph = ({
 				}
 				linkDirectionalParticleSpeed={graphConfig.links.particleSpeed}
 				linkDirectionalParticleWidth={graphConfig.links.particleWidth}
-				linkDirectionalParticleColor={() => resolveColor(graphConfig.links.particleColor)}
+				linkDirectionalParticleColor={() =>
+					resolveColor(graphConfig.links.particleColor)
+				}
 				onNodeClick={handleNodeClick}
 				nodeCanvasObject={(
 					node: any,
@@ -750,7 +638,7 @@ export const NetworkGraph = ({
 					const fontSize = graphConfig.nodes.labelSize / globalScale;
 					const iconSize = (graphConfig.nodes.labelSize + 2) / globalScale;
 					const isFolder = node.type === 'folder';
-					
+
 					// Build font string based on style
 					let fontStyle = '';
 					switch (graphConfig.nodes.labelFontStyle) {
@@ -766,14 +654,15 @@ export const NetworkGraph = ({
 						default:
 							fontStyle = '';
 					}
-					
+
 					ctx.font = `${fontStyle}${fontSize}px Inter, sans-serif`;
 					const textWidth = ctx.measureText(label).width;
 					const bckgDimensions = [textWidth + iconSize + 6, fontSize + 4];
 
 					// Draw node shape with glow
-					const nodeSize = (isFolder ? 10 : 8) * (graphConfig.nodes.relSize / 6);
-					
+					const nodeSize =
+						(isFolder ? 10 : 8) * (graphConfig.nodes.relSize / 6);
+
 					// Set fill color with opacity
 					let fillColor = resolveColor(graphConfig.nodes.fileColor);
 					if (selectedNode?.id === node.id) {
@@ -791,7 +680,12 @@ export const NetworkGraph = ({
 					ctx.beginPath();
 					switch (graphConfig.nodes.shape) {
 						case 'square':
-							ctx.rect(node.x - nodeSize, node.y - nodeSize, nodeSize * 2, nodeSize * 2);
+							ctx.rect(
+								node.x - nodeSize,
+								node.y - nodeSize,
+								nodeSize * 2,
+								nodeSize * 2
+							);
 							break;
 						case 'diamond':
 							ctx.moveTo(node.x, node.y - nodeSize);
@@ -822,7 +716,7 @@ export const NetworkGraph = ({
 							ctx.arc(node.x, node.y, nodeSize, 0, 2 * Math.PI);
 							break;
 					}
-					
+
 					ctx.fill();
 					ctx.shadowBlur = 0;
 					ctx.globalAlpha = 1;
@@ -831,7 +725,10 @@ export const NetworkGraph = ({
 					if (graphConfig.nodes.showLabels) {
 						// Draw label background if enabled
 						if (graphConfig.nodes.labelBackground) {
-							ctx.fillStyle = colorWithOpacity(resolveColor(graphConfig.nodes.labelBackgroundColor), 0.85);
+							ctx.fillStyle = colorWithOpacity(
+								resolveColor(graphConfig.nodes.labelBackgroundColor),
+								0.85
+							);
 							ctx.fillRect(
 								node.x - bckgDimensions[0] / 2,
 								node.y + 14,
