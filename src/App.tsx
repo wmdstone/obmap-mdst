@@ -1,45 +1,17 @@
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
+import { Toaster } from "@/components/core/ui/toaster";
+import { Toaster as Sonner } from "@/components/core/ui/sonner";
+import { TooltipProvider } from "@/components/core/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { ErrorBoundary } from "./components/common/ErrorBoundary";
-import { AuthProvider } from "./hooks/useAuth";
-import { ProtectedRoute } from "./components/common/ProtectedRoute";
-import { Suspense, lazy } from "react";
+import { BrowserRouter } from "react-router-dom";
+import { ErrorBoundary } from "./components/core/common/ErrorBoundary";
+import { AuthProvider } from "./components/auth/hooks/useAuth";
+import { EventDebugPanel } from "./components/core/debug/EventDebugPanel";
+import { Suspense, useEffect, useState } from "react";
+import { initializeFeatureLoader } from "./services/core/feature-loader";
+import { DynamicRoutes } from "./components/core/routing/DynamicRoutes";
+import { useFeatureConfigStore } from "./services/ui/stores/useFeatureConfigStore";
 
 const queryClient = new QueryClient();
-
-// Lazy load pages to catch import errors
-const Index = lazy(() => import("./pages/Index").catch(err => {
-  console.error("Failed to load Index:", err);
-  return { default: () => <div className="p-8 text-destructive">Failed to load Index: {err.message}</div> };
-}));
-
-const VaultDashboard = lazy(() => import("./pages/VaultDashboard").catch(err => {
-  console.error("Failed to load VaultDashboard:", err);
-  return { default: () => <div className="p-8 text-destructive">Failed to load VaultDashboard: {err.message}</div> };
-}));
-
-const Install = lazy(() => import("./pages/Install").catch(err => {
-  console.error("Failed to load Install:", err);
-  return { default: () => <div className="p-8 text-destructive">Failed to load Install: {err.message}</div> };
-}));
-
-const Auth = lazy(() => import("./pages/Auth").catch(err => {
-  console.error("Failed to load Auth:", err);
-  return { default: () => <div className="p-8 text-destructive">Failed to load Auth: {err.message}</div> };
-}));
-
-const Profile = lazy(() => import("./pages/Profile").catch(err => {
-  console.error("Failed to load Profile:", err);
-  return { default: () => <div className="p-8 text-destructive">Failed to load Profile: {err.message}</div> };
-}));
-
-const NotFound = lazy(() => import("./pages/NotFound").catch(err => {
-  console.error("Failed to load NotFound:", err);
-  return { default: () => <div className="p-8 text-destructive">Failed to load NotFound: {err.message}</div> };
-}));
 
 const LoadingFallback = () => (
   <div className="min-h-screen flex items-center justify-center bg-background">
@@ -50,25 +22,68 @@ const LoadingFallback = () => (
   </div>
 );
 
+/**
+ * Feature Initializer Component
+ * Initializes the feature loader on mount and syncs with config store
+ */
+function FeatureInitializer({ children }: { children: React.ReactNode }) {
+  const [isInitialized, setIsInitialized] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
+  const { syncWithRegistry } = useFeatureConfigStore();
+
+  useEffect(() => {
+    let mounted = true;
+
+    async function init() {
+      try {
+        await initializeFeatureLoader();
+        if (mounted) {
+          // Sync feature config store with registry
+          syncWithRegistry();
+          setIsInitialized(true);
+        }
+      } catch (err) {
+        console.error('[App] Feature initialization failed:', err);
+        if (mounted) {
+          setError(err instanceof Error ? err : new Error(String(err)));
+          // Still show app even if features fail to initialize
+          setIsInitialized(true);
+        }
+      }
+    }
+
+    init();
+
+    return () => {
+      mounted = false;
+    };
+  }, [syncWithRegistry]);
+
+  if (!isInitialized) {
+    return <LoadingFallback />;
+  }
+
+  if (error) {
+    console.warn('[App] Features initialized with error:', error.message);
+  }
+
+  return <>{children}</>;
+}
+
 const App = () => (
   <ErrorBoundary>
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <Toaster />
         <Sonner />
+        <EventDebugPanel />
         <BrowserRouter>
           <AuthProvider>
-            <Suspense fallback={<LoadingFallback />}>
-            <Routes>
-                <Route path="/auth" element={<Auth />} />
-                <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
-                <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-                <Route path="/vaults" element={<ProtectedRoute><VaultDashboard /></ProtectedRoute>} />
-                <Route path="/install" element={<Install />} />
-                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </Suspense>
+            <FeatureInitializer>
+              <Suspense fallback={<LoadingFallback />}>
+                <DynamicRoutes />
+              </Suspense>
+            </FeatureInitializer>
           </AuthProvider>
         </BrowserRouter>
       </TooltipProvider>

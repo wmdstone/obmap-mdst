@@ -6,8 +6,8 @@
  */
 
 import JSZip from 'jszip';
-import { eventBus, EventType } from '../events/DomainEvents';
-import { ContentParser } from './ContentParser';
+import { eventBus, EventType } from '../core/events';
+import { ContentParser } from '../content/content-parser';
 
 interface GraphNode {
   id: string;
@@ -157,15 +157,11 @@ export class ZipImportService {
       const rootName = sortedFolders[0].split('/')[0];
       const rootId = 'folder-root';
 
-      eventBus.emit({
-        type: EventType.FOLDER_CREATED,
-        timestamp: Date.now(),
-        payload: {
-          id: rootId,
-          name: rootName,
-          path: [rootName],
-          parentId: null,
-        },
+      eventBus.emit(EventType.FOLDER_CREATED, {
+        id: rootId,
+        name: rootName,
+        path: [rootName],
+        parentId: null,
       });
 
       folderMap.set(rootName, rootId);
@@ -185,15 +181,11 @@ export class ZipImportService {
       if (!folderMap.has(folderPath)) {
         const folderId = `folder-${nodeIdCounter++}`;
 
-        eventBus.emit({
-          type: EventType.FOLDER_CREATED,
-          timestamp: Date.now(),
-          payload: {
-            id: folderId,
-            name: folderName,
-            path: pathParts,
-            parentId,
-          },
+        eventBus.emit(EventType.FOLDER_CREATED, {
+          id: folderId,
+          name: folderName,
+          path: pathParts,
+          parentId,
         });
 
         folderMap.set(folderPath, folderId);
@@ -215,16 +207,12 @@ export class ZipImportService {
 
       const fileId = `file-${nodeIdCounter++}`;
 
-      eventBus.emit({
-        type: EventType.NOTE_CREATED,
-        timestamp: Date.now(),
-        payload: {
-          id: fileId,
-          name: fileName,
-          content,
-          path: pathParts,
-          parentId,
-        },
+      eventBus.emit(EventType.NOTE_CREATED, {
+        id: fileId,
+        name: fileName,
+        content,
+        path: pathParts,
+        parentId,
       });
     });
   }

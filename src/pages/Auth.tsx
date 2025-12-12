@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from "@/components/auth/hooks/useAuth";
 import { AuthForm } from '@/components/auth/AuthForm';
 import { Loader2 } from 'lucide-react';
 
@@ -12,9 +12,9 @@ export default function Auth() {
   const mode = searchParams.get('mode') as 'login' | 'register' | 'reset' | 'update-password' | null;
 
   useEffect(() => {
-    // Redirect authenticated users to home (except for password update)
+    // Redirect authenticated users to main app (except for password update)
     if (user && mode !== 'update-password') {
-      navigate('/');
+      navigate('/app');
     }
   }, [user, mode, navigate]);
 
@@ -36,7 +36,7 @@ export default function Auth() {
         
         <AuthForm 
           initialMode={mode || 'login'} 
-          onSuccess={() => navigate('/')} 
+          onSuccess={() => navigate('/app')} 
         />
       </div>
     </div>

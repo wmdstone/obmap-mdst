@@ -8,7 +8,7 @@
  * - Remain fully portable, no database required
  */
 
-import { eventBus, EventType, NoteCreatedEvent } from '../events/DomainEvents';
+import { eventBus, EventType } from '../core/events';
 import { backgroundSyncService } from '../sync/BackgroundSyncService';
 
 export interface FileSystemNode {
@@ -19,13 +19,19 @@ export interface FileSystemNode {
   parentId: string | null;
 }
 
+// Event payload interfaces
+interface NoteSyncRequestedPayload {
+  path: string[];
+  content: string;
+}
+
 export class FileSystemService {
   private vaultHandle: FileSystemDirectoryHandle | null = null;
   private nodeIdCounter = 0;
 
   constructor() {
     // Listen for sync requests
-    eventBus.subscribe(EventType.NOTE_SYNC_REQUESTED, async (event) => {
+    eventBus.subscribe<NoteSyncRequestedPayload>(EventType.NOTE_SYNC_REQUESTED, async (event) => {
       if (this.vaultHandle) {
         try {
           await this.saveFile(event.payload.path, event.payload.content);
@@ -52,13 +58,9 @@ export class FileSystemService {
       this.vaultHandle = dirHandle;
 
       // Emit vault opened event
-      eventBus.emit({
-        type: EventType.VAULT_OPENED,
-        timestamp: Date.now(),
-        payload: {
-          vaultName: dirHandle.name,
-          rootHandle: dirHandle,
-        },
+      eventBus.emit(EventType.VAULT_OPENED, {
+        vaultName: dirHandle.name,
+        rootHandle: dirHandle,
       });
 
       return { vaultName: dirHandle.name, handle: dirHandle };
@@ -95,15 +97,11 @@ export class FileSystemService {
       });
 
       // Emit folder created event
-      eventBus.emit({
-        type: EventType.FOLDER_CREATED,
-        timestamp: Date.now(),
-        payload: {
-          id: folderId,
-          name: handle.name,
-          path: [...path, handle.name],
-          parentId,
-        },
+      eventBus.emit(EventType.FOLDER_CREATED, {
+        id: folderId,
+        name: handle.name,
+        path: [...path, handle.name],
+        parentId,
       });
 
       // @ts-ignore
@@ -124,18 +122,13 @@ export class FileSystemService {
           });
 
           // Emit note created event
-          const event: NoteCreatedEvent = {
-            type: EventType.NOTE_CREATED,
-            timestamp: Date.now(),
-            payload: {
-              id: fileId,
-              name: entry.name.replace('.md', ''),
-              content,
-              path: [...path, handle.name, entry.name],
-              parentId: folderId,
-            },
-          };
-          eventBus.emit(event);
+          eventBus.emit(EventType.NOTE_CREATED, {
+            id: fileId,
+            name: entry.name.replace('.md', ''),
+            content,
+            path: [...path, handle.name, entry.name],
+            parentId: folderId,
+          });
         }
       }
     };
@@ -166,18 +159,13 @@ export class FileSystemService {
           parentId: rootId,
         });
 
-        const event: NoteCreatedEvent = {
-          type: EventType.NOTE_CREATED,
-          timestamp: Date.now(),
-          payload: {
-            id: fileId,
-            name: entry.name.replace('.md', ''),
-            content,
-            path: [dirHandle.name, entry.name],
-            parentId: rootId,
-          },
-        };
-        eventBus.emit(event);
+        eventBus.emit(EventType.NOTE_CREATED, {
+          id: fileId,
+          name: entry.name.replace('.md', ''),
+          content,
+          path: [dirHandle.name, entry.name],
+          parentId: rootId,
+        });
       }
     }
 
@@ -210,13 +198,9 @@ export class FileSystemService {
       await writable.close();
 
       // Emit note updated event
-      eventBus.emit({
-        type: EventType.NOTE_UPDATED,
-        timestamp: Date.now(),
-        payload: {
-          id: path.join('/'),
-          content,
-        },
+      eventBus.emit(EventType.NOTE_UPDATED, {
+        id: path.join('/'),
+        content,
       });
     } catch (error) {
       // If save fails, queue for retry

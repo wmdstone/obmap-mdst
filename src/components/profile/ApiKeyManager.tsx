@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
 import { apiKeyService, type ApiKey, type ApiKeyPermission } from '@/services/apikeys/ApiKeyService';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Checkbox } from '@/components/ui/checkbox';
+import { Button } from "@/components/core/ui/button";
+import { Input } from "@/components/core/ui/input";
+import { Label } from "@/components/core/ui/label";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/core/ui/card";
+import { Badge } from "@/components/core/ui/badge";
+import { Checkbox } from "@/components/core/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -13,7 +13,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog';
+} from "@/components/core/ui/dialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -24,7 +24,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
+} from "@/components/core/ui/alert-dialog";
 import { Key, Plus, Copy, Trash2, Eye, EyeOff, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';

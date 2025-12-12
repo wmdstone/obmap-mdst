@@ -1,7 +1,7 @@
-import { useRef, useState, useCallback, useEffect } from 'react';
+import { useRef, useState, useCallback, useEffect, useMemo } from 'react';
 // @ts-ignore - react-force-graph-2d types
 import ForceGraph2D from 'react-force-graph-2d';
-import { Button } from '@/components/ui/button';
+import { Button } from "@/components/core/ui/button";
 import {
 	Plus,
 	Search,
@@ -14,76 +14,31 @@ import {
 	Network,
 	Sparkles,
 } from 'lucide-react';
-import { Input } from '@/components/ui/input';
+import { Input } from "@/components/core/ui/input";
 import { toast } from 'sonner';
 import { LinkManager } from '@/components/graph/LinkManager';
 import { DynamicLinkManager } from '@/components/graph/DynamicLinkManager';
 import { GraphMiniMap } from '@/components/graph/GraphMiniMap';
-import { useTheme } from '@/hooks/useTheme';
-import { GraphConfigState } from '@/hooks/useGraphConfig';
+import { useThemeStore } from "@/services/ui/stores/useThemeStore";
+import { GraphConfigState } from "@/services/ui/stores/useGraphStore";
+import { useVaultEvents, EventType } from "@/components/vault/hooks/useVaultEvents";
 import {
 	Popover,
 	PopoverContent,
 	PopoverTrigger,
-} from '@/components/ui/popover';
+} from "@/components/core/ui/popover";
 import {
 	Sheet,
 	SheetContent,
 	SheetHeader,
 	SheetTitle,
 	SheetTrigger,
-} from '@/components/ui/sheet';
-import { Label } from '@/components/ui/label';
-import { Slider } from '@/components/ui/slider';
-import { Badge } from '@/components/ui/badge';
+} from "@/components/core/ui/sheet";
+import { Label } from "@/components/core/ui/label";
+import { Slider } from "@/components/core/ui/slider";
+import { Badge } from "@/components/core/ui/badge";
 
-// Resolve CSS variable colors to actual HSL values for canvas rendering
-function resolveColor(color: string): string {
-	// If it's already a resolved HSL/HSLA value (no CSS variables), return as-is
-	if (!color.includes('var(')) {
-		return color;
-	}
-
-	// Extract the CSS variable name
-	const varMatch = color.match(/var\(--([^)]+)\)/);
-	if (!varMatch) return color;
-
-	const varName = varMatch[1];
-
-	// Get the computed value from CSS
-	const computedValue = getComputedStyle(document.documentElement)
-		.getPropertyValue(`--${varName}`)
-		.trim();
-
-	if (!computedValue) return color;
-
-	// Replace the var() with the actual value
-	return color.replace(`var(--${varName})`, computedValue);
-}
-
-// Convert color to HSLA with opacity for canvas
-function colorWithOpacity(color: string, opacity: number): string {
-	const resolved = resolveColor(color);
-
-	// If already hsla, adjust opacity
-	if (resolved.startsWith('hsla(')) {
-		return resolved.replace(/,\s*[\d.]+\)$/, `, ${opacity})`);
-	}
-
-	// If hsl, convert to hsla
-	if (resolved.startsWith('hsl(')) {
-		return resolved.replace('hsl(', 'hsla(').replace(')', `, ${opacity})`);
-	}
-
-	// If it's just HSL values without the function wrapper (from CSS var)
-	const hslMatch = resolved.match(/^([\d.]+)\s+([\d.]+)%?\s+([\d.]+)%?$/);
-	if (hslMatch) {
-		return `hsla(${hslMatch[1]}, ${hslMatch[2]}%, ${hslMatch[3]}%, ${opacity})`;
-	}
-
-	// Return as-is if we can't parse it
-	return resolved;
-}
+import { resolveColor, colorWithOpacity } from '@/services/core/utils/color-utils';
 
 interface Node {
 	id: string;
@@ -230,7 +185,7 @@ export const NetworkGraph = ({
 	const internalGraphRef = useRef<any>();
 	const graphRef = externalGraphRef || internalGraphRef;
 	const containerRef = useRef<HTMLDivElement>(null);
-	const { theme } = useTheme();
+	const theme = useThemeStore((state) => state.theme);
 	const graphConfig = externalGraphConfig || defaultGraphConfig;
 
 	const [searchQuery, setSearchQuery] = useState('');
@@ -241,6 +196,17 @@ export const NetworkGraph = ({
 	const [contentFilter, setContentFilter] = useState<string>('');
 	const [graphKey, setGraphKey] = useState(0);
 	const [dimensions, setDimensions] = useState({ width: 800, height: 600 });
+
+	// Subscribe to vault events for auto-refresh
+	useVaultEvents({
+		onNodeCreated: () => setGraphKey((prev) => prev + 1),
+		onNodeUpdated: () => setGraphKey((prev) => prev + 1),
+		onNodeDeleted: () => setGraphKey((prev) => prev + 1),
+		onNodeMoved: () => setGraphKey((prev) => prev + 1),
+		onGraphUpdated: () => setGraphKey((prev) => prev + 1),
+		onUndoPerformed: () => setGraphKey((prev) => prev + 1),
+		onRedoPerformed: () => setGraphKey((prev) => prev + 1),
+	});
 
 	// Track container size for responsive graph
 	useEffect(() => {
@@ -303,6 +269,11 @@ export const NetworkGraph = ({
 		graphConfig.forces.alphaDecay,
 	]);
 
+	// Track collapsed nodes for expand/collapse on single click
+	const [collapsedNodes, setCollapsedNodes] = useState<Set<string>>(new Set());
+	const lastClickRef = useRef<{ nodeId: string; time: number } | null>(null);
+	const DOUBLE_CLICK_THRESHOLD = 300; // ms
+
 	const handleNodeClick = useCallback(
 		(node: Node) => {
 			if (linkMode) {
@@ -322,12 +293,62 @@ export const NetworkGraph = ({
 					setLinkMode(false);
 					setLinkSource(null);
 				}
-			} else {
+				return;
+			}
+
+			const now = Date.now();
+			const lastClick = lastClickRef.current;
+
+			// Check for double click
+			if (lastClick && lastClick.nodeId === node.id && (now - lastClick.time) < DOUBLE_CLICK_THRESHOLD) {
+				// Double click - open in editor
 				onNodeSelect(node);
+				lastClickRef.current = null;
+				return;
+			}
+
+			// Single click - toggle expand/collapse for folders
+			lastClickRef.current = { nodeId: node.id, time: now };
+
+			// Check if this node has children
+			const hasChildren = graphData.nodes.some(n => n.parentId === node.id);
+			
+			if (hasChildren) {
+				setCollapsedNodes(prev => {
+					const next = new Set(prev);
+					if (next.has(node.id)) {
+						next.delete(node.id);
+					} else {
+						next.add(node.id);
+					}
+					return next;
+				});
 			}
 		},
 		[linkMode, linkSource, graphData, setGraphData, onNodeSelect]
 	);
+
+	// Get all descendants of collapsed nodes to hide them
+	const getDescendants = useCallback((nodeId: string, nodes: Node[]): Set<string> => {
+		const descendants = new Set<string>();
+		const children = nodes.filter(n => n.parentId === nodeId);
+		children.forEach(child => {
+			descendants.add(child.id);
+			const childDescendants = getDescendants(child.id, nodes);
+			childDescendants.forEach(id => descendants.add(id));
+		});
+		return descendants;
+	}, []);
+
+	// Calculate hidden nodes based on collapsed state
+	const hiddenNodes = useMemo(() => {
+		const hidden = new Set<string>();
+		collapsedNodes.forEach(collapsedId => {
+			const descendants = getDescendants(collapsedId, graphData.nodes);
+			descendants.forEach(id => hidden.add(id));
+		});
+		return hidden;
+	}, [collapsedNodes, graphData.nodes, getDescendants]);
 
 	const calculateDepth = (nodeId: string, nodes: Node[]): number => {
 		const node = nodes.find((n) => n.id === nodeId);
@@ -378,8 +399,11 @@ export const NetworkGraph = ({
 		onNodeSelect(newNode);
 	};
 
-	const filteredData = {
+	const filteredData = useMemo(() => ({
 		nodes: graphData.nodes.filter((node) => {
+			// Hide collapsed descendants
+			if (hiddenNodes.has(node.id)) return false;
+
 			// Depth filter
 			if (node.depth > maxDepth) return false;
 
@@ -416,15 +440,19 @@ export const NetworkGraph = ({
 				typeof link.source === 'string' ? link.source : link.source.id;
 			const targetId =
 				typeof link.target === 'string' ? link.target : link.target.id;
+			
+			// Hide links to/from hidden nodes
+			if (hiddenNodes.has(sourceId) || hiddenNodes.has(targetId)) return false;
+
 			const sourceInFiltered = graphData.nodes.find(
-				(n) => n.id === sourceId && n.depth <= maxDepth
+				(n) => n.id === sourceId && n.depth <= maxDepth && !hiddenNodes.has(n.id)
 			);
 			const targetInFiltered = graphData.nodes.find(
-				(n) => n.id === targetId && n.depth <= maxDepth
+				(n) => n.id === targetId && n.depth <= maxDepth && !hiddenNodes.has(n.id)
 			);
 			return sourceInFiltered && targetInFiltered;
 		}),
-	};
+	}), [graphData, hiddenNodes, maxDepth, searchQuery, contentFilter, tagFilter]);
 
 	const activeFilters = [
 		maxDepth < 10 && `Depth ≤ ${maxDepth}`,
@@ -433,22 +461,11 @@ export const NetworkGraph = ({
 	].filter(Boolean);
 
 	return (
-		<div ref={containerRef} className='relative w-full h-full flex-1 bg-graph-bg'>
+		<div
+			ref={containerRef}
+			className='relative w-full h-full flex-1 bg-graph-bg'>
 			<div className='absolute top-4 left-4 z-10 flex flex-col gap-2'>
 				<div className='flex gap-2 flex-wrap'>
-					<Button
-						onClick={() => addNode('folder')}
-						className='bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg'>
-						<FolderPlus className='w-4 h-4 mr-2' />
-						Add Folder
-					</Button>
-					<Button
-						onClick={() => addNode('file')}
-						className='bg-secondary hover:bg-secondary/90 text-secondary-foreground shadow-lg'>
-						<FilePlus className='w-4 h-4 mr-2' />
-						Add File
-					</Button>
-
 					<Popover>
 						<PopoverTrigger asChild>
 							<Button
@@ -664,6 +681,8 @@ export const NetworkGraph = ({
 					const fontSize = graphConfig.nodes.labelSize / globalScale;
 					const iconSize = (graphConfig.nodes.labelSize + 2) / globalScale;
 					const isFolder = node.type === 'folder';
+					const hasChildren = graphData.nodes.some(n => n.parentId === node.id);
+					const isCollapsed = collapsedNodes.has(node.id);
 
 					// Build font string based on style
 					let fontStyle = '';
@@ -746,6 +765,36 @@ export const NetworkGraph = ({
 					ctx.fill();
 					ctx.shadowBlur = 0;
 					ctx.globalAlpha = 1;
+
+					// Draw collapsed indicator (outer ring) for nodes with hidden children
+					if (hasChildren && isCollapsed) {
+						ctx.strokeStyle = colorWithOpacity(fillColor, 0.6);
+						ctx.lineWidth = 2 / globalScale;
+						ctx.setLineDash([3 / globalScale, 2 / globalScale]);
+						ctx.beginPath();
+						ctx.arc(node.x, node.y, nodeSize + 4 / globalScale, 0, 2 * Math.PI);
+						ctx.stroke();
+						ctx.setLineDash([]);
+
+						// Draw child count badge
+						const childCount = graphData.nodes.filter(n => n.parentId === node.id).length;
+						const badgeSize = 6 / globalScale;
+						const badgeX = node.x + nodeSize * 0.7;
+						const badgeY = node.y - nodeSize * 0.7;
+
+						// Badge background
+						ctx.fillStyle = 'hsl(270, 80%, 60%)';
+						ctx.beginPath();
+						ctx.arc(badgeX, badgeY, badgeSize, 0, 2 * Math.PI);
+						ctx.fill();
+
+						// Badge text
+						ctx.font = `bold ${8 / globalScale}px Inter, sans-serif`;
+						ctx.fillStyle = '#fff';
+						ctx.textAlign = 'center';
+						ctx.textBaseline = 'middle';
+						ctx.fillText(childCount.toString(), badgeX, badgeY);
+					}
 
 					// Draw label if enabled
 					if (graphConfig.nodes.showLabels) {

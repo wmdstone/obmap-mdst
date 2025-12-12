@@ -1,16 +1,31 @@
-import { useState, useEffect, useRef } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { X, Trash2, Save, Tag, Folder, FileText, Eye, Code, Split, Image, Music, Video, Link2, Play, Pause, Volume2, VolumeX, Maximize2 } from "lucide-react";
+import { useState, useEffect, useRef, useCallback } from "react";
+import { Button } from "@/components/core/ui/button";
+import { Input } from "@/components/core/ui/input";
+import { Textarea } from "@/components/core/ui/textarea";
+import { 
+  X, Trash2, Save, Folder, FileText, Eye, Code, Split, 
+  Image, Music, Video, Link2, Play, Pause, Volume2, VolumeX, 
+  Maximize2, MoreHorizontal, Clock, Hash, ChevronDown, ChevronRight,
+  Maximize, Minimize
+} from "lucide-react";
 import { toast } from "sonner";
-import { Badge } from "@/components/ui/badge";
-import { Label } from "@/components/ui/label";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/core/ui/badge";
 import { MarkdownRenderer } from "@/components/graph/MarkdownRenderer";
-import { BacklinksPanel } from "@/components/graph/BacklinksPanel";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Slider } from "@/components/ui/slider";
+import { ScrollArea } from "@/components/core/ui/scroll-area";
+import { Slider } from "@/components/core/ui/slider";
+import { cn } from "@/services/core/utils";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/core/ui/dropdown-menu";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/core/ui/collapsible";
 
 interface Node {
   id: string;
@@ -28,11 +43,13 @@ interface Node {
 interface Backlink {
   nodeId: string;
   nodeName: string;
+  nodePath?: string;
   isWikilink: boolean;
 }
 
 interface NodePanelProps {
   node: Node | null;
+  nodePath?: string;
   onClose: () => void;
   onUpdate: (node: Node) => void;
   onDelete: (nodeId: string) => void;
@@ -40,17 +57,17 @@ interface NodePanelProps {
   onWikilinkClick?: (target: string) => void;
   onBacklinkClick?: (nodeId: string) => void;
   onTagClick?: (tag: string) => void;
+  autoSaveDelay?: number;
 }
 
-// Media Preview Component
-const MediaPreview = ({ node, onUpdate }: { node: Node; onUpdate: (node: Node) => void }) => {
+// Minimal Media Player Component
+const MediaPreview = ({ node }: { node: Node }) => {
   const audioRef = useRef<HTMLAudioElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
-  const [isFullscreen, setIsFullscreen] = useState(false);
 
   const togglePlay = () => {
     const media = node.mediaType === "audio" ? audioRef.current : videoRef.current;
@@ -105,39 +122,30 @@ const MediaPreview = ({ node, onUpdate }: { node: Node; onUpdate: (node: Node) =
     if (container) {
       if (!document.fullscreenElement) {
         container.requestFullscreen();
-        setIsFullscreen(true);
       } else {
         document.exitFullscreen();
-        setIsFullscreen(false);
       }
     }
   };
 
   if (node.mediaType === "image") {
     return (
-      <div className="space-y-4">
-        <div className="relative bg-muted rounded-lg overflow-hidden">
-          <img
-            src={node.dataUrl}
-            alt={node.name}
-            className="w-full h-auto max-h-[400px] object-contain"
-          />
-        </div>
-        <div className="text-xs text-muted-foreground">
-          <p>Type: {node.mimeType || "image"}</p>
-        </div>
+      <div className="rounded-lg overflow-hidden bg-muted/30">
+        <img
+          src={node.dataUrl}
+          alt={node.name}
+          className="w-full h-auto max-h-[50vh] object-contain"
+        />
       </div>
     );
   }
 
   if (node.mediaType === "audio") {
     return (
-      <div className="space-y-4">
-        <div className="bg-muted rounded-lg p-6">
-          <div className="flex items-center justify-center mb-4">
-            <div className="w-24 h-24 bg-primary/20 rounded-full flex items-center justify-center">
-              <Music className="w-12 h-12 text-primary" />
-            </div>
+      <div className="rounded-xl bg-gradient-to-br from-primary/10 to-accent/10 p-8">
+        <div className="flex flex-col items-center">
+          <div className="w-20 h-20 bg-primary/20 rounded-full flex items-center justify-center mb-6">
+            <Music className="w-10 h-10 text-primary" />
           </div>
           <audio
             ref={audioRef}
@@ -147,7 +155,7 @@ const MediaPreview = ({ node, onUpdate }: { node: Node; onUpdate: (node: Node) =
             onEnded={() => setIsPlaying(false)}
             className="hidden"
           />
-          <div className="space-y-3">
+          <div className="w-full max-w-sm space-y-4">
             <Slider
               value={[currentTime]}
               max={duration || 100}
@@ -159,18 +167,15 @@ const MediaPreview = ({ node, onUpdate }: { node: Node; onUpdate: (node: Node) =
               <span>{formatTime(currentTime)}</span>
               <span>{formatTime(duration)}</span>
             </div>
-            <div className="flex items-center justify-center gap-4">
-              <Button variant="ghost" size="icon" onClick={toggleMute}>
-                {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
+            <div className="flex items-center justify-center gap-3">
+              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={toggleMute}>
+                {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
               </Button>
-              <Button variant="default" size="icon" className="w-12 h-12 rounded-full" onClick={togglePlay}>
-                {isPlaying ? <Pause className="w-6 h-6" /> : <Play className="w-6 h-6 ml-0.5" />}
+              <Button size="icon" className="h-12 w-12 rounded-full" onClick={togglePlay}>
+                {isPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5 ml-0.5" />}
               </Button>
             </div>
           </div>
-        </div>
-        <div className="text-xs text-muted-foreground">
-          <p>Type: {node.mimeType || "audio"}</p>
         </div>
       </div>
     );
@@ -178,44 +183,37 @@ const MediaPreview = ({ node, onUpdate }: { node: Node; onUpdate: (node: Node) =
 
   if (node.mediaType === "video") {
     return (
-      <div className="space-y-4">
-        <div className="relative bg-muted rounded-lg overflow-hidden">
-          <video
-            ref={videoRef}
-            src={node.dataUrl}
-            onTimeUpdate={handleTimeUpdate}
-            onLoadedMetadata={handleLoadedMetadata}
-            onEnded={() => setIsPlaying(false)}
-            className="w-full max-h-[400px]"
+      <div className="relative rounded-lg overflow-hidden bg-black">
+        <video
+          ref={videoRef}
+          src={node.dataUrl}
+          onTimeUpdate={handleTimeUpdate}
+          onLoadedMetadata={handleLoadedMetadata}
+          onEnded={() => setIsPlaying(false)}
+          className="w-full max-h-[50vh]"
+        />
+        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 to-transparent p-4">
+          <Slider
+            value={[currentTime]}
+            max={duration || 100}
+            step={0.1}
+            onValueChange={handleSeek}
+            className="w-full mb-3"
           />
-          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
-            <div className="space-y-2">
-              <Slider
-                value={[currentTime]}
-                max={duration || 100}
-                step={0.1}
-                onValueChange={handleSeek}
-                className="w-full"
-              />
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Button variant="ghost" size="icon" className="text-white hover:text-white" onClick={togglePlay}>
-                    {isPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5" />}
-                  </Button>
-                  <Button variant="ghost" size="icon" className="text-white hover:text-white" onClick={toggleMute}>
-                    {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
-                  </Button>
-                  <span className="text-xs text-white">{formatTime(currentTime)} / {formatTime(duration)}</span>
-                </div>
-                <Button variant="ghost" size="icon" className="text-white hover:text-white" onClick={handleFullscreen}>
-                  <Maximize2 className="w-5 h-5" />
-                </Button>
-              </div>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Button variant="ghost" size="icon" className="h-8 w-8 text-white hover:text-white hover:bg-white/20" onClick={togglePlay}>
+                {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+              </Button>
+              <Button variant="ghost" size="icon" className="h-8 w-8 text-white hover:text-white hover:bg-white/20" onClick={toggleMute}>
+                {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+              </Button>
+              <span className="text-xs text-white/80">{formatTime(currentTime)} / {formatTime(duration)}</span>
             </div>
+            <Button variant="ghost" size="icon" className="h-8 w-8 text-white hover:text-white hover:bg-white/20" onClick={handleFullscreen}>
+              <Maximize2 className="w-4 h-4" />
+            </Button>
           </div>
-        </div>
-        <div className="text-xs text-muted-foreground">
-          <p>Type: {node.mimeType || "video"}</p>
         </div>
       </div>
     );
@@ -224,33 +222,105 @@ const MediaPreview = ({ node, onUpdate }: { node: Node; onUpdate: (node: Node) =
   return null;
 };
 
-// Get icon for node type
+// Node type icon helper
 const getNodeIcon = (node: Node) => {
-  if (node.type === "folder") return <Folder className="w-5 h-5 text-yellow-500" />;
+  if (node.type === "folder") return <Folder className="w-4 h-4 text-yellow-500" />;
   if (node.type === "media") {
     switch (node.mediaType) {
-      case "image": return <Image className="w-5 h-5 text-green-500" />;
-      case "audio": return <Music className="w-5 h-5 text-purple-500" />;
-      case "video": return <Video className="w-5 h-5 text-red-500" />;
+      case "image": return <Image className="w-4 h-4 text-emerald-500" />;
+      case "audio": return <Music className="w-4 h-4 text-violet-500" />;
+      case "video": return <Video className="w-4 h-4 text-rose-500" />;
     }
   }
-  return <FileText className="w-5 h-5 text-primary" />;
+  return <FileText className="w-4 h-4 text-primary" />;
 };
 
-const getNodeTitle = (node: Node) => {
-  if (node.type === "folder") return "Edit Folder";
-  if (node.type === "media") {
-    switch (node.mediaType) {
-      case "image": return "Edit Image";
-      case "audio": return "Edit Audio";
-      case "video": return "Edit Video";
-    }
-  }
-  return "Edit File";
+// Backlinks Panel Component - Collapsible with full paths
+const BacklinksSection = ({ 
+  backlinks, 
+  onBacklinkClick 
+}: { 
+  backlinks: Backlink[]; 
+  onBacklinkClick: (nodeId: string) => void;
+}) => {
+  const [isOpen, setIsOpen] = useState(true);
+  const explicitLinks = backlinks.filter(b => b.isWikilink);
+  const mentions = backlinks.filter(b => !b.isWikilink);
+
+  if (backlinks.length === 0) return null;
+
+  return (
+    <Collapsible open={isOpen} onOpenChange={setIsOpen} className="mt-8 pt-6 border-t border-border/50">
+      <CollapsibleTrigger className="flex items-center justify-between w-full py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+        <div className="flex items-center gap-2">
+          {isOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+          <Link2 className="w-4 h-4" />
+          <span>Backlinks</span>
+        </div>
+        <Badge variant="secondary" className="text-xs">
+          {backlinks.length}
+        </Badge>
+      </CollapsibleTrigger>
+      <CollapsibleContent className="pt-4">
+        <div className="space-y-4">
+          {explicitLinks.length > 0 && (
+            <div>
+              <h4 className="text-xs font-medium text-muted-foreground mb-3 uppercase tracking-wide">
+                Linked mentions ({explicitLinks.length})
+              </h4>
+              <div className="space-y-1">
+                {explicitLinks.map((link) => (
+                  <button
+                    key={link.nodeId}
+                    onClick={() => onBacklinkClick(link.nodeId)}
+                    className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg hover:bg-accent/50 transition-colors text-left group"
+                  >
+                    <FileText className="w-4 h-4 text-primary shrink-0" />
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-sm font-medium truncate">{link.nodeName}</span>
+                      {link.nodePath && link.nodePath !== link.nodeName && (
+                        <span className="text-xs text-muted-foreground truncate">{link.nodePath}</span>
+                      )}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+          
+          {mentions.length > 0 && (
+            <div>
+              <h4 className="text-xs font-medium text-muted-foreground mb-3 uppercase tracking-wide">
+                Unlinked mentions ({mentions.length})
+              </h4>
+              <div className="space-y-1">
+                {mentions.map((link) => (
+                  <button
+                    key={link.nodeId}
+                    onClick={() => onBacklinkClick(link.nodeId)}
+                    className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg hover:bg-accent/50 transition-colors text-left opacity-70 hover:opacity-100 group"
+                  >
+                    <FileText className="w-4 h-4 text-muted-foreground shrink-0" />
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-sm truncate">{link.nodeName}</span>
+                      {link.nodePath && link.nodePath !== link.nodeName && (
+                        <span className="text-xs text-muted-foreground truncate">{link.nodePath}</span>
+                      )}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </CollapsibleContent>
+    </Collapsible>
+  );
 };
 
 export const NodePanel = ({ 
   node, 
+  nodePath,
   onClose, 
   onUpdate, 
   onDelete,
@@ -258,41 +328,112 @@ export const NodePanel = ({
   onWikilinkClick,
   onBacklinkClick,
   onTagClick,
+  autoSaveDelay = 1500,
 }: NodePanelProps) => {
   const [name, setName] = useState("");
   const [content, setContent] = useState("");
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState("");
-  const [editorMode, setEditorMode] = useState<"source" | "preview" | "split">("split");
+  const [editorMode, setEditorMode] = useState<"source" | "preview" | "split">("source");
+  const [propertiesOpen, setPropertiesOpen] = useState(false);
+  const [hasChanges, setHasChanges] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [layoutMode, setLayoutMode] = useState<"wide" | "narrow">("wide");
+  const titleInputRef = useRef<HTMLInputElement>(null);
+  const autoSaveTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const lastNodeIdRef = useRef<string | null>(null);
 
+  // Initialize state when node changes
   useEffect(() => {
     if (node) {
+      // Only reset if it's a different node
+      if (lastNodeIdRef.current !== node.id) {
+        setName(node.name);
+        setContent(node.content);
+        setTags(node.tags || []);
+        setHasChanges(false);
+        lastNodeIdRef.current = node.id;
+      }
+    }
+  }, [node?.id]);
+
+  // Update from node prop when it changes externally (but same node)
+  useEffect(() => {
+    if (node && lastNodeIdRef.current === node.id && !hasChanges) {
       setName(node.name);
       setContent(node.content);
       setTags(node.tags || []);
     }
   }, [node]);
 
+  // Track changes
+  useEffect(() => {
+    if (node && lastNodeIdRef.current === node.id) {
+      const hasNameChange = name !== node.name;
+      const hasContentChange = content !== node.content;
+      const hasTagsChange = JSON.stringify(tags) !== JSON.stringify(node.tags || []);
+      setHasChanges(hasNameChange || hasContentChange || hasTagsChange);
+    }
+  }, [name, content, tags, node]);
+
+  // Auto-save with debounce
+  useEffect(() => {
+    if (hasChanges && node && autoSaveDelay > 0) {
+      // Clear existing timer
+      if (autoSaveTimerRef.current) {
+        clearTimeout(autoSaveTimerRef.current);
+      }
+
+      // Set new timer for auto-save
+      autoSaveTimerRef.current = setTimeout(() => {
+        handleSave(true);
+      }, autoSaveDelay);
+
+      return () => {
+        if (autoSaveTimerRef.current) {
+          clearTimeout(autoSaveTimerRef.current);
+        }
+      };
+    }
+  }, [hasChanges, name, content, tags, autoSaveDelay]);
+
+  // Cleanup timer on unmount
+  useEffect(() => {
+    return () => {
+      if (autoSaveTimerRef.current) {
+        clearTimeout(autoSaveTimerRef.current);
+      }
+    };
+  }, []);
+
   if (!node) return null;
 
-  const handleSave = () => {
+  const handleSave = useCallback((isAutoSave = false) => {
+    if (!node || isSaving) return;
+    
+    setIsSaving(true);
     onUpdate({
       ...node,
       name,
       content,
       tags,
     });
-    toast.success("Node updated!");
-  };
+    setHasChanges(false);
+    setIsSaving(false);
+    
+    if (!isAutoSave) {
+      toast.success("Saved");
+    }
+  }, [node, name, content, tags, onUpdate, isSaving]);
 
   const handleDelete = () => {
     onDelete(node.id);
     onClose();
-    toast.success("Node deleted!");
+    toast.success("Deleted");
   };
 
   const addTag = () => {
-    const trimmedTag = tagInput.trim().toLowerCase();
+    const trimmedTag = tagInput.trim().toLowerCase().replace(/^#/, '');
     if (trimmedTag && !tags.includes(trimmedTag)) {
       setTags([...tags, trimmedTag]);
       setTagInput("");
@@ -308,6 +449,9 @@ export const NodePanel = ({
       e.preventDefault();
       addTag();
     }
+    if (e.key === "Backspace" && tagInput === "" && tags.length > 0) {
+      removeTag(tags[tags.length - 1]);
+    }
   };
 
   const copyEmbedLink = () => {
@@ -315,251 +459,302 @@ export const NodePanel = ({
       ? `![[${node.name}]]`
       : `[[${node.name}]]`;
     navigator.clipboard.writeText(embedSyntax);
-    toast.success("Embed link copied!");
+    toast.success("Link copied");
   };
 
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 's') {
+        e.preventDefault();
+        if (hasChanges) handleSave(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [hasChanges, handleSave]);
+
+  // Display path or fallback to node type
+  const displayPath = nodePath || (node.type === "folder" ? "Folder" : node.type === "media" ? node.mediaType : "Note");
+
   return (
-    <div className="w-full h-full bg-card flex flex-col overflow-hidden">
-      <div className="flex items-center justify-between p-4 border-b border-border">
-        <div className="flex items-center gap-2">
+    <div className="w-full h-full flex flex-col bg-background">
+      {/* Header with full path */}
+      <div className="flex items-center justify-between px-4 py-2.5 border-b border-border/40 bg-muted/10">
+        <div className="flex items-center gap-2 min-w-0 flex-1">
           {getNodeIcon(node)}
-          <h2 className="text-lg font-semibold text-foreground">
-            {getNodeTitle(node)}
-          </h2>
-        </div>
-        <div className="flex items-center gap-2">
-          {node.type === "media" && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={copyEmbedLink}
-              className="hover:bg-secondary"
-            >
-              <Link2 className="w-4 h-4 mr-1" />
-              Copy Link
-            </Button>
+          <span className="text-xs text-muted-foreground truncate font-mono" title={displayPath}>
+            {displayPath}
+          </span>
+          {hasChanges && (
+            <span className="text-xs text-amber-500/80 shrink-0">• Unsaved</span>
           )}
+          {isSaving && (
+            <span className="text-xs text-muted-foreground/60 shrink-0">Saving...</span>
+          )}
+        </div>
+        
+        <div className="flex items-center gap-1 shrink-0">
+          {/* Layout toggle */}
           <Button
             variant="ghost"
             size="icon"
-            onClick={onClose}
-            className="hover:bg-secondary"
+            className="h-7 w-7"
+            onClick={() => setLayoutMode(layoutMode === "wide" ? "narrow" : "wide")}
+            title={layoutMode === "wide" ? "Switch to narrow layout" : "Switch to wide layout"}
           >
+            {layoutMode === "wide" ? <Minimize className="w-3.5 h-3.5" /> : <Maximize className="w-3.5 h-3.5" />}
+          </Button>
+
+          {node.type === "file" && (
+            <div className="flex items-center border border-border/40 rounded-md p-0.5 ml-1">
+              <Button
+                variant="ghost"
+                size="sm"
+                className={cn(
+                  "h-6 px-2 text-xs",
+                  editorMode === "source" && "bg-secondary"
+                )}
+                onClick={() => setEditorMode("source")}
+              >
+                <Code className="w-3 h-3" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className={cn(
+                  "h-6 px-2 text-xs",
+                  editorMode === "preview" && "bg-secondary"
+                )}
+                onClick={() => setEditorMode("preview")}
+              >
+                <Eye className="w-3 h-3" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className={cn(
+                  "h-6 px-2 text-xs",
+                  editorMode === "split" && "bg-secondary"
+                )}
+                onClick={() => setEditorMode("split")}
+              >
+                <Split className="w-3 h-3" />
+              </Button>
+            </div>
+          )}
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-8 w-8">
+                <MoreHorizontal className="w-4 h-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48">
+              {node.type === "media" && (
+                <DropdownMenuItem onClick={copyEmbedLink}>
+                  <Link2 className="w-4 h-4 mr-2" />
+                  Copy embed link
+                </DropdownMenuItem>
+              )}
+              <DropdownMenuItem onClick={() => handleSave(false)} disabled={!hasChanges}>
+                <Save className="w-4 h-4 mr-2" />
+                Save changes
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={handleDelete} className="text-destructive focus:text-destructive">
+                <Trash2 className="w-4 h-4 mr-2" />
+                Delete
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onClose}>
             <X className="w-4 h-4" />
           </Button>
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 max-h-[calc(100vh-8rem)]">
-        <div>
-          <Label className="text-sm font-medium text-foreground mb-2 block">
-            {node.type === "folder" ? "Folder Name" : node.type === "media" ? "Media Name" : "File Name"}
-          </Label>
+      {/* Main Content Area */}
+      <ScrollArea className="flex-1 scrollbar-thin scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent">
+        <div className={cn(
+          "mx-auto px-6 py-6 transition-all duration-200",
+          layoutMode === "wide" ? "max-w-none" : "max-w-3xl"
+        )}>
+          {/* Title Input - Notion style */}
           <Input
+            ref={titleInputRef}
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder={
-              node.type === "folder" 
-                ? "Enter folder name..." 
-                : node.type === "media" 
-                  ? "Enter media name..." 
-                  : "Enter file name..."
-            }
-            className="bg-secondary border-border"
+            placeholder={node.type === "folder" ? "Untitled folder" : "Untitled"}
+            className="text-2xl font-semibold bg-transparent border-none shadow-none px-0 h-auto py-2 placeholder:text-muted-foreground/30 focus-visible:ring-0 focus:outline-none"
           />
-        </div>
 
-        <div className="grid grid-cols-2 gap-3 p-3 bg-muted/50 rounded-lg">
-          <div>
-            <span className="text-xs text-muted-foreground">Type</span>
-            <p className="text-sm font-medium flex items-center gap-1">
-              {node.type === "folder" && "📁 Folder"}
-              {node.type === "file" && "📄 File"}
-              {node.type === "media" && node.mediaType === "image" && "🖼️ Image"}
-              {node.type === "media" && node.mediaType === "audio" && "🎵 Audio"}
-              {node.type === "media" && node.mediaType === "video" && "🎬 Video"}
-            </p>
-          </div>
-          <div>
-            <span className="text-xs text-muted-foreground">Depth</span>
-            <p className="text-sm font-medium">Level {node.depth}</p>
-          </div>
-        </div>
+          {/* Properties Section */}
+          <Collapsible open={propertiesOpen} onOpenChange={setPropertiesOpen} className="mt-6">
+            <CollapsibleTrigger className="flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors py-2">
+              {propertiesOpen ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
+              Properties
+            </CollapsibleTrigger>
+            <CollapsibleContent className="pt-3 pb-4">
+              <div className="space-y-4 text-sm">
+                {/* Type & Depth */}
+                <div className="flex items-center gap-6 text-muted-foreground">
+                  <div className="flex items-center gap-2">
+                    <Clock className="w-4 h-4" />
+                    <span>Level {node.depth}</span>
+                  </div>
+                </div>
 
-        <div>
-          <Label className="text-sm font-medium text-foreground mb-2 flex items-center gap-2">
-            <Tag className="w-4 h-4" />
-            Tags
-          </Label>
-          <div className="flex gap-2 mb-2">
-            <Input
-              value={tagInput}
-              onChange={(e) => setTagInput(e.target.value)}
-              onKeyDown={handleTagInputKeyDown}
-              placeholder="Add tag..."
-              className="bg-secondary border-border"
-            />
-            <Button onClick={addTag} size="sm" variant="secondary">
-              Add
-            </Button>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {tags.map((tag) => (
-              <Badge
-                key={tag}
-                variant="secondary"
-                className="cursor-pointer hover:bg-destructive hover:text-destructive-foreground transition-colors"
-                onClick={() => removeTag(tag)}
-              >
-                #{tag}
-                <X className="w-3 h-3 ml-1" />
-              </Badge>
-            ))}
-            {tags.length === 0 && (
-              <p className="text-xs text-muted-foreground">No tags yet</p>
-            )}
-          </div>
-        </div>
-
-        {/* Media Preview */}
-        {node.type === "media" && node.dataUrl && (
-          <div>
-            <Label className="text-sm font-medium text-foreground mb-2 block">
-              Preview
-            </Label>
-            <MediaPreview node={node} onUpdate={onUpdate} />
-          </div>
-        )}
-
-        {/* Media Description */}
-        {node.type === "media" && (
-          <div>
-            <Label className="text-sm font-medium text-foreground mb-2 block">
-              Description / Notes
-            </Label>
-            <Textarea
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              placeholder="Add notes or description for this media..."
-              className="min-h-[100px] bg-secondary border-border text-sm resize-none"
-            />
-          </div>
-        )}
-
-        {node.type === "file" && (
-          <div className="flex-1">
-            <div className="flex items-center justify-between mb-2">
-              <Label className="text-sm font-medium text-foreground">
-                Content
-              </Label>
-              <div className="flex gap-1">
-                <Button
-                  variant={editorMode === "source" ? "default" : "ghost"}
-                  size="sm"
-                  onClick={() => setEditorMode("source")}
-                >
-                  <Code className="w-3 h-3 mr-1" />
-                  Source
-                </Button>
-                <Button
-                  variant={editorMode === "preview" ? "default" : "ghost"}
-                  size="sm"
-                  onClick={() => setEditorMode("preview")}
-                >
-                  <Eye className="w-3 h-3 mr-1" />
-                  Preview
-                </Button>
-                <Button
-                  variant={editorMode === "split" ? "default" : "ghost"}
-                  size="sm"
-                  onClick={() => setEditorMode("split")}
-                >
-                  <Split className="w-3 h-3 mr-1" />
-                  Split
-                </Button>
+                {/* Tags */}
+                <div className="flex items-start gap-3">
+                  <Hash className="w-4 h-4 text-muted-foreground mt-2" />
+                  <div className="flex-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      {tags.map((tag) => (
+                        <Badge
+                          key={tag}
+                          variant="secondary"
+                          className="text-xs font-normal cursor-pointer hover:bg-destructive/20 transition-colors group px-2.5 py-1"
+                          onClick={() => removeTag(tag)}
+                        >
+                          #{tag}
+                          <X className="w-3 h-3 ml-1.5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                        </Badge>
+                      ))}
+                      <Input
+                        value={tagInput}
+                        onChange={(e) => setTagInput(e.target.value)}
+                        onKeyDown={handleTagInputKeyDown}
+                        onBlur={() => tagInput && addTag()}
+                        placeholder={tags.length === 0 ? "Add tags..." : "+"}
+                        className="h-7 w-24 text-xs bg-transparent border-none shadow-none px-2 focus-visible:ring-0 placeholder:text-muted-foreground/50"
+                      />
+                    </div>
+                  </div>
+                </div>
               </div>
+            </CollapsibleContent>
+          </Collapsible>
+
+          <div className="h-px bg-border/40 my-6" />
+
+          {/* Media Preview */}
+          {node.type === "media" && node.dataUrl && (
+            <div className="mb-8">
+              <MediaPreview node={node} />
             </div>
+          )}
 
-            {editorMode === "source" && (
-              <Textarea
-                value={content}
-                onChange={(e) => setContent(e.target.value)}
-                placeholder="Write your notes here (supports markdown, wikilinks [[Note Name]], tags #tag)..."
-                className="min-h-[400px] bg-secondary border-border font-mono text-sm resize-none"
-              />
-            )}
-
-            {editorMode === "preview" && (
-              <ScrollArea className="h-[400px] bg-secondary border border-border rounded-md p-4">
-                <MarkdownRenderer 
-                  content={content} 
-                  onWikilinkClick={onWikilinkClick}
-                  onTagClick={onTagClick}
-                />
-              </ScrollArea>
-            )}
-
-            {editorMode === "split" && (
-              <div className="grid grid-cols-2 gap-2 h-[400px]">
+          {/* Content Editor */}
+          {node.type === "file" && (
+            <div className="min-h-[50vh]">
+              {editorMode === "source" && (
                 <Textarea
                   value={content}
                   onChange={(e) => setContent(e.target.value)}
-                  placeholder="Write your notes here..."
-                  className="bg-secondary border-border font-mono text-sm resize-none"
+                  placeholder="Start writing..."
+                  className="w-full min-h-[50vh] bg-transparent border-none shadow-none resize-none font-mono text-sm leading-relaxed placeholder:text-muted-foreground/30 focus:outline-none focus-visible:ring-0 focus-visible:outline-none px-1 py-2 scrollbar-thin scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent"
                 />
-                <ScrollArea className="bg-secondary border border-border rounded-md p-4">
-                  <MarkdownRenderer 
-                    content={content}
-                    onWikilinkClick={onWikilinkClick}
-                    onTagClick={onTagClick}
-                  />
-                </ScrollArea>
-              </div>
-            )}
-          </div>
-        )}
+              )}
 
-        {node.type === "folder" && (
-          <div className="flex-1">
-            <Label className="text-sm font-medium text-foreground mb-2 block">
-              Description
-            </Label>
+              {editorMode === "preview" && (
+                <div className="prose-container min-h-[50vh] py-3">
+                  {content ? (
+                    <MarkdownRenderer 
+                      content={content} 
+                      onWikilinkClick={onWikilinkClick}
+                      onTagClick={onTagClick}
+                    />
+                  ) : (
+                    <p className="text-muted-foreground/30 text-sm italic">Nothing to preview</p>
+                  )}
+                </div>
+              )}
+
+              {editorMode === "split" && (
+                <div className="grid grid-cols-2 gap-6 min-h-[50vh]">
+                  <Textarea
+                    value={content}
+                    onChange={(e) => setContent(e.target.value)}
+                    placeholder="Start writing..."
+                    className="w-full min-h-[50vh] bg-muted/30 border border-border/30 rounded-lg resize-none font-mono text-sm leading-relaxed placeholder:text-muted-foreground/30 focus:outline-none focus-visible:ring-0 focus-visible:outline-none p-4 scrollbar-thin scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent"
+                  />
+                  <div className="bg-muted/30 border border-border/30 rounded-lg p-5 overflow-auto scrollbar-thin scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent">
+                    {content ? (
+                      <MarkdownRenderer 
+                        content={content}
+                        onWikilinkClick={onWikilinkClick}
+                        onTagClick={onTagClick}
+                      />
+                    ) : (
+                      <p className="text-muted-foreground/30 text-sm italic">Nothing to preview</p>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Folder Description */}
+          {node.type === "folder" && (
             <Textarea
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              placeholder="Describe this folder..."
-              className="min-h-[200px] bg-secondary border-border text-sm resize-none"
+              placeholder="Add a description for this folder..."
+              className="w-full min-h-[200px] bg-transparent border-none shadow-none resize-none text-sm leading-relaxed placeholder:text-muted-foreground/30 focus:outline-none focus-visible:ring-0 focus-visible:outline-none px-1 py-2 scrollbar-thin scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent"
             />
-          </div>
-        )}
+          )}
 
-        {(node.type === "file" || node.type === "media") && backlinks && backlinks.length > 0 && (
-          <div className="mt-4">
-            <BacklinksPanel 
+          {/* Media Notes */}
+          {node.type === "media" && (
+            <Textarea
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              placeholder="Add notes about this media..."
+              className="w-full min-h-[150px] bg-transparent border-none shadow-none resize-none text-sm leading-relaxed placeholder:text-muted-foreground/30 focus:outline-none focus-visible:ring-0 focus-visible:outline-none px-1 py-2 scrollbar-thin scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent"
+            />
+          )}
+
+          {/* Backlinks Section */}
+          {(node.type === "file" || node.type === "media") && (
+            <BacklinksSection 
               backlinks={backlinks}
               onBacklinkClick={onBacklinkClick || (() => {})}
             />
-          </div>
-        )}
-      </div>
+          )}
+        </div>
+      </ScrollArea>
 
-      <div className="p-4 border-t border-border flex gap-2">
-        <Button
-          onClick={handleSave}
-          className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground"
-        >
-          <Save className="w-4 h-4 mr-2" />
-          Save
-        </Button>
-        <Button
-          onClick={handleDelete}
-          variant="destructive"
-          className="flex-1"
-        >
-          <Trash2 className="w-4 h-4 mr-2" />
-          Delete
-        </Button>
-      </div>
+      {/* Bottom Action Bar - Only show when there are changes */}
+      {hasChanges && (
+        <div className="px-6 py-4 border-t border-border/50 bg-card/50 backdrop-blur-sm">
+          <div className="max-w-4xl mx-auto flex items-center justify-between">
+            <span className="text-xs text-muted-foreground">
+              Press <kbd className="px-1.5 py-0.5 bg-muted rounded text-[10px] font-mono">⌘S</kbd> to save
+            </span>
+            <div className="flex gap-3">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  if (node) {
+                    setName(node.name);
+                    setContent(node.content);
+                    setTags(node.tags || []);
+                    setHasChanges(false);
+                  }
+                }}
+              >
+                Discard
+              </Button>
+              <Button size="sm" onClick={() => handleSave(false)}>
+                Save
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

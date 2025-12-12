@@ -1,9 +1,11 @@
-import { useOfflineStatus } from '@/hooks/useOfflineStatus';
+import { useOfflineStore } from "@/services/ui/stores/useOfflineStore";
 import { Wifi, WifiOff, RefreshCw } from 'lucide-react';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Alert, AlertDescription } from "@/components/core/ui/alert";
 
 export function OfflineIndicator() {
-  const { isOnline, canWorkOffline, cacheStatus } = useOfflineStatus();
+  const isOnline = useOfflineStore((state) => state.isOnline);
+  const canWorkOffline = useOfflineStore((state) => state.canWorkOffline);
+  const cacheStatus = useOfflineStore((state) => state.cacheStatus);
 
   // Don't show anything if online and cache is ready
   if (isOnline && cacheStatus === 'ready') {

@@ -7,14 +7,15 @@ import {
   Network, 
   FileText, 
   Link2,
-  Lock,
-  Cloud
+  Cloud,
+  ArrowRight,
+  Sparkles
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/core/ui/button";
+import { Badge } from "@/components/core/ui/badge";
 import { VaultModeSelector } from "./VaultModeSelector";
 import { getVaultManager } from "@/services/vault/VaultManagerSingleton";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/components/auth/hooks/useAuth";
 import { vaultSyncService } from "@/services/vault/VaultSyncService";
 
 interface VaultRequiredGateProps {
@@ -41,13 +42,11 @@ export const VaultRequiredGate = ({
       await vaultManager.initialize();
       setIsInitialized(true);
       
-      // If authenticated, sync from cloud to check for existing vaults
       if (isAuthenticated) {
         setIsSyncing(true);
         const result = await vaultSyncService.syncFromCloud(vaultManager);
         setIsSyncing(false);
         
-        // If we synced vaults and there's an active one, notify parent
         const activeVault = vaultManager.getActiveVault();
         if (activeVault) {
           onVaultCreated(activeVault.id);
@@ -95,7 +94,6 @@ export const VaultRequiredGate = ({
   const handleVaultCreated = async (vaultId: string) => {
     await vaultManager.switchVault(vaultId);
     
-    // If authenticated, sync the new vault to cloud
     if (isAuthenticated) {
       await vaultSyncService.syncVaultToCloud(vaultManager, vaultId);
     }
@@ -103,164 +101,163 @@ export const VaultRequiredGate = ({
     onVaultCreated(vaultId);
   };
 
-  // If vault is active, render children normally
   if (isVaultActive) {
     return <>{children}</>;
   }
 
-  // Show the vault-required gate
   return (
-    <div className="flex h-screen overflow-hidden bg-background w-full">
-      {/* Blurred/faded background showing the graph preview */}
-      <div className="absolute inset-0 opacity-10 pointer-events-none">
-        <div className="w-full h-full bg-gradient-to-br from-primary/5 via-background to-primary/10" />
+    <div className="flex min-h-screen w-full bg-background">
+      {/* Background Pattern */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-accent/5 rounded-full blur-3xl" />
       </div>
 
-      {/* Gate overlay */}
-      <div className="relative z-10 flex flex-col items-center justify-center w-full h-full p-6">
-        <div className="max-w-2xl w-full text-center space-y-8">
-          {/* Icon */}
-          <div className="inline-flex p-4 rounded-2xl bg-primary/10 text-primary">
-            <Database className="w-12 h-12" />
-          </div>
-
-          {/* Title */}
-          <div className="space-y-3">
-            <h1 className="text-3xl font-bold tracking-tight">
-              Welcome to Your Knowledge Graph
+      {/* Main Content */}
+      <div className="relative z-10 flex flex-col items-center justify-center w-full px-4 py-8 sm:px-6 lg:px-8">
+        <div className="w-full max-w-3xl space-y-8">
+          
+          {/* Header */}
+          <div className="text-center space-y-4">
+            <div className="inline-flex items-center justify-center p-3 rounded-2xl bg-primary/10 mb-4">
+              <Database className="w-10 h-10 text-primary" />
+            </div>
+            
+            <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground">
+              Knowledge Graph
             </h1>
-            <p className="text-lg text-muted-foreground max-w-lg mx-auto">
+            
+            <p className="text-base sm:text-lg text-muted-foreground max-w-md mx-auto">
               Create or open a vault to start building your connected knowledge base.
-              {isAuthenticated ? (
-                <span className="block mt-1 text-primary">Your vaults sync automatically to the cloud.</span>
-              ) : (
-                <span className="block mt-1">Sign in to enable cloud sync.</span>
-              )}
             </p>
+
+            {isAuthenticated && (
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-500/10 text-blue-400 text-sm">
+                <Cloud className="w-4 h-4" />
+                <span>Cloud sync enabled</span>
+              </div>
+            )}
           </div>
 
-          {/* Syncing indicator */}
+          {/* Syncing State */}
           {isSyncing && (
-            <div className="flex items-center justify-center gap-2 text-primary">
-              <Cloud className="w-5 h-5 animate-pulse" />
-              <span>Syncing your vaults from cloud...</span>
+            <div className="flex items-center justify-center gap-2 py-4 text-primary animate-pulse">
+              <Cloud className="w-5 h-5" />
+              <span>Syncing vaults from cloud...</span>
             </div>
           )}
 
-          {/* Features preview */}
-          <div className="grid md:grid-cols-3 gap-4 py-6">
-            <div className="flex flex-col items-center gap-2 p-4 rounded-lg bg-card/50 border border-border/50">
-              <Network className="w-6 h-6 text-primary" />
-              <span className="text-sm font-medium">Network Graph</span>
-              <span className="text-xs text-muted-foreground">Visualize connections</span>
-            </div>
-            <div className="flex flex-col items-center gap-2 p-4 rounded-lg bg-card/50 border border-border/50">
-              <FileText className="w-6 h-6 text-primary" />
-              <span className="text-sm font-medium">Markdown Notes</span>
-              <span className="text-xs text-muted-foreground">Write with wikilinks</span>
-            </div>
-            <div className="flex flex-col items-center gap-2 p-4 rounded-lg bg-card/50 border border-border/50">
-              {isAuthenticated ? (
-                <>
-                  <Cloud className="w-6 h-6 text-primary" />
-                  <span className="text-sm font-medium">Cloud Sync</span>
-                  <span className="text-xs text-muted-foreground">Access anywhere</span>
-                </>
-              ) : (
-                <>
-                  <Link2 className="w-6 h-6 text-primary" />
-                  <span className="text-sm font-medium">Auto-linking</span>
-                  <span className="text-xs text-muted-foreground">Smart backlinks</span>
-                </>
-              )}
-            </div>
-          </div>
-
-          {/* Vault type options */}
-          <div className="grid md:grid-cols-2 gap-4 max-w-xl mx-auto">
-            <button
-              onClick={() => setIsVaultSelectorOpen(true)}
-              className="group p-5 rounded-xl border bg-card hover:border-primary hover:shadow-lg transition-all text-left"
-            >
-              <div className="flex items-center gap-3 mb-3">
-                <div className="p-2 rounded-lg bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
-                  <HardDrive className="w-5 h-5" />
-                </div>
-                <div>
-                  <div className="font-medium group-hover:text-primary transition-colors">Local Native</div>
-                  <Badge variant="secondary" className="text-xs mt-0.5">Permanent</Badge>
+          {/* Features */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            {[
+              { icon: Network, label: "Network Graph", desc: "Visualize connections" },
+              { icon: FileText, label: "Markdown Notes", desc: "Write with wikilinks" },
+              { icon: isAuthenticated ? Cloud : Link2, label: isAuthenticated ? "Cloud Sync" : "Auto-linking", desc: isAuthenticated ? "Access anywhere" : "Smart backlinks" }
+            ].map(({ icon: Icon, label, desc }) => (
+              <div key={label} className="flex items-center gap-3 p-3 rounded-xl bg-card border border-border/50">
+                <Icon className="w-5 h-5 text-primary flex-shrink-0" />
+                <div className="min-w-0">
+                  <div className="text-sm font-medium text-foreground">{label}</div>
+                  <div className="text-xs text-muted-foreground">{desc}</div>
                 </div>
               </div>
-              <p className="text-sm text-muted-foreground">
-                Store as files on your computer. Full file system access.
-              </p>
+            ))}
+          </div>
+
+          {/* Vault Options */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <button
+              onClick={() => setIsVaultSelectorOpen(true)}
+              className="group relative p-5 rounded-xl border border-border bg-card hover:border-primary/50 hover:bg-card/80 transition-all text-left"
+            >
+              <div className="flex items-start gap-4">
+                <div className="p-2.5 rounded-xl bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+                  <HardDrive className="w-6 h-6" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="font-semibold text-foreground">Local Native</span>
+                    <Badge variant="secondary" className="text-[10px]">Permanent</Badge>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    Store as files on your computer with full file system access.
+                  </p>
+                </div>
+              </div>
+              <ArrowRight className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
             </button>
 
             <button
               onClick={() => setIsVaultSelectorOpen(true)}
-              className="group p-5 rounded-xl border bg-card hover:border-primary hover:shadow-lg transition-all text-left"
+              className="group relative p-5 rounded-xl border border-border bg-card hover:border-primary/50 hover:bg-card/80 transition-all text-left"
             >
-              <div className="flex items-center gap-3 mb-3">
-                <div className={`p-2 rounded-lg ${isAuthenticated ? 'bg-blue-500/10 text-blue-500 group-hover:bg-blue-500' : 'bg-amber-500/10 text-amber-500 group-hover:bg-amber-500'} group-hover:text-white transition-colors`}>
-                  {isAuthenticated ? <Cloud className="w-5 h-5" /> : <Zap className="w-5 h-5" />}
+              <div className="flex items-start gap-4">
+                <div className={`p-2.5 rounded-xl transition-colors ${
+                  isAuthenticated 
+                    ? 'bg-blue-500/10 text-blue-400 group-hover:bg-blue-500 group-hover:text-white' 
+                    : 'bg-amber-500/10 text-amber-400 group-hover:bg-amber-500 group-hover:text-white'
+                }`}>
+                  {isAuthenticated ? <Cloud className="w-6 h-6" /> : <Zap className="w-6 h-6" />}
                 </div>
-                <div>
-                  <div className="font-medium group-hover:text-primary transition-colors">
-                    {isAuthenticated ? "Cloud Vault" : "In-Memory"}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="font-semibold text-foreground">
+                      {isAuthenticated ? "Cloud Vault" : "In-Memory"}
+                    </span>
+                    <Badge variant="outline" className="text-[10px]">
+                      {isAuthenticated ? "Synced" : "Ephemeral"}
+                    </Badge>
                   </div>
-                  <Badge variant="outline" className="text-xs mt-0.5">
-                    {isAuthenticated ? "Synced" : "Ephemeral"}
-                  </Badge>
+                  <p className="text-sm text-muted-foreground">
+                    {isAuthenticated 
+                      ? "Stored in cloud. Access from any device."
+                      : "Fast temporary workspace in browser."}
+                  </p>
                 </div>
               </div>
-              <p className="text-sm text-muted-foreground">
-                {isAuthenticated 
-                  ? "Stored in cloud. Access from any device."
-                  : "Fast temporary workspace in browser. Can export anytime."}
-              </p>
+              <ArrowRight className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
             </button>
           </div>
 
           {/* CTA */}
-          <div className="pt-4 space-y-3">
+          <div className="flex flex-col items-center gap-4 pt-4">
             <Button 
               size="lg" 
               onClick={() => setIsVaultSelectorOpen(true)}
               disabled={!isInitialized || isSyncing}
-              className="px-8"
+              className="px-8 h-11"
             >
-              {!isInitialized ? "Initializing..." : isSyncing ? "Syncing..." : "Create Your Vault"}
+              {!isInitialized ? "Initializing..." : isSyncing ? "Syncing..." : (
+                <>
+                  <Sparkles className="w-4 h-4 mr-2" />
+                  Create Vault
+                </>
+              )}
             </Button>
-            <p className="text-xs text-muted-foreground">
-              Or{" "}
+            
+            <div className="flex items-center gap-3 text-sm text-muted-foreground">
               <button 
                 onClick={() => navigate("/vaults")} 
-                className="text-primary hover:underline"
+                className="hover:text-primary transition-colors"
               >
-                manage existing vaults
+                Manage vaults
               </button>
               {!isAuthenticated && (
                 <>
-                  {" | "}
+                  <span className="text-border">•</span>
                   <button 
                     onClick={() => navigate("/auth")} 
-                    className="text-primary hover:underline"
+                    className="hover:text-primary transition-colors"
                   >
-                    sign in for cloud sync
+                    Sign in for cloud sync
                   </button>
                 </>
               )}
-            </p>
+            </div>
           </div>
-        </div>
-
-        {/* Decorative lock icon */}
-        <div className="absolute bottom-6 right-6 text-muted-foreground/20">
-          <Lock className="w-24 h-24" />
         </div>
       </div>
 
-      {/* Vault Mode Selector Dialog */}
       <VaultModeSelector
         open={isVaultSelectorOpen}
         onOpenChange={setIsVaultSelectorOpen}

@@ -6,16 +6,16 @@ import {
   Plus, 
   AlertTriangle, 
   ArrowRight,
+  ArrowLeft,
   Shield,
   Clock,
   ExternalLink
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/core/ui/button";
+import { Input } from "@/components/core/ui/input";
+import { Badge } from "@/components/core/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/core/ui/dialog";
+import { Alert, AlertDescription } from "@/components/core/ui/alert";
 
 type VaultMode = "local-native" | "in-memory";
 type VaultAction = "create" | "open";
@@ -64,7 +64,6 @@ export const VaultModeSelector = ({
     setError(null);
 
     if (action === "open" && selectedMode === "local-native") {
-      // Directly open file picker for existing vault
       setIsCreating(true);
       try {
         const vaultId = await onOpenLocalVault();
@@ -79,7 +78,6 @@ export const VaultModeSelector = ({
         setIsCreating(false);
       }
     } else {
-      // For create actions, go to details step
       setStep("details");
     }
   };
@@ -130,165 +128,137 @@ export const VaultModeSelector = ({
       onOpenChange(isOpen);
       if (!isOpen) resetState();
     }}>
-      <DialogContent className="sm:max-w-2xl">
+      <DialogContent className="sm:max-w-xl bg-card border-border">
         <DialogHeader>
-          <DialogTitle className="text-xl">
-            {step === "mode" && "Choose Your Workspace"}
+          <DialogTitle className="text-lg">
+            {step === "mode" && "Choose Workspace Type"}
             {step === "action" && (selectedMode === "local-native" ? "Local Native Vault" : "In-Memory Vault")}
-            {step === "details" && "Create New Vault"}
+            {step === "details" && "Create Vault"}
           </DialogTitle>
-          <DialogDescription>
-            {step === "mode" && "Where do you want your workspace data to live and how permanent should it be?"}
+          <DialogDescription className="text-sm">
+            {step === "mode" && "Select where your data will be stored"}
             {step === "action" && (selectedMode === "local-native" 
-              ? "Your data will be stored directly on your file system" 
-              : "Your data will be stored temporarily in the browser")}
-            {step === "details" && "Enter the details for your new vault"}
+              ? "Data stored directly on your file system" 
+              : "Data stored in browser memory")}
+            {step === "details" && "Enter a name for your new vault"}
           </DialogDescription>
         </DialogHeader>
 
         {error && (
-          <Alert variant="destructive">
+          <Alert variant="destructive" className="py-2">
             <AlertTriangle className="h-4 w-4" />
-            <AlertDescription>{error}</AlertDescription>
+            <AlertDescription className="text-sm">{error}</AlertDescription>
           </Alert>
         )}
 
         {/* Step 1: Mode Selection */}
         {step === "mode" && (
-          <div className="grid md:grid-cols-2 gap-4 py-4">
-            <Card 
-              className="cursor-pointer transition-all hover:border-primary hover:shadow-md group"
+          <div className="grid sm:grid-cols-2 gap-3 py-4">
+            <button 
+              className="group p-4 rounded-xl border border-border bg-secondary/30 hover:border-primary/50 hover:bg-secondary/50 transition-all text-left"
               onClick={() => handleModeSelect("local-native")}
             >
-              <CardHeader className="pb-2">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-primary/10 text-primary">
-                    <HardDrive className="w-6 h-6" />
-                  </div>
-                  <div>
-                    <CardTitle className="text-lg group-hover:text-primary transition-colors">
-                      Local Native Vault
-                    </CardTitle>
-                    <Badge variant="secondary" className="mt-1">Permanent</Badge>
-                  </div>
+              <div className="flex items-center gap-3 mb-3">
+                <div className="p-2 rounded-lg bg-primary/10 text-primary">
+                  <HardDrive className="w-5 h-5" />
                 </div>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <CardDescription>
-                  Data is stored directly as files and folders on your computer.
-                </CardDescription>
-                <ul className="text-sm text-muted-foreground space-y-2">
-                  <li className="flex items-start gap-2">
-                    <Shield className="w-4 h-4 mt-0.5 text-green-500 flex-shrink-0" />
-                    <span>Main, long-term knowledge base</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <ExternalLink className="w-4 h-4 mt-0.5 text-blue-500 flex-shrink-0" />
-                    <span>External file system compatibility</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <FolderOpen className="w-4 h-4 mt-0.5 text-amber-500 flex-shrink-0" />
-                    <span>Open standard file format</span>
-                  </li>
-                </ul>
-              </CardContent>
-            </Card>
+                <div>
+                  <div className="font-medium text-foreground">Local Native</div>
+                  <Badge variant="secondary" className="text-[10px] mt-0.5">Permanent</Badge>
+                </div>
+              </div>
+              <p className="text-xs text-muted-foreground mb-3">
+                Data stored as files on your computer
+              </p>
+              <ul className="space-y-1.5 text-xs text-muted-foreground">
+                <li className="flex items-center gap-2">
+                  <Shield className="w-3 h-3 text-green-400" />
+                  <span>Long-term knowledge base</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <ExternalLink className="w-3 h-3 text-blue-400" />
+                  <span>File system compatible</span>
+                </li>
+              </ul>
+            </button>
 
-            <Card 
-              className="cursor-pointer transition-all hover:border-primary hover:shadow-md group"
+            <button 
+              className="group p-4 rounded-xl border border-border bg-secondary/30 hover:border-primary/50 hover:bg-secondary/50 transition-all text-left"
               onClick={() => handleModeSelect("in-memory")}
             >
-              <CardHeader className="pb-2">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-amber-500/10 text-amber-500">
-                    <Zap className="w-6 h-6" />
-                  </div>
-                  <div>
-                    <CardTitle className="text-lg group-hover:text-primary transition-colors">
-                      In-Memory Vault
-                    </CardTitle>
-                    <Badge variant="outline" className="mt-1">Ephemeral</Badge>
-                  </div>
+              <div className="flex items-center gap-3 mb-3">
+                <div className="p-2 rounded-lg bg-amber-500/10 text-amber-400">
+                  <Zap className="w-5 h-5" />
                 </div>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <CardDescription>
-                  Data is stored temporarily in the browser's IndexedDB.
-                </CardDescription>
-                <ul className="text-sm text-muted-foreground space-y-2">
-                  <li className="flex items-start gap-2">
-                    <Zap className="w-4 h-4 mt-0.5 text-amber-500 flex-shrink-0" />
-                    <span>Lightning fast performance</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <Clock className="w-4 h-4 mt-0.5 text-purple-500 flex-shrink-0" />
-                    <span>Quick scratchpad & testing</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <AlertTriangle className="w-4 h-4 mt-0.5 text-destructive flex-shrink-0" />
-                    <span>Data may be lost if cache is cleared</span>
-                  </li>
-                </ul>
-              </CardContent>
-            </Card>
+                <div>
+                  <div className="font-medium text-foreground">In-Memory</div>
+                  <Badge variant="outline" className="text-[10px] mt-0.5">Ephemeral</Badge>
+                </div>
+              </div>
+              <p className="text-xs text-muted-foreground mb-3">
+                Data stored in browser IndexedDB
+              </p>
+              <ul className="space-y-1.5 text-xs text-muted-foreground">
+                <li className="flex items-center gap-2">
+                  <Zap className="w-3 h-3 text-amber-400" />
+                  <span>Lightning fast</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <Clock className="w-3 h-3 text-purple-400" />
+                  <span>Quick scratchpad</span>
+                </li>
+              </ul>
+            </button>
           </div>
         )}
 
         {/* Step 2: Action Selection */}
         {step === "action" && (
-          <div className="space-y-4 py-4">
-            <div className="grid md:grid-cols-2 gap-4">
-              <Card 
-                className="cursor-pointer transition-all hover:border-primary hover:shadow-md group"
+          <div className="space-y-3 py-4">
+            <div className="grid sm:grid-cols-2 gap-3">
+              <button 
+                className="group p-4 rounded-xl border border-border bg-secondary/30 hover:border-primary/50 hover:bg-secondary/50 transition-all text-left"
                 onClick={() => handleActionSelect("create")}
               >
-                <CardHeader className="pb-2">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-lg bg-green-500/10 text-green-500">
-                      <Plus className="w-5 h-5" />
-                    </div>
-                    <CardTitle className="text-base group-hover:text-primary transition-colors">
-                      Create New Vault
-                    </CardTitle>
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="p-2 rounded-lg bg-green-500/10 text-green-400">
+                    <Plus className="w-4 h-4" />
                   </div>
-                </CardHeader>
-                <CardContent>
-                  <CardDescription>
-                    {selectedMode === "local-native" 
-                      ? "Create a new folder on your computer to store your notes"
-                      : "Start a fresh workspace in the browser"}
-                  </CardDescription>
-                </CardContent>
-              </Card>
+                  <span className="font-medium text-foreground">Create New</span>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {selectedMode === "local-native" 
+                    ? "Create a new folder for your notes"
+                    : "Start a fresh workspace"}
+                </p>
+              </button>
 
-              <Card 
-                className={`cursor-pointer transition-all hover:border-primary hover:shadow-md group ${
-                  selectedMode === "in-memory" ? "opacity-50 cursor-not-allowed" : ""
+              <button 
+                className={`group p-4 rounded-xl border border-border bg-secondary/30 transition-all text-left ${
+                  selectedMode === "in-memory" 
+                    ? "opacity-40 cursor-not-allowed" 
+                    : "hover:border-primary/50 hover:bg-secondary/50"
                 }`}
                 onClick={() => selectedMode === "local-native" && handleActionSelect("open")}
+                disabled={selectedMode === "in-memory"}
               >
-                <CardHeader className="pb-2">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-lg bg-blue-500/10 text-blue-500">
-                      <FolderOpen className="w-5 h-5" />
-                    </div>
-                    <CardTitle className="text-base group-hover:text-primary transition-colors">
-                      Open Existing Vault
-                    </CardTitle>
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="p-2 rounded-lg bg-blue-500/10 text-blue-400">
+                    <FolderOpen className="w-4 h-4" />
                   </div>
-                </CardHeader>
-                <CardContent>
-                  <CardDescription>
-                    {selectedMode === "local-native" 
-                      ? "Select an existing folder containing your notes"
-                      : "In-Memory vaults are already listed in the dashboard"}
-                  </CardDescription>
-                </CardContent>
-              </Card>
+                  <span className="font-medium text-foreground">Open Existing</span>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {selectedMode === "local-native" 
+                    ? "Select an existing folder"
+                    : "View in vault dashboard"}
+                </p>
+              </button>
             </div>
 
-            <Button variant="ghost" onClick={handleBack} className="mt-2">
-              ← Back to mode selection
+            <Button variant="ghost" size="sm" onClick={handleBack} className="mt-2">
+              <ArrowLeft className="w-4 h-4 mr-1" />
+              Back
             </Button>
           </div>
         )}
@@ -297,11 +267,10 @@ export const VaultModeSelector = ({
         {step === "details" && (
           <div className="space-y-4 py-4">
             {selectedMode === "in-memory" && (
-              <Alert>
-                <AlertTriangle className="h-4 w-4" />
-                <AlertDescription>
-                  <strong>Warning:</strong> Data in In-Memory vaults may be lost if browser cache is cleared. 
-                  You can export to local files anytime using the "Export to File System" option.
+              <Alert className="py-2 bg-amber-500/10 border-amber-500/20">
+                <AlertTriangle className="h-4 w-4 text-amber-400" />
+                <AlertDescription className="text-xs text-amber-400">
+                  Data may be lost if browser cache is cleared. Export anytime to backup.
                 </AlertDescription>
               </Alert>
             )}
@@ -309,34 +278,35 @@ export const VaultModeSelector = ({
             <div className="space-y-2">
               <label className="text-sm font-medium">Vault Name</label>
               <Input
-                placeholder={selectedMode === "local-native" ? "My Knowledge Base" : "Scratchpad Session"}
+                placeholder={selectedMode === "local-native" ? "My Knowledge Base" : "Scratchpad"}
                 value={vaultName}
                 onChange={(e) => setVaultName(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleCreate()}
                 autoFocus
+                className="bg-secondary border-border"
               />
               {selectedMode === "local-native" && (
                 <p className="text-xs text-muted-foreground">
-                  You'll be asked to choose a location on your computer after clicking Create.
+                  You'll choose a location after clicking Create
                 </p>
               )}
             </div>
 
-            <div className="flex gap-2 pt-2">
-              <Button variant="ghost" onClick={handleBack}>
-                ← Back
+            <div className="flex items-center gap-2 pt-2">
+              <Button variant="ghost" size="sm" onClick={handleBack}>
+                <ArrowLeft className="w-4 h-4 mr-1" />
+                Back
               </Button>
               <Button 
                 onClick={handleCreate} 
                 disabled={isCreating || !vaultName.trim()}
                 className="flex-1"
+                size="sm"
               >
-                {isCreating ? (
-                  "Creating..."
-                ) : (
+                {isCreating ? "Creating..." : (
                   <>
                     Create Vault
-                    <ArrowRight className="w-4 h-4 ml-2" />
+                    <ArrowRight className="w-4 h-4 ml-1" />
                   </>
                 )}
               </Button>

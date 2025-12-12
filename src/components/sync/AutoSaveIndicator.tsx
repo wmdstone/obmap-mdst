@@ -4,7 +4,7 @@
 
 import { useState, useEffect } from 'react';
 import { Cloud, CloudOff, Check, Loader2 } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn } from "@/services/core/utils";
 
 export type SaveStatus = 'idle' | 'saving' | 'saved' | 'error';
 

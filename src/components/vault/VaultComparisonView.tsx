@@ -13,12 +13,12 @@ import {
   BarChart3,
   X,
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
-import { Separator } from "@/components/ui/separator";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/core/ui/card";
+import { Badge } from "@/components/core/ui/badge";
+import { Button } from "@/components/core/ui/button";
+import { Progress } from "@/components/core/ui/progress";
+import { Separator } from "@/components/core/ui/separator";
+import { ScrollArea } from "@/components/core/ui/scroll-area";
 import { formatDistanceToNow } from "date-fns";
 
 interface VaultStats {

@@ -124,19 +124,19 @@ All colors MUST be HSL.
   }
 
   .prose h1 {
-    @apply text-2xl font-bold text-foreground mb-4 mt-6;
+    @apply text-2xl font-bold text-foreground mb-4 mt-6 first:mt-0;
   }
 
   .prose h2 {
-    @apply text-xl font-bold text-foreground mb-3 mt-5;
+    @apply text-xl font-semibold text-foreground mb-3 mt-5;
   }
 
   .prose h3 {
-    @apply text-lg font-semibold text-foreground mb-2 mt-4;
+    @apply text-lg font-medium text-foreground mb-2 mt-4;
   }
 
   .prose p {
-    @apply mb-3 leading-relaxed;
+    @apply mb-3 leading-7;
   }
 
   .prose ul, .prose ol {
@@ -144,27 +144,27 @@ All colors MUST be HSL.
   }
 
   .prose li {
-    @apply mb-1;
+    @apply mb-1.5 leading-7;
   }
 
   .prose blockquote {
-    @apply border-l-4 border-primary pl-4 italic text-muted-foreground my-4;
+    @apply border-l-2 border-primary/50 pl-4 italic text-muted-foreground my-4;
   }
 
   .prose code {
-    @apply bg-muted px-1.5 py-0.5 rounded text-sm;
+    @apply bg-muted/50 px-1.5 py-0.5 rounded text-sm font-mono;
   }
 
   .prose pre {
-    @apply bg-muted p-4 rounded-lg overflow-x-auto my-4;
+    @apply bg-muted/50 p-4 rounded-lg overflow-x-auto my-4;
   }
 
   .prose a {
-    @apply text-primary hover:underline;
+    @apply text-primary hover:underline underline-offset-2;
   }
 
   .prose hr {
-    @apply border-border my-6;
+    @apply border-border/50 my-8;
   }
 
   .prose table {
@@ -172,10 +172,61 @@ All colors MUST be HSL.
   }
 
   .prose th, .prose td {
-    @apply border border-border px-3 py-2;
+    @apply border border-border/50 px-3 py-2;
   }
 
   .prose th {
-    @apply bg-muted font-semibold;
+    @apply bg-muted/30 font-medium;
+  }
+
+  .prose-container {
+    @apply text-foreground leading-7;
+  }
+}
+
+/* Editor focus styles */
+.prose-container :focus-visible {
+  @apply outline-none;
+}
+
+/* Custom scrollbar utilities */
+@layer utilities {
+  .scrollbar-thin {
+    scrollbar-width: thin;
+  }
+
+  .scrollbar-thumb-muted-foreground\/20 {
+    scrollbar-color: hsl(var(--muted-foreground) / 0.2) transparent;
+  }
+
+  .scrollbar-thumb-muted-foreground\/30 {
+    scrollbar-color: hsl(var(--muted-foreground) / 0.3) transparent;
+  }
+
+  .scrollbar-track-transparent {
+    scrollbar-color: inherit transparent;
+  }
+
+  /* Webkit scrollbar styling */
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background-color: hsl(var(--muted-foreground) / 0.2);
+    border-radius: 3px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background-color: hsl(var(--muted-foreground) / 0.3);
+  }
+
+  .hover\:scrollbar-thumb-muted-foreground\/30:hover::-webkit-scrollbar-thumb {
+    background-color: hsl(var(--muted-foreground) / 0.3);
   }
 }

@@ -6,7 +6,7 @@
  * to online event listeners.
  */
 
-import { eventBus, EventType } from '../events/DomainEvents';
+import { eventBus, EventType, DomainEvent } from '../core/events';
 
 interface PendingChange {
   id: string;
@@ -14,6 +14,12 @@ interface PendingChange {
   path: string[];
   content: string;
   retryCount: number;
+}
+
+// Event payload interface
+interface NoteUpdatedPayload {
+  id: string;
+  content: string;
 }
 
 export class BackgroundSyncService {
@@ -63,7 +69,7 @@ export class BackgroundSyncService {
     });
 
     // Listen for vault changes to queue them
-    eventBus.subscribe(EventType.NOTE_UPDATED, (event) => {
+    eventBus.subscribe<NoteUpdatedPayload>(EventType.NOTE_UPDATED, (event) => {
       if (!navigator.onLine) {
         console.log('[BackgroundSync] Queuing change while offline:', event.payload.id);
         // Changes will be queued by the FileSystemService
@@ -123,13 +129,9 @@ export class BackgroundSyncService {
     this.syncRegistered = false;
 
     // Emit sync complete event
-    eventBus.emit({
-      type: EventType.VAULT_SYNC_COMPLETE,
-      timestamp: Date.now(),
-      payload: {
-        synced: results.filter(r => r.status === 'fulfilled').length,
-        failed: results.filter(r => r.status === 'rejected').length,
-      },
+    eventBus.emit(EventType.VAULT_SYNC_COMPLETE, {
+      synced: results.filter(r => r.status === 'fulfilled').length,
+      failed: results.filter(r => r.status === 'rejected').length,
     });
   }
 
@@ -140,13 +142,9 @@ export class BackgroundSyncService {
     // Emit event to save the file
     return new Promise((resolve, reject) => {
       try {
-        eventBus.emit({
-          type: EventType.NOTE_SYNC_REQUESTED,
-          timestamp: Date.now(),
-          payload: {
-            path: change.path,
-            content: change.content,
-          },
+        eventBus.emit(EventType.NOTE_SYNC_REQUESTED, {
+          path: change.path,
+          content: change.content,
         });
         resolve();
       } catch (error) {

@@ -5,9 +5,8 @@ import {
   SelectItem, 
   SelectTrigger, 
   SelectValue 
-} from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+} from "@/components/core/ui/select";
+import { Badge } from "@/components/core/ui/badge";
 import { StorageStrategy, STORAGE_STRATEGY_LABELS, STORAGE_STRATEGY_DESCRIPTIONS } from "@/services/vault/types";
 
 interface StorageStrategySelectorProps {
@@ -24,9 +23,9 @@ const strategyIcons: Record<StorageStrategy, React.ReactNode> = {
 };
 
 const strategyColors: Record<StorageStrategy, string> = {
-  memory: 'text-amber-500',
-  cloud: 'text-blue-500',
-  filesystem: 'text-green-500',
+  memory: 'text-amber-400',
+  cloud: 'text-blue-400',
+  filesystem: 'text-green-400',
 };
 
 export function StorageStrategySelector({ 
@@ -41,52 +40,45 @@ export function StorageStrategySelector({
       onValueChange={(v) => onChange(v as StorageStrategy)}
       disabled={disabled}
     >
-      <SelectTrigger className="w-full">
+      <SelectTrigger className="h-9 bg-secondary border-border">
         <SelectValue>
           <div className="flex items-center gap-2">
             <span className={strategyColors[value]}>{strategyIcons[value]}</span>
-            <span>{STORAGE_STRATEGY_LABELS[value]}</span>
+            <span className="text-sm">{STORAGE_STRATEGY_LABELS[value]}</span>
           </div>
         </SelectValue>
       </SelectTrigger>
-      <SelectContent>
-        <SelectItem value="memory">
-          <div className="flex items-center gap-2">
+      <SelectContent className="bg-popover border-border">
+        <SelectItem value="memory" className="cursor-pointer">
+          <div className="flex items-center gap-3 py-1">
             <span className={strategyColors.memory}>{strategyIcons.memory}</span>
             <div>
-              <div className="font-medium">{STORAGE_STRATEGY_LABELS.memory}</div>
+              <div className="text-sm font-medium">{STORAGE_STRATEGY_LABELS.memory}</div>
               <div className="text-xs text-muted-foreground">{STORAGE_STRATEGY_DESCRIPTIONS.memory}</div>
             </div>
           </div>
         </SelectItem>
-        <Tooltip>
-          <TooltipTrigger asChild>
+        
+        <SelectItem value="cloud" disabled={!isAuthenticated} className="cursor-pointer">
+          <div className="flex items-center gap-3 py-1">
+            <span className={strategyColors.cloud}>{strategyIcons.cloud}</span>
             <div>
-              <SelectItem value="cloud" disabled={!isAuthenticated}>
-                <div className="flex items-center gap-2">
-                  <span className={strategyColors.cloud}>{strategyIcons.cloud}</span>
-                  <div>
-                    <div className="font-medium flex items-center gap-2">
-                      {STORAGE_STRATEGY_LABELS.cloud}
-                      {!isAuthenticated && <Badge variant="outline" className="text-xs">Sign in required</Badge>}
-                    </div>
-                    <div className="text-xs text-muted-foreground">{STORAGE_STRATEGY_DESCRIPTIONS.cloud}</div>
-                  </div>
-                </div>
-              </SelectItem>
+              <div className="text-sm font-medium flex items-center gap-2">
+                {STORAGE_STRATEGY_LABELS.cloud}
+                {!isAuthenticated && (
+                  <Badge variant="outline" className="text-[10px] h-4">Sign in</Badge>
+                )}
+              </div>
+              <div className="text-xs text-muted-foreground">{STORAGE_STRATEGY_DESCRIPTIONS.cloud}</div>
             </div>
-          </TooltipTrigger>
-          {!isAuthenticated && (
-            <TooltipContent>
-              <p>Sign in to enable cloud sync</p>
-            </TooltipContent>
-          )}
-        </Tooltip>
-        <SelectItem value="filesystem" disabled>
-          <div className="flex items-center gap-2 opacity-50">
+          </div>
+        </SelectItem>
+        
+        <SelectItem value="filesystem" disabled className="cursor-not-allowed opacity-50">
+          <div className="flex items-center gap-3 py-1">
             <span className={strategyColors.filesystem}>{strategyIcons.filesystem}</span>
             <div>
-              <div className="font-medium">{STORAGE_STRATEGY_LABELS.filesystem}</div>
+              <div className="text-sm font-medium">{STORAGE_STRATEGY_LABELS.filesystem}</div>
               <div className="text-xs text-muted-foreground">Use "Open Local Folder" to create</div>
             </div>
           </div>
@@ -100,7 +92,7 @@ export function StorageStrategyBadge({ strategy }: { strategy: StorageStrategy }
   return (
     <Badge 
       variant="outline" 
-      className={`text-xs gap-1 ${strategyColors[strategy]}`}
+      className={`text-[10px] h-5 gap-1 border-border/50 ${strategyColors[strategy]}`}
     >
       {strategyIcons[strategy]}
       {STORAGE_STRATEGY_LABELS[strategy]}

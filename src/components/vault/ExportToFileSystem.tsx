@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { Download, FolderOutput, CheckCircle2, AlertCircle } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from "@/components/ui/dialog";
-import { Progress } from "@/components/ui/progress";
+import { Button } from "@/components/core/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from "@/components/core/ui/dialog";
+import { Progress } from "@/components/core/ui/progress";
 import { toast } from "sonner";
 
 interface Node {

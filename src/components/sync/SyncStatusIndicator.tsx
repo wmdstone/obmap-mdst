@@ -1,15 +1,15 @@
 import { useEffect, useState } from 'react';
 import { Cloud, CloudOff, CheckCircle, RefreshCw, User } from 'lucide-react';
-import { eventBus, EventType } from '@/services/events/DomainEvents';
+import { eventBus, EventType } from "@/services/core/events";
 import { backgroundSyncService } from '@/services/sync/BackgroundSyncService';
-import { useVaultSync } from '@/hooks/useVaultSync';
-import { Button } from '@/components/ui/button';
+import { useVaultSync } from "@/components/vault/hooks/useVaultSync";
+import { Button } from "@/components/core/ui/button";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from '@/components/ui/tooltip';
+} from "@/components/core/ui/tooltip";
 
 export function SyncStatusIndicator() {
   const [isOnline, setIsOnline] = useState(navigator.onLine);

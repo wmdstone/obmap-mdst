@@ -16,6 +16,16 @@ import { VaultHistory } from './VaultHistory';
 import { VaultBackupService } from './VaultBackupService';
 import { FileSystemService } from '../persistence/FileSystemService';
 import { StorageStrategy, BackupConfig } from './types';
+import { 
+  eventBus, 
+  EventType,
+  emitVaultCreated,
+  emitVaultDeleted,
+  emitVaultSaved,
+  emitVaultRenamed,
+  emitVaultSwitched,
+  emitGraphUpdated,
+} from '../core/events';
 
 export interface Vault {
   id: string;
@@ -147,6 +157,13 @@ export class VaultManager {
       await this.persistVault(vault);
       console.log("VaultManager: Vault persisted successfully");
 
+      // Emit vault created event
+      emitVaultCreated({
+        vaultId,
+        vaultName: name,
+        storageStrategy,
+      });
+
       return vaultId;
     } catch (error) {
       console.error("VaultManager: Error creating vault:", error);
@@ -269,6 +286,9 @@ export class VaultManager {
     this.activeVaultId = vaultId;
     vault.lastModified = Date.now();
     
+    // Emit vault switched event
+    emitVaultSwitched(vaultId);
+    
     return true;
   }
 
@@ -293,6 +313,9 @@ export class VaultManager {
     if (this.activeVaultId === vaultId) {
       this.activeVaultId = null;
     }
+
+    // Emit vault deleted event
+    emitVaultDeleted({ vaultId, wasCloudVault });
 
     return { cloudId, wasCloudVault };
   }
@@ -394,6 +417,22 @@ export class VaultManager {
 
   getVault(vaultId: string): Vault | null {
     return this.vaults.get(vaultId) || null;
+  }
+
+  async renameVault(vaultId: string, newName: string): Promise<boolean> {
+    const vault = this.vaults.get(vaultId);
+    if (!vault || !newName.trim()) return false;
+
+    const oldName = vault.name;
+    vault.name = newName.trim();
+    vault.lastModified = Date.now();
+    await this.persistVault(vault);
+    
+    // Emit vault renamed event
+    emitVaultRenamed({ vaultId, oldName, newName: vault.name });
+    
+    console.log(`VaultManager: Renamed vault ${vaultId} to "${newName}"`);
+    return true;
   }
 
   private async persistVault(vault: Vault): Promise<void> {

@@ -1,8 +1,8 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from "@/components/auth/hooks/useAuth";
 import { ProfileSettings } from '@/components/profile/ProfileSettings';
-import { Button } from '@/components/ui/button';
+import { Button } from "@/components/core/ui/button";
 import { ArrowLeft, Loader2, LogOut } from 'lucide-react';
 
 export default function Profile() {

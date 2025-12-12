@@ -9,9 +9,30 @@
  * - Expose graph data for visualization
  */
 
-import { eventBus, EventType, NoteCreatedEvent, DomainEvent } from '../events/DomainEvents';
-import { ContentParser } from './ContentParser';
+import { eventBus, EventType, DomainEvent } from '../core/events';
+import { ContentParser } from '../content/content-parser';
 import { RelationshipMapper, GraphNode, GraphLink } from './RelationshipMapper';
+
+// Event payload interfaces for type safety
+interface FolderCreatedPayload {
+  id: string;
+  name: string;
+  path: string[];
+  parentId: string | null;
+}
+
+interface NoteCreatedPayload {
+  id: string;
+  name: string;
+  content: string;
+  path: string[];
+  parentId: string | null;
+}
+
+interface NoteUpdatedPayload {
+  id: string;
+  content: string;
+}
 
 export interface GraphData {
   nodes: GraphNode[];
@@ -66,7 +87,7 @@ export class GraphService {
   /**
    * Handle folder created event
    */
-  private handleFolderCreated(event: DomainEvent): void {
+  private handleFolderCreated(event: DomainEvent<FolderCreatedPayload>): void {
     const { id, name, path, parentId } = event.payload;
     const depth = path.length - 1;
 
@@ -77,7 +98,7 @@ export class GraphService {
   /**
    * Handle note created event
    */
-  private handleNoteCreated(event: NoteCreatedEvent): void {
+  private handleNoteCreated(event: DomainEvent<NoteCreatedPayload>): void {
     const { id, name, content, path, parentId } = event.payload;
     const depth = path.length - 1;
 
@@ -91,7 +112,7 @@ export class GraphService {
   /**
    * Handle note updated event
    */
-  private handleNoteUpdated(event: DomainEvent): void {
+  private handleNoteUpdated(event: DomainEvent<NoteUpdatedPayload>): void {
     const { id, content } = event.payload;
 
     // Re-parse content and update semantic information

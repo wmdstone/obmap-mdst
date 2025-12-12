@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
-import { useAuth } from '@/hooks/useAuth';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
+import { useAuth } from "@/components/auth/hooks/useAuth";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/core/ui/avatar";
+import { Button } from "@/components/core/ui/button";
 import { Camera, Loader2, User } from 'lucide-react';
 import { toast } from 'sonner';
 
