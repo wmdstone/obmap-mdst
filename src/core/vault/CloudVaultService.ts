@@ -168,7 +168,7 @@ export class CloudVaultService {
 
     const { error } = await supabase
       .from('user_vaults')
-      .update(updateData)
+      .update(updateData as never)
       .eq('id', vaultId);
 
     if (error) {

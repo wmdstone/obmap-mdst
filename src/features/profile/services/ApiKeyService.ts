@@ -184,7 +184,7 @@ export class ApiKeyService {
 
     const { error } = await supabase
       .from('user_api_keys')
-      .update(updateData)
+      .update(updateData as never)
       .eq('id', keyId);
 
     if (error) {
