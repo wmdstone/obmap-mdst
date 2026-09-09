@@ -198,7 +198,7 @@ export type Database = {
         Insert: {
           created_at?: string
           id?: string
-          snapshot: Json
+          snapshot?: Json
           user_id: string
           vault_id: string
         }
