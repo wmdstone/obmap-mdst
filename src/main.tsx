@@ -1,7 +1,7 @@
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
-import { logCacheStatus } from "./services/persistence/offline-storage";
+import { logCacheStatus } from "@/core/persistence/offline-storage";
 
 console.log('main.tsx: Starting application render...');
 

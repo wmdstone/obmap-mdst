@@ -3,10 +3,10 @@ import { Toaster as Sonner } from "@/shared/ui/sonner";
 import { TooltipProvider } from "@/shared/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { ErrorBoundary } from "./components/core/common/ErrorBoundary";
-import { AuthProvider } from "./components/auth/hooks/useAuth";
-import { ProtectedRoute } from "./components/core/common/ProtectedRoute";
-import { EventDebugPanel } from "./components/core/debug/EventDebugPanel";
+import { ErrorBoundary } from "@/shared/components/ErrorBoundary";
+import { AuthProvider } from "@/features/auth/hooks/useAuth";
+import { ProtectedRoute } from "@/shared/components/ProtectedRoute";
+import { EventDebugPanel } from "@/shared/components/debug/EventDebugPanel";
 import { Suspense, lazy } from "react";
 
 const queryClient = new QueryClient();
