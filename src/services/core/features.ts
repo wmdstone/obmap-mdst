@@ -7,20 +7,6 @@
 
 import { pluginRegistry, type Feature } from './plugin-registry';
 
-// Re-export from features folder
-export { 
-	registerCoreFeatures, 
-	initializeFeatures, 
-	cleanupFeatures,
-	allFeatures,
-	coreFeature,
-	authFeature,
-	vaultFeature,
-	graphFeature,
-	syncFeature,
-	profileFeature,
-} from './features/index';
-
 /**
  * Register a feature
  */
@@ -130,3 +116,4 @@ export function getAllHooks() {
 
 // Re-export plugin registry for advanced usage
 export { pluginRegistry };
+
