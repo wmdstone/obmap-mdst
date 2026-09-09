@@ -4,8 +4,8 @@
  * Provides secure cloud storage for vaults with automatic user isolation via RLS
  */
 
-import { supabase } from "@/services/integrations/supabase/client";
-import type { Json } from "@/services/integrations/supabase/types";
+import { supabase } from "@/integrations/supabase/client";
+import type { Json } from "@/integrations/supabase/types";
 
 export interface CloudVault {
   id: string;

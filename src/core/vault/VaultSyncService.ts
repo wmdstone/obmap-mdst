@@ -7,10 +7,10 @@
  * IMPORTANT: Only syncs vaults with storageStrategy === 'cloud'
  */
 
-import { supabase } from "@/services/integrations/supabase/client";
+import { supabase } from "@/integrations/supabase/client";
 import { cloudVaultService, CloudVault } from './CloudVaultService';
 import { VaultManager, Vault } from './VaultManager';
-import type { Json } from "@/services/integrations/supabase/types";
+import type { Json } from "@/integrations/supabase/types";
 
 export type SyncStatus = 'idle' | 'syncing' | 'synced' | 'error' | 'offline';
 
