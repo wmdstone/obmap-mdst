@@ -1,21 +1,21 @@
 import { useMemo, useEffect, useCallback } from 'react';
-import { NetworkGraph } from '@/components/graph/NetworkGraph';
-import { NodePanel } from '@/components/graph/NodePanel';
-import { UnifiedLayout } from '@/components/core/layout/UnifiedLayout';
-import { GraphConfigPanel } from '@/components/graph/config-panel';
+import { NetworkGraph } from '@/features/graph/NetworkGraph';
+import { NodePanel } from '@/features/graph/NodePanel';
+import { UnifiedLayout } from '@/features/workspace/UnifiedLayout';
+import { GraphConfigPanel } from '@/features/graph/config-panel';
 import {
   PWAInstallPrompt,
   PWAStatusBadge,
-} from "@/components/core/common/PWAInstallPrompt";
-import { SyncStatusIndicator } from '@/components/sync/SyncStatusIndicator';
-import { OfflineIndicator } from '@/components/sync/OfflineIndicator';
-import { AutoSaveIndicator } from '@/components/sync/AutoSaveIndicator';
+} from "@/shared/components/PWAInstallPrompt";
+import { SyncStatusIndicator } from '@/features/sync/SyncStatusIndicator';
+import { OfflineIndicator } from '@/features/sync/OfflineIndicator';
+import { AutoSaveIndicator } from '@/features/sync/AutoSaveIndicator';
 import { toast } from 'sonner';
-import { extractMentions } from '@/services/content/markdown-parser';
-import { getVaultManager } from '@/services/vault/VaultManagerSingleton';
-import { useAutoLinks } from "@/components/graph/hooks/useAutoLinks";
-import { useAuth } from "@/components/auth/hooks/useAuth";
-import { vaultSyncService } from '@/services/vault/VaultSyncService';
+import { extractMentions } from '@/core/metadata/markdown-parser';
+import { getVaultManager } from '@/core/vault/VaultManagerSingleton';
+import { useAutoLinks } from "@/features/graph/hooks/useAutoLinks";
+import { useAuth } from "@/features/auth/hooks/useAuth";
+import { vaultSyncService } from '@/core/vault/VaultSyncService';
 import { 
   useNodeStore, 
   useVaultStore, 
@@ -24,7 +24,7 @@ import {
   type GraphData, 
   type Backlink,
   type GraphConfigState,
-} from '@/services/ui/stores';
+} from '@/shared/stores';
 
 const Index = () => {
   const vaultManager = getVaultManager();

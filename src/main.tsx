@@ -1,7 +1,10 @@
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
-import { logCacheStatus } from "./services/persistence/offline-storage";
+import { bootstrapApp } from "@/app/bootstrap";
+import { logCacheStatus } from "@/core/persistence/offline-storage";
+
+bootstrapApp();
 
 console.log('main.tsx: Starting application render...');
 
