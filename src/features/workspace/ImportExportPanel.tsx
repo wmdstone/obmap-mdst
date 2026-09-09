@@ -13,24 +13,24 @@ import {
   ChevronDown,
   Settings2,
 } from "lucide-react";
-import { Button } from "@/components/core/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/core/ui/tabs";
-import { Checkbox } from "@/components/core/ui/checkbox";
-import { ScrollArea } from "@/components/core/ui/scroll-area";
-import { Badge } from "@/components/core/ui/badge";
-import { Progress } from "@/components/core/ui/progress";
-import { RadioGroup, RadioGroupItem } from "@/components/core/ui/radio-group";
-import { Label } from "@/components/core/ui/label";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/core/ui/collapsible";
+import { Button } from "@/shared/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/ui/tabs";
+import { Checkbox } from "@/shared/ui/checkbox";
+import { ScrollArea } from "@/shared/ui/scroll-area";
+import { Badge } from "@/shared/ui/badge";
+import { Progress } from "@/shared/ui/progress";
+import { RadioGroup, RadioGroupItem } from "@/shared/ui/radio-group";
+import { Label } from "@/shared/ui/label";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/shared/ui/collapsible";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/core/ui/dropdown-menu";
+} from "@/shared/ui/dropdown-menu";
 import { toast } from "sonner";
-import { importExportService, ImportResult, ExportOptions, GraphNode, DuplicateStrategy } from "@/services/import-export/ImportExportService";
+import { importExportService, ImportResult, ExportOptions, GraphNode, DuplicateStrategy } from "@/features/import-export/services/ImportExportService";
 
 interface Node {
   id: string;

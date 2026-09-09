@@ -3,7 +3,7 @@ import { User, Session } from '@supabase/supabase-js';
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from 'sonner';
 import type { Json } from "@/integrations/supabase/types";
-import { vaultSyncService } from '@/services/vault/VaultSyncService';
+import { vaultSyncService } from '@/core/vault/VaultSyncService';
 
 interface Profile {
   id: string;

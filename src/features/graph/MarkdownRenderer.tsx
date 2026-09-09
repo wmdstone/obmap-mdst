@@ -2,7 +2,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import remarkBreaks from 'remark-breaks';
 import rehypeRaw from 'rehype-raw';
-import { cn } from "@/services/core/utils";
+import { cn } from "@/shared/lib";
 
 interface MarkdownRendererProps {
   content: string;

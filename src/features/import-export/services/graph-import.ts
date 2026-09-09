@@ -5,8 +5,8 @@
  * to the new service-based architecture.
  */
 
-import { ZipImportService } from '@/services/graph/ZipImportService';
-import { GraphService } from '@/services/graph/GraphService';
+import { ZipImportService } from '@/core/graph/ZipImportService';
+import { GraphService } from '@/core/graph/GraphService';
 
 interface Node {
   id: string;

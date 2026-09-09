@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { useIsMobile } from "@/components/core/hooks/useMobile";
+import { useIsMobile } from "@/shared/hooks/useMobile";
 import { DesktopLayout } from "./DesktopLayout";
 import { MobileLayout } from "./MobileLayout";
 import { RibbonTool } from "./IconRibbon";
 import { PaneType } from "./WorkspaceTabs";
-import { useUIStore } from "@/services/ui/stores";
+import { useUIStore } from "@/shared/stores";
 
 interface Node {
   id: string;

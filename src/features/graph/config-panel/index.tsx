@@ -12,11 +12,11 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-} from "@/components/core/ui/sheet";
-import { Button } from "@/components/core/ui/button";
-import { Badge } from "@/components/core/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/core/ui/tabs";
-import { ScrollArea } from "@/components/core/ui/scroll-area";
+} from "@/shared/ui/sheet";
+import { Button } from "@/shared/ui/button";
+import { Badge } from "@/shared/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/ui/tabs";
+import { ScrollArea } from "@/shared/ui/scroll-area";
 import {
   Settings2,
   Circle,
@@ -33,12 +33,12 @@ import {
   TopologyConfig,
   LinkStyle,
   LinkStats,
-} from "@/services/ui/stores/useGraphStore";
+} from "@/shared/stores/useGraphStore";
 import { NodeStylingTab } from './NodeStylingTab';
 import { LinkStylingTab } from './LinkStylingTab';
 import { ForceEngineTab } from './ForceEngineTab';
 import { AnalyticsTab } from './AnalyticsTab';
-import { useIsMobile } from "@/components/core/hooks/useMobile";
+import { useIsMobile } from "@/shared/hooks/useMobile";
 
 interface GraphConfigPanelProps {
   config: GraphConfigState;

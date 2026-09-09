@@ -1,4 +1,4 @@
-import { cn } from "@/services/core/utils";
+import { cn } from "@/shared/lib";
 import { FileText, Network, FolderOpen, Sparkles } from "lucide-react";
 import type { PaneType } from "./WorkspaceTabs";
 

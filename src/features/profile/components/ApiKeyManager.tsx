@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
-import { apiKeyService, type ApiKey, type ApiKeyPermission } from '@/services/apikeys/ApiKeyService';
-import { Button } from "@/components/core/ui/button";
-import { Input } from "@/components/core/ui/input";
-import { Label } from "@/components/core/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/core/ui/card";
-import { Badge } from "@/components/core/ui/badge";
-import { Checkbox } from "@/components/core/ui/checkbox";
+import { apiKeyService, type ApiKey, type ApiKeyPermission } from '@/features/profile/services/ApiKeyService';
+import { Button } from "@/shared/ui/button";
+import { Input } from "@/shared/ui/input";
+import { Label } from "@/shared/ui/label";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/ui/card";
+import { Badge } from "@/shared/ui/badge";
+import { Checkbox } from "@/shared/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -13,7 +13,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/core/ui/dialog";
+} from "@/shared/ui/dialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -24,7 +24,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/components/core/ui/alert-dialog";
+} from "@/shared/ui/alert-dialog";
 import { Key, Plus, Copy, Trash2, Eye, EyeOff, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';

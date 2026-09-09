@@ -1,5 +1,5 @@
-import { cn } from "@/services/core/utils";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/core/ui/tooltip";
+import { cn } from "@/shared/lib";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/shared/ui/tooltip";
 import {
   FolderTree,
   Network,

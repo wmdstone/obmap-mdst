@@ -1,6 +1,6 @@
-import { useOfflineStore } from "@/services/ui/stores/useOfflineStore";
+import { useOfflineStore } from "@/shared/stores/useOfflineStore";
 import { Wifi, WifiOff, RefreshCw } from 'lucide-react';
-import { Alert, AlertDescription } from "@/components/core/ui/alert";
+import { Alert, AlertDescription } from "@/shared/ui/alert";
 
 export function OfflineIndicator() {
   const isOnline = useOfflineStore((state) => state.isOnline);

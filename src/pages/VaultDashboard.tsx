@@ -4,24 +4,24 @@ import {
   Plus, Database, ArrowLeft, HardDrive, Zap, 
   BarChart3, User, LogOut, Loader2, Cloud, Check
 } from "lucide-react";
-import { Button } from "@/components/core/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/core/ui/dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/core/ui/tabs";
-import { VaultCard } from "@/components/vault/VaultCard";
-import { VaultBackupPanel } from "@/components/vault/VaultBackupPanel";
-import { VaultBackupSettingsContent } from "@/components/vault/VaultBackupSettings";
-import { VaultComparisonView } from "@/components/vault/VaultComparisonView";
-import { VaultModeSelector } from "@/components/vault/VaultModeSelector";
-import { ExportToFileSystem } from "@/components/vault/ExportToFileSystem";
-import { ProfileSettings } from "@/components/profile/ProfileSettings";
-import { AvatarUpload } from "@/components/profile/AvatarUpload";
-import { Badge } from "@/components/core/ui/badge";
+import { Button } from "@/shared/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/shared/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/ui/tabs";
+import { VaultCard } from "@/features/vault-dashboard/VaultCard";
+import { VaultBackupPanel } from "@/features/vault-dashboard/VaultBackupPanel";
+import { VaultBackupSettingsContent } from "@/features/vault-dashboard/VaultBackupSettings";
+import { VaultComparisonView } from "@/features/vault-dashboard/VaultComparisonView";
+import { VaultModeSelector } from "@/features/vault-dashboard/VaultModeSelector";
+import { ExportToFileSystem } from "@/features/vault-dashboard/ExportToFileSystem";
+import { ProfileSettings } from "@/features/profile/components/ProfileSettings";
+import { AvatarUpload } from "@/features/profile/components/AvatarUpload";
+import { Badge } from "@/shared/ui/badge";
 import { toast } from "sonner";
-import { getVaultManager } from "@/services/vault/VaultManagerSingleton";
-import { useAuth } from "@/components/auth/hooks/useAuth";
-import { useVaultSync } from "@/components/vault/hooks/useVaultSync";
+import { getVaultManager } from "@/core/vault/VaultManagerSingleton";
+import { useAuth } from "@/features/auth/hooks/useAuth";
+import { useVaultSync } from "@/features/vault-dashboard/hooks/useVaultSync";
 
-import { StorageStrategy } from "@/services/vault/types";
+import { StorageStrategy } from "@/core/vault/types";
 
 interface Vault {
   id: string;

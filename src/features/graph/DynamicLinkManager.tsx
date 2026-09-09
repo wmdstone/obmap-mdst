@@ -1,12 +1,12 @@
 import { useState, useMemo } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/core/ui/card";
-import { Checkbox } from "@/components/core/ui/checkbox";
-import { Label } from "@/components/core/ui/label";
-import { Slider } from "@/components/core/ui/slider";
-import { Input } from "@/components/core/ui/input";
-import { Button } from "@/components/core/ui/button";
-import { Badge } from "@/components/core/ui/badge";
-import { Separator } from "@/components/core/ui/separator";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/ui/card";
+import { Checkbox } from "@/shared/ui/checkbox";
+import { Label } from "@/shared/ui/label";
+import { Slider } from "@/shared/ui/slider";
+import { Input } from "@/shared/ui/input";
+import { Button } from "@/shared/ui/button";
+import { Badge } from "@/shared/ui/badge";
+import { Separator } from "@/shared/ui/separator";
 import { Network, GitBranch, Hash, Link2, Sparkles, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 

@@ -2,18 +2,18 @@
  * LinkStylingTab - Combined link/edge configuration with topology settings
  */
 
-import { Label } from "@/components/core/ui/label";
-import { Slider } from "@/components/core/ui/slider";
-import { Switch } from "@/components/core/ui/switch";
-import { Badge } from "@/components/core/ui/badge";
-import { Input } from "@/components/core/ui/input";
+import { Label } from "@/shared/ui/label";
+import { Slider } from "@/shared/ui/slider";
+import { Switch } from "@/shared/ui/switch";
+import { Badge } from "@/shared/ui/badge";
+import { Input } from "@/shared/ui/input";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/core/ui/select";
+} from "@/shared/ui/select";
 import {
   Link2,
   MoveRight,
@@ -22,7 +22,7 @@ import {
   GitBranch,
   Tags,
 } from 'lucide-react';
-import { LinkConfig, TopologyConfig, LinkStyle } from "@/services/ui/stores/useGraphStore";
+import { LinkConfig, TopologyConfig, LinkStyle } from "@/shared/stores/useGraphStore";
 import { ColorPicker } from './ColorPicker';
 import { CollapsibleSection } from './CollapsibleSection';
 

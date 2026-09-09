@@ -17,13 +17,13 @@ import {
   History,
   Download
 } from "lucide-react";
-import { Button } from "@/components/core/ui/button";
-import { Badge } from "@/components/core/ui/badge";
-import { Input } from "@/components/core/ui/input";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/core/ui/tooltip";
-import { Separator } from "@/components/core/ui/separator";
+import { Button } from "@/shared/ui/button";
+import { Badge } from "@/shared/ui/badge";
+import { Input } from "@/shared/ui/input";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/shared/ui/tooltip";
+import { Separator } from "@/shared/ui/separator";
 import { formatDistanceToNow } from "date-fns";
-import { StorageStrategy } from "@/services/vault/types";
+import { StorageStrategy } from "@/core/vault/types";
 import { StorageStrategySelector, StorageStrategyBadge } from "./StorageStrategySelector";
 
 interface VaultCardProps {

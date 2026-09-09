@@ -2,17 +2,17 @@
  * ForceEngineTab - D3-Force physics configuration with collapsible sections
  */
 
-import { Label } from "@/components/core/ui/label";
-import { Slider } from "@/components/core/ui/slider";
-import { Badge } from "@/components/core/ui/badge";
-import { Button } from "@/components/core/ui/button";
+import { Label } from "@/shared/ui/label";
+import { Slider } from "@/shared/ui/slider";
+import { Badge } from "@/shared/ui/badge";
+import { Button } from "@/shared/ui/button";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/core/ui/select";
+} from "@/shared/ui/select";
 import {
   GitBranch,
   Settings2,
@@ -22,7 +22,7 @@ import {
   Timer,
   Magnet,
 } from 'lucide-react';
-import { ForceConfig } from "@/services/ui/stores/useGraphStore";
+import { ForceConfig } from "@/shared/stores/useGraphStore";
 import { CollapsibleSection } from './CollapsibleSection';
 
 interface ForceEngineTabProps {

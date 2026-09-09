@@ -1,6 +1,6 @@
-import { Toaster } from "@/components/core/ui/toaster";
-import { Toaster as Sonner } from "@/components/core/ui/sonner";
-import { TooltipProvider } from "@/components/core/ui/tooltip";
+import { Toaster } from "@/shared/ui/toaster";
+import { Toaster as Sonner } from "@/shared/ui/sonner";
+import { TooltipProvider } from "@/shared/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ErrorBoundary } from "./components/core/common/ErrorBoundary";

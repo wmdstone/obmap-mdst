@@ -6,11 +6,11 @@
  */
 
 import { useState, useEffect, useRef } from 'react';
-import { useAllVaultEvents, useEventHistory, EventType } from "@/components/vault/hooks/useVaultEvents";
-import { DomainEvent } from "@/services/core/events";
-import { Button } from "@/components/core/ui/button";
-import { Badge } from "@/components/core/ui/badge";
-import { ScrollArea } from "@/components/core/ui/scroll-area";
+import { useAllVaultEvents, useEventHistory, EventType } from "@/features/vault-dashboard/hooks/useVaultEvents";
+import { DomainEvent } from "@/shared/events/events";
+import { Button } from "@/shared/ui/button";
+import { Badge } from "@/shared/ui/badge";
+import { ScrollArea } from "@/shared/ui/scroll-area";
 import { 
   Bug, 
   X, 
@@ -25,8 +25,8 @@ import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from "@/components/core/ui/collapsible";
-import { cn } from "@/services/core/utils";
+} from "@/shared/ui/collapsible";
+import { cn } from "@/shared/lib";
 
 interface EventLogEntry {
   id: number;

@@ -1,14 +1,14 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { cn } from "@/services/core/utils";
-import { Button } from "@/components/core/ui/button";
-import { Badge } from "@/components/core/ui/badge";
-import { ScrollArea } from "@/components/core/ui/scroll-area";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/core/ui/sheet";
+import { cn } from "@/shared/lib";
+import { Button } from "@/shared/ui/button";
+import { Badge } from "@/shared/ui/badge";
+import { ScrollArea } from "@/shared/ui/scroll-area";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/shared/ui/sheet";
 import { X, ChevronRight, ChevronDown, Folder, FileText, FolderOpen, Image, Music, Video, GripVertical, FileArchive, FolderPlus, FilePlus, SortAsc, ChevronsUpDown } from "lucide-react";
-import { ImportExportPanel } from "@/components/core/layout/ImportExportPanel";
-import { useIsMobile } from "@/components/core/hooks/useMobile";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/core/ui/dropdown-menu";
+import { ImportExportPanel } from "@/features/workspace/ImportExportPanel";
+import { useIsMobile } from "@/shared/hooks/useMobile";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/shared/ui/dropdown-menu";
 import type { RibbonTool } from "./IconRibbon";
 
 interface Node {

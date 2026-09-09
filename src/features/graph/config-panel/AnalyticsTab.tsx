@@ -2,7 +2,7 @@
  * AnalyticsTab - Graph metrics and network analytics with collapsible sections
  */
 
-import { Badge } from "@/components/core/ui/badge";
+import { Badge } from "@/shared/ui/badge";
 import {
   GitBranch,
   Link2,
@@ -12,7 +12,7 @@ import {
   ArrowDownToLine,
   ArrowUpFromLine,
 } from 'lucide-react';
-import { LinkStats } from "@/services/ui/stores/useGraphStore";
+import { LinkStats } from "@/shared/stores/useGraphStore";
 import { CollapsibleSection } from './CollapsibleSection';
 
 interface AnalyticsTabProps {

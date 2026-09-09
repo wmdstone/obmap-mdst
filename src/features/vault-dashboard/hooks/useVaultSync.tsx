@@ -3,9 +3,9 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
-import { useAuth } from '@/components/auth/hooks/useAuth';
-import { vaultSyncService, SyncStatus } from '@/services/vault/VaultSyncService';
-import { getVaultManager } from '@/services/vault/VaultManagerSingleton';
+import { useAuth } from '@/features/auth/hooks/useAuth';
+import { vaultSyncService, SyncStatus } from '@/core/vault/VaultSyncService';
+import { getVaultManager } from '@/core/vault/VaultManagerSingleton';
 import { toast } from 'sonner';
 
 interface SyncProgress {

@@ -5,9 +5,9 @@ import {
   SelectItem, 
   SelectTrigger, 
   SelectValue 
-} from "@/components/core/ui/select";
-import { Badge } from "@/components/core/ui/badge";
-import { StorageStrategy, STORAGE_STRATEGY_LABELS, STORAGE_STRATEGY_DESCRIPTIONS } from "@/services/vault/types";
+} from "@/shared/ui/select";
+import { Badge } from "@/shared/ui/badge";
+import { StorageStrategy, STORAGE_STRATEGY_LABELS, STORAGE_STRATEGY_DESCRIPTIONS } from "@/core/vault/types";
 
 interface StorageStrategySelectorProps {
   value: StorageStrategy;

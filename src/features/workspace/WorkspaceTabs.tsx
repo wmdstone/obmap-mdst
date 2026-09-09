@@ -1,8 +1,8 @@
 import { useState, useRef, useCallback } from "react";
-import { cn } from "@/services/core/utils";
+import { cn } from "@/shared/lib";
 import { X, Plus, GripVertical, FileText, Network } from "lucide-react";
-import { Button } from "@/components/core/ui/button";
-import { ScrollArea, ScrollBar } from "@/components/core/ui/scroll-area";
+import { Button } from "@/shared/ui/button";
+import { ScrollArea, ScrollBar } from "@/shared/ui/scroll-area";
 
 export type PaneType = "editor" | "graph";
 

@@ -1,7 +1,7 @@
 import { useRef, useState, useCallback, useEffect, useMemo } from 'react';
 // @ts-ignore - react-force-graph-2d types
 import ForceGraph2D from 'react-force-graph-2d';
-import { Button } from "@/components/core/ui/button";
+import { Button } from "@/shared/ui/button";
 import {
 	Plus,
 	Search,
@@ -14,31 +14,31 @@ import {
 	Network,
 	Sparkles,
 } from 'lucide-react';
-import { Input } from "@/components/core/ui/input";
+import { Input } from "@/shared/ui/input";
 import { toast } from 'sonner';
-import { LinkManager } from '@/components/graph/LinkManager';
-import { DynamicLinkManager } from '@/components/graph/DynamicLinkManager';
-import { GraphMiniMap } from '@/components/graph/GraphMiniMap';
-import { useThemeStore } from "@/services/ui/stores/useThemeStore";
-import { GraphConfigState } from "@/services/ui/stores/useGraphStore";
-import { useVaultEvents, EventType } from "@/components/vault/hooks/useVaultEvents";
+import { LinkManager } from '@/features/graph/LinkManager';
+import { DynamicLinkManager } from '@/features/graph/DynamicLinkManager';
+import { GraphMiniMap } from '@/features/graph/GraphMiniMap';
+import { useThemeStore } from "@/shared/stores/useThemeStore";
+import { GraphConfigState } from "@/shared/stores/useGraphStore";
+import { useVaultEvents, EventType } from "@/features/vault-dashboard/hooks/useVaultEvents";
 import {
 	Popover,
 	PopoverContent,
 	PopoverTrigger,
-} from "@/components/core/ui/popover";
+} from "@/shared/ui/popover";
 import {
 	Sheet,
 	SheetContent,
 	SheetHeader,
 	SheetTitle,
 	SheetTrigger,
-} from "@/components/core/ui/sheet";
-import { Label } from "@/components/core/ui/label";
-import { Slider } from "@/components/core/ui/slider";
-import { Badge } from "@/components/core/ui/badge";
+} from "@/shared/ui/sheet";
+import { Label } from "@/shared/ui/label";
+import { Slider } from "@/shared/ui/slider";
+import { Badge } from "@/shared/ui/badge";
 
-import { resolveColor, colorWithOpacity } from '@/services/core/utils/color-utils';
+import { resolveColor, colorWithOpacity } from '@/shared/lib/color-utils';
 
 interface Node {
 	id: string;
