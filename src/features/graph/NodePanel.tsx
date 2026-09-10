@@ -6,11 +6,12 @@ import {
   X, Trash2, Save, Folder, FileText, Eye, Code, Split, 
   Image, Music, Video, Link2, Play, Pause, Volume2, VolumeX, 
   Maximize2, MoreHorizontal, Clock, Hash, ChevronDown, ChevronRight,
-  Maximize, Minimize
+  Maximize, Minimize, PenLine
 } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/shared/ui/badge";
 import { MarkdownRenderer } from "@/features/graph/MarkdownRenderer";
+import { MarkdownView } from "@/features/editor/MarkdownView";
 import { ScrollArea } from "@/shared/ui/scroll-area";
 import { Slider } from "@/shared/ui/slider";
 import { cn } from "@/shared/lib";
@@ -334,7 +335,7 @@ export const NodePanel = ({
   const [content, setContent] = useState("");
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState("");
-  const [editorMode, setEditorMode] = useState<"source" | "preview" | "split">("source");
+  const [editorMode, setEditorMode] = useState<"source" | "live" | "preview" | "split">("live");
   const [propertiesOpen, setPropertiesOpen] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -516,8 +517,21 @@ export const NodePanel = ({
                   editorMode === "source" && "bg-secondary"
                 )}
                 onClick={() => setEditorMode("source")}
+                title="Source mode"
               >
                 <Code className="w-3 h-3" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className={cn(
+                  "h-6 px-2 text-xs",
+                  editorMode === "live" && "bg-secondary"
+                )}
+                onClick={() => setEditorMode("live")}
+                title="Live preview"
+              >
+                <PenLine className="w-3 h-3" />
               </Button>
               <Button
                 variant="ghost"
@@ -652,9 +666,14 @@ export const NodePanel = ({
               <MarkdownView
                 value={content}
                 onChange={setContent}
-                mode={editorMode === "preview" ? "reading" : "live"}
+                mode={
+                  editorMode === "preview"
+                    ? "reading"
+                    : editorMode === "live"
+                      ? "live"
+                      : "source"
+                }
                 sideBySide={editorMode === "split"}
-                showProperties={propertiesOpen}
                 placeholder="Start writing..."
                 onWikilinkClick={onWikilinkClick}
                 onTagClick={onTagClick}
