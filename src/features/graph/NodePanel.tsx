@@ -649,50 +649,17 @@ export const NodePanel = ({
           {/* Content Editor */}
           {node.type === "file" && (
             <div className="min-h-[50vh]">
-              {editorMode === "source" && (
-                <Textarea
-                  value={content}
-                  onChange={(e) => setContent(e.target.value)}
-                  placeholder="Start writing..."
-                  className="w-full min-h-[50vh] bg-transparent border-none shadow-none resize-none font-mono text-sm leading-relaxed placeholder:text-muted-foreground/30 focus:outline-none focus-visible:ring-0 focus-visible:outline-none px-1 py-2 scrollbar-thin scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent"
-                />
-              )}
-
-              {editorMode === "preview" && (
-                <div className="prose-container min-h-[50vh] py-3">
-                  {content ? (
-                    <MarkdownRenderer 
-                      content={content} 
-                      onWikilinkClick={onWikilinkClick}
-                      onTagClick={onTagClick}
-                    />
-                  ) : (
-                    <p className="text-muted-foreground/30 text-sm italic">Nothing to preview</p>
-                  )}
-                </div>
-              )}
-
-              {editorMode === "split" && (
-                <div className="grid grid-cols-2 gap-6 min-h-[50vh]">
-                  <Textarea
-                    value={content}
-                    onChange={(e) => setContent(e.target.value)}
-                    placeholder="Start writing..."
-                    className="w-full min-h-[50vh] bg-muted/30 border border-border/30 rounded-lg resize-none font-mono text-sm leading-relaxed placeholder:text-muted-foreground/30 focus:outline-none focus-visible:ring-0 focus-visible:outline-none p-4 scrollbar-thin scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent"
-                  />
-                  <div className="bg-muted/30 border border-border/30 rounded-lg p-5 overflow-auto scrollbar-thin scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent">
-                    {content ? (
-                      <MarkdownRenderer 
-                        content={content}
-                        onWikilinkClick={onWikilinkClick}
-                        onTagClick={onTagClick}
-                      />
-                    ) : (
-                      <p className="text-muted-foreground/30 text-sm italic">Nothing to preview</p>
-                    )}
-                  </div>
-                </div>
-              )}
+              <MarkdownView
+                value={content}
+                onChange={setContent}
+                mode={editorMode === "preview" ? "reading" : "live"}
+                sideBySide={editorMode === "split"}
+                showProperties={propertiesOpen}
+                placeholder="Start writing..."
+                onWikilinkClick={onWikilinkClick}
+                onTagClick={onTagClick}
+                onSave={() => handleSave(false)}
+              />
             </div>
           )}
 
