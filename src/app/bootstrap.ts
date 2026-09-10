@@ -62,4 +62,7 @@ export function bootstrapApp(): void {
     importExportService
   );
   container.registerInstance(ServiceIds.ApiKeyService, apiKeyService);
+
+  container.registerInstance(ServiceIds.CommandRegistry, commandRegistry);
+  registerEditorCommands();
 }
