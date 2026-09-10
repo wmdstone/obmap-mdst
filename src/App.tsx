@@ -7,6 +7,7 @@ import { ErrorBoundary } from "@/shared/components/ErrorBoundary";
 import { AuthProvider } from "@/features/auth/hooks/useAuth";
 import { ProtectedRoute } from "@/shared/components/ProtectedRoute";
 import { EventDebugPanel } from "@/shared/components/debug/EventDebugPanel";
+import { CommandPalette } from "@/features/command-palette/CommandPalette";
 import { Suspense, lazy } from "react";
 
 const queryClient = new QueryClient();
@@ -63,6 +64,7 @@ const App = () => (
         <Toaster />
         <Sonner />
         <EventDebugPanel />
+        <CommandPalette />
         <BrowserRouter>
           <AuthProvider>
             <Suspense fallback={<LoadingFallback />}>

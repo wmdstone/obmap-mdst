@@ -20,6 +20,8 @@ import { backgroundSyncService } from "@/core/sync/BackgroundSyncService";
 import { importExportService } from "@/features/import-export/services/ImportExportService";
 import { apiKeyService } from "@/features/profile/services/ApiKeyService";
 import { supabase } from "@/integrations/supabase/client";
+import { commandRegistry } from "@/core/commands/CommandRegistry";
+import { registerEditorCommands } from "@/features/editor/commands/editorCommands";
 
 let bootstrapped = false;
 
@@ -60,4 +62,7 @@ export function bootstrapApp(): void {
     importExportService
   );
   container.registerInstance(ServiceIds.ApiKeyService, apiKeyService);
+
+  container.registerInstance(ServiceIds.CommandRegistry, commandRegistry);
+  registerEditorCommands();
 }

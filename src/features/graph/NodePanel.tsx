@@ -6,11 +6,12 @@ import {
   X, Trash2, Save, Folder, FileText, Eye, Code, Split, 
   Image, Music, Video, Link2, Play, Pause, Volume2, VolumeX, 
   Maximize2, MoreHorizontal, Clock, Hash, ChevronDown, ChevronRight,
-  Maximize, Minimize
+  Maximize, Minimize, PenLine
 } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/shared/ui/badge";
 import { MarkdownRenderer } from "@/features/graph/MarkdownRenderer";
+import { MarkdownView } from "@/features/editor/MarkdownView";
 import { ScrollArea } from "@/shared/ui/scroll-area";
 import { Slider } from "@/shared/ui/slider";
 import { cn } from "@/shared/lib";
@@ -334,7 +335,7 @@ export const NodePanel = ({
   const [content, setContent] = useState("");
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState("");
-  const [editorMode, setEditorMode] = useState<"source" | "preview" | "split">("source");
+  const [editorMode, setEditorMode] = useState<"source" | "live" | "preview" | "split">("live");
   const [propertiesOpen, setPropertiesOpen] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -516,8 +517,21 @@ export const NodePanel = ({
                   editorMode === "source" && "bg-secondary"
                 )}
                 onClick={() => setEditorMode("source")}
+                title="Source mode"
               >
                 <Code className="w-3 h-3" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className={cn(
+                  "h-6 px-2 text-xs",
+                  editorMode === "live" && "bg-secondary"
+                )}
+                onClick={() => setEditorMode("live")}
+                title="Live preview"
+              >
+                <PenLine className="w-3 h-3" />
               </Button>
               <Button
                 variant="ghost"
@@ -649,50 +663,22 @@ export const NodePanel = ({
           {/* Content Editor */}
           {node.type === "file" && (
             <div className="min-h-[50vh]">
-              {editorMode === "source" && (
-                <Textarea
-                  value={content}
-                  onChange={(e) => setContent(e.target.value)}
-                  placeholder="Start writing..."
-                  className="w-full min-h-[50vh] bg-transparent border-none shadow-none resize-none font-mono text-sm leading-relaxed placeholder:text-muted-foreground/30 focus:outline-none focus-visible:ring-0 focus-visible:outline-none px-1 py-2 scrollbar-thin scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent"
-                />
-              )}
-
-              {editorMode === "preview" && (
-                <div className="prose-container min-h-[50vh] py-3">
-                  {content ? (
-                    <MarkdownRenderer 
-                      content={content} 
-                      onWikilinkClick={onWikilinkClick}
-                      onTagClick={onTagClick}
-                    />
-                  ) : (
-                    <p className="text-muted-foreground/30 text-sm italic">Nothing to preview</p>
-                  )}
-                </div>
-              )}
-
-              {editorMode === "split" && (
-                <div className="grid grid-cols-2 gap-6 min-h-[50vh]">
-                  <Textarea
-                    value={content}
-                    onChange={(e) => setContent(e.target.value)}
-                    placeholder="Start writing..."
-                    className="w-full min-h-[50vh] bg-muted/30 border border-border/30 rounded-lg resize-none font-mono text-sm leading-relaxed placeholder:text-muted-foreground/30 focus:outline-none focus-visible:ring-0 focus-visible:outline-none p-4 scrollbar-thin scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent"
-                  />
-                  <div className="bg-muted/30 border border-border/30 rounded-lg p-5 overflow-auto scrollbar-thin scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent">
-                    {content ? (
-                      <MarkdownRenderer 
-                        content={content}
-                        onWikilinkClick={onWikilinkClick}
-                        onTagClick={onTagClick}
-                      />
-                    ) : (
-                      <p className="text-muted-foreground/30 text-sm italic">Nothing to preview</p>
-                    )}
-                  </div>
-                </div>
-              )}
+              <MarkdownView
+                value={content}
+                onChange={setContent}
+                mode={
+                  editorMode === "preview"
+                    ? "reading"
+                    : editorMode === "live"
+                      ? "live"
+                      : "source"
+                }
+                sideBySide={editorMode === "split"}
+                placeholder="Start writing..."
+                onWikilinkClick={onWikilinkClick}
+                onTagClick={onTagClick}
+                onSave={() => handleSave(false)}
+              />
             </div>
           )}
 
