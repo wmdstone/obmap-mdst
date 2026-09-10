@@ -184,6 +184,7 @@ export const ServiceIds = {
 	// Core services
 	EventBus: Symbol('EventBus'),
 	PluginRegistry: Symbol('PluginRegistry'),
+	CommandRegistry: Symbol('CommandRegistry'),
 
 	// Vault services
 	VaultManager: Symbol('VaultManager'),
