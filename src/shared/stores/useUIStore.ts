@@ -6,7 +6,7 @@ import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
 
 // Align with RibbonTool from IconRibbon
-export type ActiveTool = 'files' | 'graph' | 'import-export' | 'settings' | 'account' | 'vaults' | null;
+export type ActiveTool = 'files' | 'graph' | 'editor' | 'import-export' | 'settings' | 'account' | 'vaults' | null;
 export type EditorViewMode = 'source' | 'preview' | 'split';
 export type EditorLayoutMode = 'wide' | 'narrow';
 

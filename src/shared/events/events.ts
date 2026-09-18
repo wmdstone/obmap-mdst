@@ -44,6 +44,10 @@ export enum EventType {
   SYNC_STARTED = 'SYNC_STARTED',
   SYNC_COMPLETED = 'SYNC_COMPLETED',
   SYNC_FAILED = 'SYNC_FAILED',
+
+  // Plugin lifecycle
+  FEATURE_ENABLED = 'FEATURE_ENABLED',
+  FEATURE_DISABLED = 'FEATURE_DISABLED',
 }
 
 export interface DomainEvent<T = unknown> {

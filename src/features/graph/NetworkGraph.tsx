@@ -4,17 +4,14 @@ import ForceGraph2D from 'react-force-graph-2d';
 import { Button } from "@/shared/ui/button";
 import {
 	Plus,
-	Search,
 	Link2,
 	FolderPlus,
 	FilePlus,
-	Filter,
 	Download,
 	Upload,
 	Network,
 	Sparkles,
 } from 'lucide-react';
-import { Input } from "@/shared/ui/input";
 import { toast } from 'sonner';
 import { LinkManager } from '@/features/graph/LinkManager';
 import { DynamicLinkManager } from '@/features/graph/DynamicLinkManager';
@@ -23,22 +20,15 @@ import { useThemeStore } from "@/shared/stores/useThemeStore";
 import { GraphConfigState } from "@/shared/stores/useGraphStore";
 import { useVaultEvents, EventType } from "@/features/vault-dashboard/hooks/useVaultEvents";
 import {
-	Popover,
-	PopoverContent,
-	PopoverTrigger,
-} from "@/shared/ui/popover";
-import {
 	Sheet,
 	SheetContent,
 	SheetHeader,
 	SheetTitle,
 	SheetTrigger,
 } from "@/shared/ui/sheet";
-import { Label } from "@/shared/ui/label";
-import { Slider } from "@/shared/ui/slider";
-import { Badge } from "@/shared/ui/badge";
 
 import { resolveColor, colorWithOpacity } from '@/shared/lib/color-utils';
+import { nodeRadiusForDepth } from '@/core/graph/engine/model';
 
 interface Node {
 	id: string;
@@ -89,12 +79,18 @@ interface NetworkGraphProps {
 	linkStyles?: LinkStyles;
 	graphConfig?: GraphConfigState;
 	graphRef?: React.MutableRefObject<any>;
+	search: string;
+	maxDepth: number;
+	contentFilter: string;
+	tagFilter: string;
 }
 
 // Default config for when not provided
 const defaultGraphConfig: GraphConfigState = {
 	nodes: {
 		relSize: 6,
+		sizeByDepth: false,
+		depthSizeInterval: 1,
 		resolution: 8,
 		shape: 'circle',
 		visible: true,
@@ -181,6 +177,10 @@ export const NetworkGraph = ({
 	linkStyles,
 	graphConfig: externalGraphConfig,
 	graphRef: externalGraphRef,
+	search,
+	maxDepth,
+	contentFilter,
+	tagFilter,
 }: NetworkGraphProps) => {
 	const internalGraphRef = useRef<any>();
 	const graphRef = externalGraphRef || internalGraphRef;
@@ -188,12 +188,8 @@ export const NetworkGraph = ({
 	const theme = useThemeStore((state) => state.theme);
 	const graphConfig = externalGraphConfig || defaultGraphConfig;
 
-	const [searchQuery, setSearchQuery] = useState('');
 	const [linkMode, setLinkMode] = useState(false);
 	const [linkSource, setLinkSource] = useState<string | null>(null);
-	const [maxDepth, setMaxDepth] = useState<number>(10);
-	const [tagFilter, setTagFilter] = useState<string>('');
-	const [contentFilter, setContentFilter] = useState<string>('');
 	const [graphKey, setGraphKey] = useState(0);
 	const [dimensions, setDimensions] = useState({ width: 800, height: 600 });
 
@@ -269,13 +265,12 @@ export const NetworkGraph = ({
 		graphConfig.forces.alphaDecay,
 	]);
 
-	// Track collapsed nodes for expand/collapse on single click
+	// A short click delay keeps selection and expand/collapse as distinct gestures.
 	const [collapsedNodes, setCollapsedNodes] = useState<Set<string>>(new Set());
-	const lastClickRef = useRef<{ nodeId: string; time: number } | null>(null);
-	const DOUBLE_CLICK_THRESHOLD = 300; // ms
+	const clickTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
 	const handleNodeClick = useCallback(
-		(node: Node) => {
+		(node: Node, event?: MouseEvent) => {
 			if (linkMode) {
 				if (!linkSource) {
 					setLinkSource(node.id);
@@ -296,37 +291,25 @@ export const NetworkGraph = ({
 				return;
 			}
 
-			const now = Date.now();
-			const lastClick = lastClickRef.current;
-
-			// Check for double click
-			if (lastClick && lastClick.nodeId === node.id && (now - lastClick.time) < DOUBLE_CLICK_THRESHOLD) {
-				// Double click - open in editor
-				onNodeSelect(node);
-				lastClickRef.current = null;
+			if ((event?.detail ?? 1) > 1 && graphData.nodes.some(n => n.parentId === node.id)) {
+				if (clickTimerRef.current) clearTimeout(clickTimerRef.current);
+				setCollapsedNodes(prev => {
+					const next = new Set(prev);
+					if (next.has(node.id)) next.delete(node.id); else next.add(node.id);
+					return next;
+				});
 				return;
 			}
 
-			// Single click - toggle expand/collapse for folders
-			lastClickRef.current = { nodeId: node.id, time: now };
-
-			// Check if this node has children
-			const hasChildren = graphData.nodes.some(n => n.parentId === node.id);
-			
-			if (hasChildren) {
-				setCollapsedNodes(prev => {
-					const next = new Set(prev);
-					if (next.has(node.id)) {
-						next.delete(node.id);
-					} else {
-						next.add(node.id);
-					}
-					return next;
-				});
-			}
+			if (clickTimerRef.current) clearTimeout(clickTimerRef.current);
+			clickTimerRef.current = setTimeout(() => onNodeSelect(node), 220);
 		},
 		[linkMode, linkSource, graphData, setGraphData, onNodeSelect]
 	);
+
+	useEffect(() => () => {
+		if (clickTimerRef.current) clearTimeout(clickTimerRef.current);
+	}, []);
 
 	// Get all descendants of collapsed nodes to hide them
 	const getDescendants = useCallback((nodeId: string, nodes: Node[]): Set<string> => {
@@ -409,8 +392,8 @@ export const NetworkGraph = ({
 
 			// Search query (name)
 			if (
-				searchQuery &&
-				!node.name.toLowerCase().includes(searchQuery.toLowerCase())
+				search &&
+				!node.name.toLowerCase().includes(search.toLowerCase())
 			) {
 				return false;
 			}
@@ -452,121 +435,12 @@ export const NetworkGraph = ({
 			);
 			return sourceInFiltered && targetInFiltered;
 		}),
-	}), [graphData, hiddenNodes, maxDepth, searchQuery, contentFilter, tagFilter]);
-
-	const activeFilters = [
-		maxDepth < 10 && `Depth ≤ ${maxDepth}`,
-		contentFilter && `Content: "${contentFilter}"`,
-		tagFilter && `Tag: "${tagFilter}"`,
-	].filter(Boolean);
+	}), [graphData, hiddenNodes, maxDepth, search, contentFilter, tagFilter]);
 
 	return (
 		<div
 			ref={containerRef}
 			className='relative w-full h-full flex-1 bg-graph-bg'>
-			<div className='absolute top-4 left-4 z-10 flex flex-col gap-2'>
-				<div className='flex gap-2 flex-wrap'>
-					<Popover>
-						<PopoverTrigger asChild>
-							<Button
-								variant='secondary'
-								className='relative'>
-								<Filter className='w-4 h-4 mr-2' />
-								Filters
-								{activeFilters.length > 0 && (
-									<Badge
-										variant='destructive'
-										className='ml-2 px-1.5 py-0 text-xs'>
-										{activeFilters.length}
-									</Badge>
-								)}
-							</Button>
-						</PopoverTrigger>
-						<PopoverContent
-							className='w-80 bg-card border-border'
-							align='start'>
-							<div className='space-y-4'>
-								<div>
-									<Label className='text-sm font-medium'>Max Depth Level</Label>
-									<div className='flex items-center gap-3 mt-2'>
-										<Slider
-											value={[maxDepth]}
-											onValueChange={(value) => setMaxDepth(value[0])}
-											max={10}
-											min={0}
-											step={1}
-											className='flex-1'
-										/>
-										<span className='text-sm font-mono w-8 text-center'>
-											{maxDepth}
-										</span>
-									</div>
-								</div>
-
-								<div>
-									<Label className='text-sm font-medium'>
-										Filter by Content
-									</Label>
-									<Input
-										placeholder='Search in content...'
-										value={contentFilter}
-										onChange={(e) => setContentFilter(e.target.value)}
-										className='mt-2 bg-secondary border-border'
-									/>
-								</div>
-
-								<div>
-									<Label className='text-sm font-medium'>Filter by Tags</Label>
-									<Input
-										placeholder='Search tags...'
-										value={tagFilter}
-										onChange={(e) => setTagFilter(e.target.value)}
-										className='mt-2 bg-secondary border-border'
-									/>
-								</div>
-
-								{activeFilters.length > 0 && (
-									<Button
-										variant='outline'
-										size='sm'
-										onClick={() => {
-											setMaxDepth(10);
-											setContentFilter('');
-											setTagFilter('');
-										}}
-										className='w-full'>
-										Clear All Filters
-									</Button>
-								)}
-							</div>
-						</PopoverContent>
-					</Popover>
-				</div>
-
-				<div className='relative'>
-					<Search className='absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground' />
-					<Input
-						placeholder='Search by name...'
-						value={searchQuery}
-						onChange={(e) => setSearchQuery(e.target.value)}
-						className='pl-10 bg-card border-border'
-					/>
-				</div>
-
-				{activeFilters.length > 0 && (
-					<div className='flex flex-wrap gap-1'>
-						{activeFilters.map((filter, idx) => (
-							<Badge
-								key={idx}
-								variant='secondary'
-								className='text-xs'>
-								{filter}
-							</Badge>
-						))}
-					</div>
-				)}
-			</div>
-
 			{linkMode && (
 				<div className='absolute top-4 right-4 z-10 bg-accent/90 backdrop-blur-sm px-4 py-2 rounded-lg border border-border'>
 					<p className='text-sm text-accent-foreground'>
@@ -615,8 +489,8 @@ export const NetworkGraph = ({
 								: resolveColor(graphConfig.nodes.fileColor);
 					}
 				}}
-				nodeRelSize={graphConfig.nodes.relSize}
-				nodeVal={(node: any) => (node.type === 'folder' ? 1.5 : 1)}
+				nodeRelSize={1}
+				nodeVal={(node: any) => nodeRadiusForDepth(node.type, node.depth, graphConfig.nodes.relSize, graphConfig.nodes.sizeByDepth, graphConfig.nodes.depthSizeInterval) ** 2}
 				nodeVisibility={graphConfig.nodes.visible}
 				linkColor={(link: any) => {
 					const linkType = link.type as keyof typeof linkStyles | undefined;
@@ -661,15 +535,14 @@ export const NetworkGraph = ({
 					graphConfig.links.showArrows ? graphConfig.links.arrowLength : 0
 				}
 				linkDirectionalArrowRelPos={graphConfig.links.arrowRelPos}
-				linkDirectionalParticles={
-					graphConfig.links.showParticles ? graphConfig.links.particles : 0
-				}
+				linkDirectionalParticles={graphConfig.links.showParticles ? graphConfig.links.particles : 0}
 				linkDirectionalParticleSpeed={graphConfig.links.particleSpeed}
 				linkDirectionalParticleWidth={graphConfig.links.particleWidth}
 				linkDirectionalParticleColor={() =>
 					resolveColor(graphConfig.links.particleColor)
 				}
 				onNodeClick={handleNodeClick}
+				
 				nodeCanvasObject={(
 					node: any,
 					ctx: CanvasRenderingContext2D,
@@ -705,8 +578,13 @@ export const NetworkGraph = ({
 					const bckgDimensions = [textWidth + iconSize + 6, fontSize + 4];
 
 					// Draw node shape with glow
-					const nodeSize =
-						(isFolder ? 10 : 8) * (graphConfig.nodes.relSize / 6);
+					const nodeSize = nodeRadiusForDepth(
+						node.type,
+						node.depth,
+						graphConfig.nodes.relSize,
+						graphConfig.nodes.sizeByDepth,
+						graphConfig.nodes.depthSizeInterval
+					);
 
 					// Set fill color with opacity
 					let fillColor = resolveColor(graphConfig.nodes.fileColor);
@@ -828,6 +706,13 @@ export const NetworkGraph = ({
 							node.y + 15 + fontSize / 2
 						);
 					}
+				}}
+				nodePointerAreaPaint={(node: any, color: string, ctx: CanvasRenderingContext2D) => {
+					const radius = nodeRadiusForDepth(node.type, node.depth, graphConfig.nodes.relSize, graphConfig.nodes.sizeByDepth, graphConfig.nodes.depthSizeInterval);
+					ctx.fillStyle = color;
+					ctx.beginPath();
+					ctx.arc(node.x, node.y, radius + 3, 0, Math.PI * 2);
+					ctx.fill();
 				}}
 				backgroundColor={`hsl(${theme.colors.canvasBackground})`}
 				enableNodeDrag={true}

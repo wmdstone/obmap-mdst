@@ -123,6 +123,35 @@ export function NodeStylingTab({ config, is3D, onUpdate }: NodeStylingTabProps) 
             </p>
           </div>
 
+          <div className="flex items-center justify-between gap-4 border-t border-border pt-4">
+            <div>
+              <Label className="text-sm font-medium">Size by hierarchy level</Label>
+              <p className="text-xs text-muted-foreground">Make deeper nodes progressively smaller</p>
+            </div>
+            <Switch
+              checked={config.sizeByDepth}
+              onCheckedChange={(checked) => onUpdate({ sizeByDepth: checked })}
+            />
+          </div>
+
+          {config.sizeByDepth && (
+            <div className="space-y-2 animate-fade-in">
+              <div className="flex items-center justify-between">
+                <Label className="text-sm">Level size interval</Label>
+                <Badge variant="outline" className="font-mono text-xs">
+                  {config.depthSizeInterval}px
+                </Badge>
+              </div>
+              <Slider
+                value={[config.depthSizeInterval]}
+                onValueChange={([value]) => onUpdate({ depthSizeInterval: value })}
+                min={0.25}
+                max={4}
+                step={0.25}
+              />
+            </div>
+          )}
+
           {/* Resolution (3D only) */}
           {is3D && (
             <div className="space-y-2">

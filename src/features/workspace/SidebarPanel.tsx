@@ -7,6 +7,8 @@ import { ScrollArea } from "@/shared/ui/scroll-area";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/shared/ui/sheet";
 import { X, ChevronRight, ChevronDown, Folder, FileText, FolderOpen, Image, Music, Video, GripVertical, FileArchive, FolderPlus, FilePlus, SortAsc, ChevronsUpDown } from "lucide-react";
 import { ImportExportPanel } from "@/features/workspace/ImportExportPanel";
+import { EditorSettingsPanel } from "@/features/editor/settings/EditorSettingsPanel";
+
 import { useIsMobile } from "@/shared/hooks/useMobile";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/shared/ui/dropdown-menu";
 import type { RibbonTool } from "./IconRibbon";
@@ -310,6 +312,8 @@ export function SidebarPanel({
   const panelTitles: Record<RibbonTool, string> = {
     files: "File Explorer",
     graph: "Graph Settings",
+    editor: "Editor Settings",
+
     "import-export": "Import / Export",
     settings: "Settings",
     account: "Account",
@@ -434,6 +438,15 @@ export function SidebarPanel({
             {graphConfigTrigger}
           </div>
         )}
+
+        {activeTool === "editor" && (
+          <div className="p-3">
+            <p className="text-xs text-muted-foreground mb-3">Configure how the note editor looks and behaves.</p>
+            <EditorSettingsPanel variant="compact" />
+          </div>
+        )}
+
+
 
         {activeTool === "import-export" && (
           <div className="p-3">

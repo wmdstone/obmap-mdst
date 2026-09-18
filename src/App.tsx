@@ -5,10 +5,12 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ErrorBoundary } from "@/shared/components/ErrorBoundary";
 import { AuthProvider } from "@/features/auth/hooks/useAuth";
-import { ProtectedRoute } from "@/shared/components/ProtectedRoute";
-import { EventDebugPanel } from "@/shared/components/debug/EventDebugPanel";
+import { ProtectedRoute } from "@/features/auth/ProtectedRoute";
+import { DevAuthBanner } from "@/features/auth/DevAuthBanner";
+import { EventDebugPanel } from "@/features/vault-dashboard/debug/EventDebugPanel";
 import { CommandPalette } from "@/features/command-palette/CommandPalette";
 import { Suspense, lazy } from "react";
+
 
 const queryClient = new QueryClient();
 
@@ -67,12 +69,14 @@ const App = () => (
         <CommandPalette />
         <BrowserRouter>
           <AuthProvider>
+            <DevAuthBanner />
             <Suspense fallback={<LoadingFallback />}>
             <Routes>
                 {/* Public landing page */}
                 <Route path="/" element={<Landing />} />
                 <Route path="/auth" element={<Auth />} />
                 <Route path="/install" element={<Install />} />
+                
                 
                 {/* Protected routes */}
                 <Route path="/app" element={<ProtectedRoute><Index /></ProtectedRoute>} />

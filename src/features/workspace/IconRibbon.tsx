@@ -7,9 +7,11 @@ import {
   FileArchive,
   User,
   LayoutGrid,
+  Pencil,
+
 } from "lucide-react";
 
-export type RibbonTool = "files" | "graph" | "import-export" | "settings" | "account" | "vaults";
+export type RibbonTool = "files" | "graph" | "editor" | "import-export" | "settings" | "account" | "vaults";
 
 interface IconRibbonProps {
   activeTool: RibbonTool | null;
@@ -27,7 +29,9 @@ interface RibbonItem {
 const ribbonItems: RibbonItem[] = [
   { id: "files", icon: FolderTree, label: "File Explorer", shortcut: "⌘1" },
   { id: "graph", icon: Network, label: "Graph View", shortcut: "⌘2" },
-  { id: "import-export", icon: FileArchive, label: "Import / Export", shortcut: "⌘3" },
+  { id: "editor", icon: Pencil, label: "Editor Settings", shortcut: "⌘3" },
+  { id: "import-export", icon: FileArchive, label: "Import / Export", shortcut: "⌘4" },
+
   { id: "settings", icon: Settings2, label: "Settings", shortcut: "⌘," },
 ];
 

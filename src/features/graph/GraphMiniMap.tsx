@@ -7,6 +7,7 @@ import { useRef, useEffect, useState, useCallback } from 'react';
 import { Button } from "@/shared/ui/button";
 import { Map, Maximize2, Minimize2, X } from 'lucide-react';
 import { cn } from "@/shared/lib";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/shared/ui/tooltip';
 
 interface Node {
   id: string;
@@ -89,7 +90,7 @@ export function GraphMiniMap({
   selectedNodeId,
 }: GraphMiniMapProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [isExpanded, setIsExpanded] = useState(true);
+  const [isExpanded, setIsExpanded] = useState(false);
   const [isLarge, setIsLarge] = useState(false);
   const animationRef = useRef<number>();
   const viewportRef = useRef({ x: 0, y: 0, width: 0, height: 0 });
@@ -280,22 +281,29 @@ export function GraphMiniMap({
 
   if (!isExpanded) {
     return (
-      <Button
-        variant="secondary"
-        size="sm"
-        onClick={() => setIsExpanded(true)}
-        className="absolute bottom-4 right-4 z-10 shadow-lg gap-2"
-      >
-        <Map className="w-4 h-4" />
-        Mini-Map
-      </Button>
+      <TooltipProvider delayDuration={250}>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="secondary"
+              size="icon"
+              onClick={() => setIsExpanded(true)}
+              className="absolute bottom-3 right-3 z-30 h-9 w-9 border border-border/80 bg-card/95 shadow-lg backdrop-blur-md sm:bottom-4 sm:right-4"
+              aria-label="Open mini-map"
+            >
+              <Map className="w-4 h-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="left">Open mini-map</TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
     );
   }
 
   return (
     <div
       className={cn(
-        "absolute bottom-4 right-4 z-10 rounded-lg border border-border bg-card/95 backdrop-blur-sm shadow-xl overflow-hidden transition-all duration-200",
+        "absolute bottom-3 right-3 z-30 origin-bottom-right rounded-md border border-border/80 bg-card/95 backdrop-blur-md shadow-xl overflow-hidden transition-all duration-200 sm:bottom-4 sm:right-4",
         isLarge ? "w-[280px]" : "w-[180px]"
       )}
     >

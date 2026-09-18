@@ -5,13 +5,19 @@ import { cn } from "@/shared/lib";
 import { MarkdownRenderer } from "@/features/graph/MarkdownRenderer";
 import { EditorToolbar } from "@/features/editor/toolbar/EditorToolbar";
 import { PropertiesPanel } from "@/features/editor/frontmatter/PropertiesPanel";
-import { createEditorExtensions } from "@/features/editor/cm/setup";
+import {
+  createEditorExtensions,
+  appearanceTheme,
+  appearanceCompartment,
+} from "@/features/editor/cm/setup";
 import { createEditorApi } from "@/features/editor/cm/state/editorApi";
 import { setActiveEditor } from "@/features/editor/activeEditor";
 import { countWords } from "@/features/editor/cm/extensions/frontmatterField";
 import type { SuggestSource } from "@/features/editor/suggest/suggestions";
 import type { EditorApi, EditorMode } from "@/features/editor/types";
 import { useNodeStore } from "@/shared/stores";
+import { useEditorSettingsStore } from "@/shared/stores/useEditorSettingsStore";
+
 
 interface MarkdownViewProps {
   value: string;
@@ -70,7 +76,24 @@ export const MarkdownView = ({
 
   const isReading = mode === "reading";
 
-  // Mount / re-create the editor when the editing mode changes.
+  const appearance = useEditorSettingsStore((s) => s.appearance);
+  const behavior = useEditorSettingsStore((s) => s.behavior);
+  const suggestions = useEditorSettingsStore((s) => s.suggestions);
+  const toolbarSettings = useEditorSettingsStore((s) => s.toolbar);
+
+  const settingsRef = useRef({ appearance, behavior, suggestions });
+  settingsRef.current = { appearance, behavior, suggestions };
+
+  // Changing these requires rebuilding the extension set.
+  const structuralKey = JSON.stringify({
+    behavior,
+    suggestions,
+    lineNumbers: appearance.showLineNumbers,
+    activeLine: appearance.highlightActiveLine,
+    selectionMatches: appearance.highlightSelectionMatches,
+  });
+
+  // Mount / re-create the editor when the editing mode or structural settings change.
   useEffect(() => {
     if (isReading || !hostRef.current) return;
 
@@ -80,6 +103,7 @@ export const MarkdownView = ({
       extensions: createEditorExtensions({
         mode: mode === "live" ? "live" : "source",
         placeholder,
+        settings: settingsRef.current,
         getSuggestSource: () => suggestRef.current,
         handlers: {
           onWikilinkClick: (t) => handlersRef.current.onWikilinkClick?.(t),
@@ -104,7 +128,16 @@ export const MarkdownView = ({
       setApi(null);
       setActiveEditor(null);
     };
-  }, [mode, isReading, placeholder]);
+  }, [mode, isReading, placeholder, structuralKey]);
+
+  // Live-apply font / spacing changes without rebuilding the editor.
+  useEffect(() => {
+    const view = viewRef.current;
+    if (!view) return;
+    view.dispatch({
+      effects: appearanceCompartment.reconfigure(appearanceTheme(appearance)),
+    });
+  }, [appearance]);
 
   // Keep the document in sync when the value changes from outside.
   useEffect(() => {
@@ -119,6 +152,7 @@ export const MarkdownView = ({
 
   const words = useMemo(() => countWords(value), [value]);
 
+
   const editorSurface = (
     <div
       ref={hostRef}
@@ -129,8 +163,13 @@ export const MarkdownView = ({
 
   return (
     <div className={cn("flex flex-col gap-2", className)}>
-      {showProperties && <PropertiesPanel value={value} onChange={onChange} />}
-      {showToolbar && !isReading && <EditorToolbar editor={api} />}
+      {showProperties && toolbarSettings.showProperties && (
+        <PropertiesPanel value={value} onChange={onChange} />
+      )}
+      {showToolbar && toolbarSettings.showToolbar && !isReading && (
+        <EditorToolbar editor={api} groups={toolbarSettings.groups} />
+      )}
+
 
       {isReading ? (
         <div className="prose-container min-h-[50vh] py-3">
@@ -169,9 +208,12 @@ export const MarkdownView = ({
         editorSurface
       )}
 
-      <div className="px-1 text-[11px] text-muted-foreground/60">
-        {words} {words === 1 ? "word" : "words"}
-      </div>
+      {toolbarSettings.showWordCount && (
+        <div className="px-1 text-[11px] text-muted-foreground/60">
+          {words} {words === 1 ? "word" : "words"}
+        </div>
+      )}
+
     </div>
   );
 };

@@ -23,4 +23,26 @@ export default tseslint.config(
       "@typescript-eslint/no-unused-vars": "off",
     },
   },
+  // Architecture boundary: core/ and shared/ must not depend on features/,
+  // and features must talk to each other through shared/ or core/ only.
+  {
+    files: ["src/core/**/*.{ts,tsx}", "src/shared/**/*.{ts,tsx}"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: ["@/features/*", "@/features/**"],
+              message: "core/ and shared/ must not import from features/.",
+            },
+            {
+              group: ["@/pages/*", "@/pages/**"],
+              message: "core/ and shared/ must not import from pages/.",
+            },
+          ],
+        },
+      ],
+    },
+  },
 );

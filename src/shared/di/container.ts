@@ -212,4 +212,7 @@ export const ServiceIds = {
 
 	// API services
 	ApiKeyService: Symbol('ApiKeyService'),
+
+	// Sync engine
+	SyncEngine: Symbol('SyncEngine'),
 } as const;

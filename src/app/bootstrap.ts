@@ -22,6 +22,8 @@ import { apiKeyService } from "@/features/profile/services/ApiKeyService";
 import { supabase } from "@/integrations/supabase/client";
 import { commandRegistry } from "@/core/commands/CommandRegistry";
 import { registerEditorCommands } from "@/features/editor/commands/editorCommands";
+import { syncEngine } from "@/core/sync/SyncEngine";
+import { registerToggleableFeatures } from "@/core/plugins/feature-toggles";
 
 let bootstrapped = false;
 
@@ -65,4 +67,11 @@ export function bootstrapApp(): void {
 
   container.registerInstance(ServiceIds.CommandRegistry, commandRegistry);
   registerEditorCommands();
+
+  // Sync engine owns dirty tracking, conflict copies and the offline queue.
+  syncEngine.attachVaultManager(getVaultManager());
+  container.registerInstance(ServiceIds.SyncEngine, syncEngine);
+  void syncEngine.replayQueue();
+
+  registerToggleableFeatures();
 }

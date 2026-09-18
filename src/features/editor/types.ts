@@ -38,6 +38,7 @@ export type FrontmatterPropertyType =
   | "number"
   | "date"
   | "checkbox"
+  | "select"
   | "tags"
   | "list";
 

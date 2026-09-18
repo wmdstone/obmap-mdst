@@ -1,6 +1,7 @@
 import { StateField, EditorState } from "@codemirror/state";
-import { parse as parseYaml, stringify as stringifyYaml } from "yaml";
+import { parse as parseYaml } from "yaml";
 import type { FrontmatterProperty, FrontmatterPropertyType } from "@/features/editor/types";
+import { propertiesToYaml, reservedType, type ListLayout } from "@/features/editor/frontmatter/frontmatter-utils";
 
 export interface FrontmatterInfo {
   /** Raw YAML block without the --- fences. */
@@ -35,7 +36,7 @@ export function parseFrontmatter(doc: string): FrontmatterInfo {
     const properties: FrontmatterProperty[] = Object.entries(parsed).map(([key, value]) => ({
       key,
       value,
-      type: key === "tags" ? "tags" : inferType(value),
+      type: reservedType(key) ?? inferType(value),
     }));
     return { raw, range: { from: 0, to }, properties, error: null };
   } catch (e) {
@@ -43,19 +44,30 @@ export function parseFrontmatter(doc: string): FrontmatterInfo {
   }
 }
 
-/** Serialize properties back into a document, leaving the body untouched. */
-export function writeFrontmatter(doc: string, properties: FrontmatterProperty[]): string {
+/** Split a document into its frontmatter block and the body below it. */
+export function splitDocument(doc: string): { info: FrontmatterInfo; body: string } {
   const info = parseFrontmatter(doc);
   const body = info.range ? doc.slice(info.range.to).replace(/^\n/, "") : doc;
+  return { info, body };
+}
 
-  const record: Record<string, unknown> = {};
-  properties.forEach((p) => {
-    if (p.key.trim()) record[p.key] = p.value;
-  });
+/** Replace the frontmatter block with a raw YAML string, keeping the body. */
+export function writeRawFrontmatter(doc: string, yaml: string): string {
+  const { body } = splitDocument(doc);
+  const trimmed = yaml.trim();
+  if (!trimmed) return body;
+  return `---\n${trimmed}\n---\n${body}`;
+}
 
-  if (Object.keys(record).length === 0) return body;
-
-  const yaml = stringifyYaml(record).trimEnd();
+/** Serialize properties back into a document, leaving the body untouched. */
+export function writeFrontmatter(
+  doc: string,
+  properties: FrontmatterProperty[],
+  listLayout: ListLayout = "block"
+): string {
+  const { body } = splitDocument(doc);
+  const yaml = propertiesToYaml(properties, listLayout);
+  if (!yaml.trim()) return body;
   return `---\n${yaml}\n---\n${body}`;
 }
 

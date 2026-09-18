@@ -666,6 +666,8 @@ export const NodePanel = ({
               <MarkdownView
                 value={content}
                 onChange={setContent}
+                showProperties
+
                 mode={
                   editorMode === "preview"
                     ? "reading"

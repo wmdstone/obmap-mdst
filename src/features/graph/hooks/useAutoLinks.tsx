@@ -38,7 +38,9 @@ export const DEFAULT_AUTO_LINK_CONFIG: AutoLinkConfig = {
  */
 export function useAutoLinks(
   nodes: Node[],
-  config: Partial<AutoLinkConfig> = {}
+  config: Partial<AutoLinkConfig> = {},
+  /** Prefer the MetadataCache link index over re-deriving wikilinks here. */
+  resolvedLinks?: Record<string, Record<string, number>>
 ): Link[] {
   const mergedConfig = { ...DEFAULT_AUTO_LINK_CONFIG, ...config };
 
@@ -85,29 +87,37 @@ export function useAutoLinks(
       }
     }
 
-    // 3. Backlinks (wikilink connections)
+    // 3. Backlinks (from the MetadataCache link index when available)
     if (mergedConfig.backlinks) {
       const fileNodes = nodes.filter(n => n.type === "file");
-      const nameToIdMap = new Map<string, string>();
-      
-      fileNodes.forEach(node => {
-        nameToIdMap.set(node.name.toLowerCase(), node.id);
-      });
+      const existing = new Set(nodes.map(n => n.id));
 
-      fileNodes.forEach(node => {
-        if (node.wikilinks && node.wikilinks.length > 0) {
-          node.wikilinks.forEach(wikilinkName => {
+      if (resolvedLinks) {
+        Object.entries(resolvedLinks).forEach(([sourceId, targets]) => {
+          if (!existing.has(sourceId)) return;
+          Object.keys(targets).forEach(targetId => {
+            if (existing.has(targetId)) addLink(sourceId, targetId, "backlink");
+          });
+        });
+      } else {
+        const nameToIdMap = new Map<string, string>();
+        fileNodes.forEach(node => {
+          nameToIdMap.set(node.name.toLowerCase(), node.id);
+        });
+
+        fileNodes.forEach(node => {
+          node.wikilinks?.forEach(wikilinkName => {
             const targetId = nameToIdMap.get(wikilinkName.toLowerCase());
             if (targetId && targetId !== node.id) {
               addLink(node.id, targetId, "backlink");
             }
           });
-        }
-      });
+        });
+      }
     }
 
     return links;
-  }, [nodes, mergedConfig.hierarchy, mergedConfig.tags, mergedConfig.backlinks, mergedConfig.tagThreshold]);
+  }, [nodes, resolvedLinks, mergedConfig.hierarchy, mergedConfig.tags, mergedConfig.backlinks, mergedConfig.tagThreshold]);
 
   return autoLinks;
 }

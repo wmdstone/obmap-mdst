@@ -19,7 +19,7 @@ export interface GraphNode {
 export interface GraphLink {
   source: string;
   target: string;
-  type: 'hierarchical' | 'semantic';
+  type: 'hierarchy' | 'semantic';
 }
 
 export class RelationshipMapper {
@@ -45,7 +45,7 @@ export class RelationshipMapper {
       this.links.push({
         source: parentId,
         target: id,
-        type: 'hierarchical',
+		 type: 'hierarchy',
       });
     }
   }
@@ -78,7 +78,7 @@ export class RelationshipMapper {
       this.links.push({
         source: parentId,
         target: id,
-        type: 'hierarchical',
+		 type: 'hierarchy',
       });
     }
   }

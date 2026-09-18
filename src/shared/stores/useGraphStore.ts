@@ -12,6 +12,8 @@ import type { Node, Link } from './types';
 
 export interface NodeConfig {
   relSize: number;
+  sizeByDepth: boolean;
+  depthSizeInterval: number;
   resolution: number;
   shape: 'circle' | 'square' | 'diamond' | 'triangle' | 'hexagon';
   visible: boolean;
@@ -104,6 +106,8 @@ export interface GraphConfigState {
 
 export const defaultNodeConfig: NodeConfig = {
   relSize: 6,
+  sizeByDepth: false,
+  depthSizeInterval: 1,
   resolution: 8,
   shape: 'circle',
   visible: true,
@@ -457,6 +461,27 @@ export const useGraphStore = create<GraphState>()(
       {
         name: 'graph-config-storage',
         partialize: (state) => ({ config: state.config }),
+        merge: (persisted, current) => {
+          const saved = persisted as Partial<GraphState>;
+          const config = saved.config;
+          if (!config) return current;
+          return {
+            ...current,
+            ...saved,
+            config: {
+              ...defaultGraphConfig,
+              ...config,
+              nodes: { ...defaultNodeConfig, ...config.nodes },
+              links: { ...defaultLinkConfig, ...config.links },
+              topology: {
+                ...defaultTopologyConfig,
+                ...config.topology,
+                styles: { ...defaultTopologyConfig.styles, ...config.topology?.styles },
+              },
+              forces: { ...defaultForceConfig, ...config.forces },
+            },
+          };
+        },
       }
     ),
     { name: 'GraphStore' }
