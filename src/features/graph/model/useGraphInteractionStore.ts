@@ -34,6 +34,7 @@ export interface GraphInteractionState {
   hoveredId: string | null;
   focusedRootId: string | null;
   transitionStatus: TransitionStatus;
+  simulationCommand: { type: 'reheat' | 'stop'; nonce: number } | null;
 
   setLayoutMode: (mode: LayoutMode) => void;
   setOrientation: (orientation: MindmapOrientation) => void;
@@ -45,6 +46,8 @@ export interface GraphInteractionState {
   setHovered: (id: string | null) => void;
   setFocusedRoot: (id: string | null) => void;
   setTransitionStatus: (status: TransitionStatus) => void;
+  requestReheat: () => void;
+  requestStop: () => void;
 }
 
 export const useGraphInteractionStore = create<GraphInteractionState>()(
@@ -58,6 +61,7 @@ export const useGraphInteractionStore = create<GraphInteractionState>()(
       hoveredId: null,
       focusedRootId: null,
       transitionStatus: 'idle',
+      simulationCommand: null,
 
       setLayoutMode: (layoutMode) => set({ layoutMode: normalizeLayoutMode(layoutMode) }),
       setOrientation: (orientation) => set({ orientation }),
@@ -74,6 +78,8 @@ export const useGraphInteractionStore = create<GraphInteractionState>()(
       setHovered: (hoveredId) => set({ hoveredId }),
       setFocusedRoot: (focusedRootId) => set({ focusedRootId }),
       setTransitionStatus: (transitionStatus) => set({ transitionStatus }),
+      requestReheat: () => set({ simulationCommand: { type: 'reheat', nonce: Date.now() } }),
+      requestStop: () => set({ simulationCommand: { type: 'stop', nonce: Date.now() } }),
     }),
     {
       name: 'graph-interaction-storage',

@@ -12,6 +12,7 @@ import { LinkStylingTab } from '@/features/graph/config-panel/LinkStylingTab';
 import { ForceEngineTab } from '@/features/graph/config-panel/ForceEngineTab';
 import { AnalyticsTab } from '@/features/graph/config-panel/AnalyticsTab';
 import { useGraphStore } from '@/shared/stores/useGraphStore';
+import { useGraphInteractionStore } from '@/features/graph/model/useGraphInteractionStore';
 
 const tabItems = [
   { value: 'layout', icon: LayoutGrid, label: 'Layout' },
@@ -25,6 +26,8 @@ export function GraphEngineSettings() {
   const [activeTab, setActiveTab] = useState('layout');
   const config = useGraphStore((s) => s.config);
   const stats = useGraphStore((s) => s.stats);
+  const requestReheat = useGraphInteractionStore((s) => s.requestReheat);
+  const requestStop = useGraphInteractionStore((s) => s.requestStop);
   const {
     updateNodeConfig,
     updateLinkConfig,
@@ -76,8 +79,8 @@ export function GraphEngineSettings() {
           <ForceEngineTab
             config={config.forces}
             onUpdate={updateForceConfig}
-            onReheat={() => {}}
-            onStop={() => {}}
+            onReheat={requestReheat}
+            onStop={requestStop}
           />
         </TabsContent>
         <TabsContent value="analytics" className="mt-4">

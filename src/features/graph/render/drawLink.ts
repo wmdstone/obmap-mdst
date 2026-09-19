@@ -14,8 +14,25 @@ export interface DrawLinkState {
   dimmed: boolean;
   showArrow: boolean;
   arrowLength: number;
+  arrowRelPos: number;
+  curvature: number;
+  curveRotation: number;
+  particles: number;
+  particleWidth: number;
+  particleColor: string;
+  particleProgress: number;
   metricOf: (node: RenderNode) => NodeMetric;
 }
+
+const cubicPoint = (p0: number, p1: number, p2: number, p3: number, t: number) => {
+  const u = 1 - t;
+  return u * u * u * p0 + 3 * u * u * t * p1 + 3 * u * t * t * p2 + t * t * t * p3;
+};
+
+const cubicTangent = (p0: number, p1: number, p2: number, p3: number, t: number) => {
+  const u = 1 - t;
+  return 3 * u * u * (p1 - p0) + 6 * u * t * (p2 - p1) + 3 * t * t * (p3 - p2);
+};
 
 export function drawLink(
   ctx: CanvasRenderingContext2D,
@@ -40,18 +57,24 @@ export function drawLink(
   ctx.beginPath();
   ctx.moveTo(start.x, start.y);
 
-  let tangent = Math.atan2(end.y - start.y, end.x - start.x);
+  let c1 = start;
+  let c2 = end;
 
   if (state.mode === 'mindmap') {
     const dx = end.x - start.x;
-    const k = 0.45;
-    ctx.bezierCurveTo(start.x + k * dx, start.y, end.x - k * dx, end.y, end.x, end.y);
-    tangent = Math.atan2(end.y - (end.y + (start.y - end.y) * 0.05), end.x - (end.x - k * dx));
+    const k = 0.2 + state.curvature * 0.65;
+    const bend = Math.sin(state.curveRotation) * Math.abs(dx) * state.curvature * 0.35;
+    c1 = { x: start.x + k * dx, y: start.y + bend };
+    c2 = { x: end.x - k * dx, y: end.y + bend };
+    ctx.bezierCurveTo(c1.x, c1.y, c2.x, c2.y, end.x, end.y);
   } else if (state.mode === 'timeline') {
     const dx = end.x - start.x;
-    const lift = Math.min(90, Math.max(18, Math.abs(dx) * 0.35));
-    const midY = (start.y + end.y) / 2 - Math.sign(start.y || 1) * lift * 0.25;
-    ctx.bezierCurveTo(start.x, midY, end.x, midY, end.x, end.y);
+    const lift = Math.min(120, Math.max(24, Math.abs(dx) * (0.2 + state.curvature * 0.35)));
+    const side = Math.sign(start.y + end.y || 1);
+    const midY = side * (Math.max(Math.abs(start.y), Math.abs(end.y)) + lift);
+    c1 = { x: start.x, y: midY };
+    c2 = { x: end.x, y: midY };
+    ctx.bezierCurveTo(c1.x, c1.y, c2.x, c2.y, end.x, end.y);
   } else if (state.mode === 'fishbone') {
     ctx.lineTo(end.x, end.y);
   } else {
@@ -59,22 +82,44 @@ export function drawLink(
   }
   ctx.stroke();
 
+  const curved = state.mode === 'mindmap' || state.mode === 'timeline';
+  const pointAt = (t: number) => curved
+    ? { x: cubicPoint(start.x, c1.x, c2.x, end.x, t), y: cubicPoint(start.y, c1.y, c2.y, end.y, t) }
+    : { x: start.x + (end.x - start.x) * t, y: start.y + (end.y - start.y) * t };
+  const tangentAt = (t: number) => curved
+    ? Math.atan2(cubicTangent(start.y, c1.y, c2.y, end.y, t), cubicTangent(start.x, c1.x, c2.x, end.x, t))
+    : Math.atan2(end.y - start.y, end.x - start.x);
+
   if (state.showArrow && state.arrowLength > 0 && !state.dimmed) {
     const len = state.arrowLength;
+    const arrowT = Math.max(0.05, Math.min(1, state.arrowRelPos));
+    const tip = pointAt(arrowT);
+    const tangent = tangentAt(arrowT);
     ctx.setLineDash([]);
     ctx.fillStyle = dim(state.color, state.opacity);
     ctx.beginPath();
-    ctx.moveTo(end.x, end.y);
+    ctx.moveTo(tip.x, tip.y);
     ctx.lineTo(
-      end.x - len * Math.cos(tangent - Math.PI / 7),
-      end.y - len * Math.sin(tangent - Math.PI / 7)
+      tip.x - len * Math.cos(tangent - Math.PI / 7),
+      tip.y - len * Math.sin(tangent - Math.PI / 7)
     );
     ctx.lineTo(
-      end.x - len * Math.cos(tangent + Math.PI / 7),
-      end.y - len * Math.sin(tangent + Math.PI / 7)
+      tip.x - len * Math.cos(tangent + Math.PI / 7),
+      tip.y - len * Math.sin(tangent + Math.PI / 7)
     );
     ctx.closePath();
     ctx.fill();
+  }
+  if (state.particles > 0 && !state.dimmed) {
+    ctx.setLineDash([]);
+    ctx.fillStyle = dim(state.particleColor, state.opacity);
+    for (let index = 0; index < state.particles; index += 1) {
+      const t = (state.particleProgress + index / state.particles) % 1;
+      const point = pointAt(t);
+      ctx.beginPath();
+      ctx.arc(point.x, point.y, Math.max(0.75, state.particleWidth / 2), 0, Math.PI * 2);
+      ctx.fill();
+    }
   }
   ctx.restore();
 }
