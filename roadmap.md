@@ -8,3 +8,7 @@
 - [x] Add hierarchy-level node sizing with a configurable level interval.
 - [x] Add synchronized Living Graph play and pause controls.
 - [x] Validate TypeScript and the running preview.
+- [ ] Preserve and connect every Visual Graph Engine node, link, topology, and force setting.
+- [ ] Repair timeline milestone/detail placement and link routing.
+- [ ] Repair fishbone branch geometry and prevent node/link overlap.
+- [ ] Verify all graph modes and global settings in tests and the running preview.
