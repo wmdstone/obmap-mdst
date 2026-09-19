@@ -1,6 +1,7 @@
 /** Card node renderer with level-of-detail and a collapse toggle hit region. */
 
 import type { RenderNode } from '../model/graphTypes';
+import type { NodeConfig } from '@/shared/stores/useGraphStore';
 import { cardFont, cardLayout, CARD_FONT_SIZE } from './textLayout';
 import { accentFor, dim, type GraphTheme } from './theme';
 
@@ -14,6 +15,38 @@ export interface DrawNodeState {
   isRoot: boolean;
   showLabels: boolean;
   labelThreshold: number;
+  config: NodeConfig;
+}
+
+export function labelForNode(node: RenderNode, config: NodeConfig): string {
+  if (config.labelField === 'id') return node.id;
+  return node.name || 'Untitled';
+}
+
+function drawShape(
+  ctx: CanvasRenderingContext2D,
+  shape: NodeConfig['shape'],
+  x: number,
+  y: number,
+  radius: number
+) {
+  ctx.beginPath();
+  if (shape === 'circle') {
+    ctx.arc(x, y, radius, 0, Math.PI * 2);
+  } else if (shape === 'square') {
+    ctx.rect(x - radius, y - radius, radius * 2, radius * 2);
+  } else {
+    const sides = shape === 'triangle' ? 3 : shape === 'diamond' ? 4 : 6;
+    const offset = shape === 'diamond' ? -Math.PI / 4 : -Math.PI / 2;
+    for (let index = 0; index < sides; index += 1) {
+      const angle = offset + (index * Math.PI * 2) / sides;
+      const px = x + Math.cos(angle) * radius;
+      const py = y + Math.sin(angle) * radius;
+      if (index === 0) ctx.moveTo(px, py);
+      else ctx.lineTo(px, py);
+    }
+    ctx.closePath();
+  }
 }
 
 function roundedRect(
@@ -43,6 +76,10 @@ export function drawNode(
   state: DrawNodeState
 ) {
   const { theme, zoom } = state;
+  if (!state.config.visible) {
+    node.toggle = null;
+    return;
+  }
   const accent = accentFor(node, theme, state.selected);
   const x = node.x ?? 0;
   const y = node.y ?? 0;
@@ -61,8 +98,9 @@ export function drawNode(
     return;
   }
 
-  const fontSize = state.isRoot ? CARD_FONT_SIZE + 2 : CARD_FONT_SIZE;
-  const layout = cardLayout(node.name, {
+  const label = labelForNode(node, state.config);
+  const fontSize = state.config.labelSize + (state.isRoot ? 2 : 0);
+  const layout = cardLayout(label, {
     root: state.isRoot,
     badge: node.childCount > 0,
     fontSize,
@@ -78,26 +116,35 @@ export function drawNode(
     ctx.shadowColor = dim(accent, 0.75);
   }
   roundedRect(ctx, x - w / 2, y - h / 2, w, h, 8);
-  ctx.fillStyle = dim(accent, state.selected ? 0.32 : 0.16);
+  ctx.fillStyle = state.config.labelBackground
+    ? dim(theme.labelBackground, Math.max(0.72, state.config.opacity))
+    : dim(accent, state.selected ? 0.32 : 0.16);
   ctx.fill();
   ctx.shadowBlur = 0;
   ctx.lineWidth = state.selected ? 2 : 1;
   ctx.strokeStyle = state.selected ? accent : dim(accent, 0.6);
   ctx.stroke();
 
-  // Type accent bar.
+  // Configurable node marker.
+  const depthScale = state.config.sizeByDepth
+    ? Math.max(0.45, 1 - node.depth * state.config.depthSizeInterval * 0.08)
+    : 1;
+  const markerRadius = Math.max(3, state.config.relSize * depthScale);
+  const markerX = x - w / 2 + 9;
   ctx.fillStyle = accent;
-  roundedRect(ctx, x - w / 2, y - h / 2, 3, h, 2);
+  drawShape(ctx, state.config.shape, markerX, y, markerRadius);
   ctx.fill();
 
   if (state.showLabels && zoom >= state.labelThreshold * 0.6) {
-    ctx.font = cardFont(fontSize, state.isRoot ? '600' : '500');
+    const italic = state.config.labelFontStyle.includes('italic') ? 'italic ' : '';
+    const weight = state.config.labelFontStyle.includes('bold') || state.isRoot ? '600' : '500';
+    ctx.font = `${italic}${cardFont(fontSize, weight)}`;
     ctx.fillStyle = theme.label;
     ctx.textAlign = 'left';
     ctx.textBaseline = 'middle';
     const lineHeight = fontSize + 4;
     const startY = y - ((layout.lines.length - 1) * lineHeight) / 2;
-    const textX = x - w / 2 + 12;
+    const textX = x - w / 2 + Math.max(18, markerRadius * 2 + 7);
     layout.lines.forEach((line, index) => {
       ctx.fillText(line, textX, startY + index * lineHeight);
     });
@@ -150,11 +197,15 @@ export function paintNodePointerArea(
   ctx: CanvasRenderingContext2D,
   node: RenderNode,
   color: string,
-  isRoot: boolean
+  isRoot: boolean,
+  config?: NodeConfig
 ) {
-  const layout = cardLayout(node.name, {
+  if (config && !config.visible) return;
+  const label = config ? labelForNode(node, config) : node.name;
+  const layout = cardLayout(label, {
     root: isRoot,
     badge: node.childCount > 0,
+    fontSize: (config?.labelSize ?? CARD_FONT_SIZE) + (isRoot ? 2 : 0),
   });
   const x = node.x ?? 0;
   const y = node.y ?? 0;
