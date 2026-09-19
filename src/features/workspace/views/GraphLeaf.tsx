@@ -1,11 +1,10 @@
-import { NetworkGraph } from '@/features/graph/NetworkGraph';
-import { CanvasGraph } from '@/features/graph/CanvasGraph';
+import { GraphCanvas } from '@/features/graph/GraphCanvas';
 import { GraphWorkspaceControls } from '@/features/graph/GraphWorkspaceControls';
+import { useGraphInteractionStore } from '@/features/graph/model/useGraphInteractionStore';
 import { AutoSaveIndicator } from '@/features/sync/AutoSaveIndicator';
 import { SyncStatusIndicator } from '@/features/sync/SyncStatusIndicator';
 import { PWAStatusBadge } from '@/features/sync/PWAInstallPrompt';
 import { useGraphStore } from '@/shared/stores';
-import { useGraphEngineStore } from '@/shared/stores/useGraphEngineStore';
 import { useVaultSession } from '../VaultSessionContext';
 import { useWorkspaceStore } from '../store/useWorkspaceStore';
 import { useState } from 'react';
@@ -13,7 +12,6 @@ import { useState } from 'react';
 export default function GraphLeaf() {
   const {
     graphData,
-    setGraphData,
     selectedNode,
     setSelectedNode,
     currentVaultId,
@@ -21,9 +19,18 @@ export default function GraphLeaf() {
     lastSaved,
   } = useVaultSession();
   const graphConfig = useGraphStore((s) => s.config);
-  const useCanvasEngine = useGraphEngineStore((s) => s.useCanvasEngine);
-  const layout = useGraphEngineStore((s) => s.layout);
-  const setLayout = useGraphEngineStore((s) => s.setLayout);
+  const {
+    layoutMode,
+    setLayoutMode,
+    orientation,
+    setOrientation,
+    highlightMode,
+    setHighlightMode,
+    collapsedIds,
+    expandAll,
+    focusedRootId,
+    setFocusedRoot,
+  } = useGraphInteractionStore();
   const [search, setSearch] = useState('');
   const [maxDepth, setMaxDepth] = useState(10);
   const [contentFilter, setContentFilter] = useState('');
@@ -38,35 +45,28 @@ export default function GraphLeaf() {
 
   return (
     <div className="relative w-full h-full">
-      {useCanvasEngine && layout !== 'force' ? (
-        <CanvasGraph
-          graphData={graphData}
-          selectedNode={selectedNode}
-          onNodeSelect={handleSelect}
-          graphConfig={graphConfig}
-          search={search}
-          maxDepth={maxDepth}
-          contentFilter={contentFilter}
-          tagFilter={tagFilter}
-        />
-      ) : (
-        <NetworkGraph
-          onNodeSelect={handleSelect}
-          selectedNode={selectedNode}
-          graphData={graphData}
-          setGraphData={setGraphData}
-          linkStyles={graphConfig.topology.styles}
-          graphConfig={graphConfig}
-          search={search}
-          maxDepth={maxDepth}
-          contentFilter={contentFilter}
-          tagFilter={tagFilter}
-        />
-      )}
+      <GraphCanvas
+        graphData={graphData}
+        selectedNode={selectedNode}
+        onNodeSelect={handleSelect}
+        graphConfig={graphConfig}
+        search={search}
+        maxDepth={maxDepth}
+        contentFilter={contentFilter}
+        tagFilter={tagFilter}
+      />
 
       <GraphWorkspaceControls
-        layout={layout}
-        onLayoutChange={setLayout}
+        layout={layoutMode}
+        onLayoutChange={setLayoutMode}
+        orientation={orientation}
+        onOrientationChange={setOrientation}
+        highlightPathway={highlightMode === 'pathway'}
+        onHighlightPathwayChange={(value) => setHighlightMode(value ? 'pathway' : 'off')}
+        collapsedCount={collapsedIds.length}
+        onExpandAll={expandAll}
+        focused={Boolean(focusedRootId)}
+        onClearFocus={() => setFocusedRoot(null)}
         search={search}
         onSearchChange={setSearch}
         maxDepth={maxDepth}

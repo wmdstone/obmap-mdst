@@ -1,14 +1,12 @@
 /**
- * Multi-modal layout engine settings: projection, link routing, spacing and
- * per-depth sub-layout rules.
+ * Layout engine settings: default layout mode, mindmap orientation, spacing
+ * and label behaviour for the single graph renderer.
  */
 
 import { Label } from '@/shared/ui/label';
 import { Input } from '@/shared/ui/input';
 import { Switch } from '@/shared/ui/switch';
 import { Slider } from '@/shared/ui/slider';
-import { Button } from '@/shared/ui/button';
-import { Plus, Trash2 } from 'lucide-react';
 import {
   Select,
   SelectContent,
@@ -17,38 +15,29 @@ import {
   SelectValue,
 } from '@/shared/ui/select';
 import { useGraphEngineStore } from '@/shared/stores/useGraphEngineStore';
-import type { LayoutKind } from '@/core/graph/engine/types';
+import { useGraphInteractionStore } from '@/features/graph/model/useGraphInteractionStore';
+import type { LayoutMode, MindmapOrientation } from '@/features/graph/model/graphTypes';
 
-const LAYOUTS: { value: LayoutKind; label: string }[] = [
-  { value: 'force', label: 'Force' },
+const LAYOUTS: { value: LayoutMode; label: string }[] = [
+  { value: 'mindmap', label: 'Mindmap' },
   { value: 'timeline', label: 'Timeline' },
-  { value: 'tree', label: 'Tree' },
   { value: 'fishbone', label: 'Fishbone' },
+  { value: 'free-force', label: 'Free force' },
 ];
 
 export function LayoutEngineTab() {
   const engine = useGraphEngineStore();
+  const interaction = useGraphInteractionStore();
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between gap-4">
-        <div>
-          <Label className="text-sm">Canvas engine</Label>
-          <p className="text-xs text-muted-foreground">
-            Multi-modal renderer with worker-computed layouts.
-          </p>
-        </div>
-        <Switch
-          checked={engine.useCanvasEngine}
-          onCheckedChange={(v) => engine.patch({ useCanvasEngine: v })}
-        />
-      </div>
-
-
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-1.5">
           <Label className="text-xs">Default layout</Label>
-          <Select value={engine.layout} onValueChange={(v) => engine.setLayout(v as LayoutKind)}>
+          <Select
+            value={interaction.layoutMode}
+            onValueChange={(v) => interaction.setLayoutMode(v as LayoutMode)}
+          >
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
               {LAYOUTS.map((l) => (
@@ -59,17 +48,15 @@ export function LayoutEngineTab() {
         </div>
 
         <div className="space-y-1.5">
-          <Label className="text-xs">Link routing</Label>
+          <Label className="text-xs">Mindmap orientation</Label>
           <Select
-            value={engine.routing}
-            onValueChange={(v) => engine.patch({ routing: v as typeof engine.routing })}
+            value={interaction.orientation}
+            onValueChange={(v) => interaction.setOrientation(v as MindmapOrientation)}
           >
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="auto">Auto (per layout)</SelectItem>
-              <SelectItem value="straight">Straight</SelectItem>
-              <SelectItem value="elbow">Orthogonal elbow</SelectItem>
-              <SelectItem value="bezier">Bezier</SelectItem>
+              <SelectItem value="balanced">Balanced (left / right)</SelectItem>
+              <SelectItem value="radial">Radial</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -95,7 +82,7 @@ export function LayoutEngineTab() {
         </div>
 
         <div className="space-y-1.5">
-          <Label className="text-xs">Timeline lane height ({engine.laneHeight})</Label>
+          <Label className="text-xs">Sibling / lane gap ({engine.laneHeight})</Label>
           <Slider
             min={20}
             max={120}
@@ -106,7 +93,7 @@ export function LayoutEngineTab() {
         </div>
 
         <div className="space-y-1.5">
-          <Label className="text-xs">Tree level distance ({engine.levelDistance})</Label>
+          <Label className="text-xs">Level distance ({engine.levelDistance})</Label>
           <Slider
             min={50}
             max={260}
@@ -117,73 +104,30 @@ export function LayoutEngineTab() {
         </div>
       </div>
 
-      <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <div>
-            <Label className="text-sm">Per-depth sub-layouts</Label>
-            <p className="text-xs text-muted-foreground">
-              First matching rule wins; anything else uses the default layout.
-            </p>
-          </div>
-          <Button size="sm" variant="outline" onClick={engine.addDepthRule}>
-            <Plus className="w-3.5 h-3.5 mr-1.5" /> Rule
-          </Button>
+      <div className="flex items-center justify-between gap-4">
+        <div>
+          <Label className="text-sm">Node labels</Label>
+          <p className="text-xs text-muted-foreground">
+            Hide labels to keep very large graphs readable.
+          </p>
         </div>
+        <Switch
+          checked={engine.showLabels}
+          onCheckedChange={(v) => engine.patch({ showLabels: v })}
+        />
+      </div>
 
-        {engine.depthRules.length === 0 ? (
-          <p className="text-xs text-muted-foreground/70">No depth rules yet.</p>
-        ) : (
-          <div className="space-y-2">
-            {engine.depthRules.map((rule) => (
-              <div key={rule.id} className="flex items-end gap-2 rounded-md border border-border/40 p-2">
-                <div className="space-y-1">
-                  <Label className="text-[10px]">From</Label>
-                  <Input
-                    type="number"
-                    className="w-16"
-                    value={rule.fromDepth}
-                    onChange={(e) =>
-                      engine.updateDepthRule(rule.id, { fromDepth: Number(e.target.value) })
-                    }
-                  />
-                </div>
-                <div className="space-y-1">
-                  <Label className="text-[10px]">To</Label>
-                  <Input
-                    type="number"
-                    className="w-16"
-                    value={rule.toDepth}
-                    onChange={(e) =>
-                      engine.updateDepthRule(rule.id, { toDepth: Number(e.target.value) })
-                    }
-                  />
-                </div>
-                <div className="flex-1 space-y-1">
-                  <Label className="text-[10px]">Layout</Label>
-                  <Select
-                    value={rule.kind}
-                    onValueChange={(v) => engine.updateDepthRule(rule.id, { kind: v as LayoutKind })}
-                  >
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      {LAYOUTS.map((l) => (
-                        <SelectItem key={l.value} value={l.value}>{l.label}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  onClick={() => engine.removeDepthRule(rule.id)}
-                  aria-label="Remove rule"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </Button>
-              </div>
-            ))}
-          </div>
-        )}
+      <div className="flex items-center justify-between gap-4">
+        <div>
+          <Label className="text-sm">Highlight connected path</Label>
+          <p className="text-xs text-muted-foreground">
+            Dim unrelated nodes while hovering.
+          </p>
+        </div>
+        <Switch
+          checked={interaction.highlightMode === 'pathway'}
+          onCheckedChange={(v) => interaction.setHighlightMode(v ? 'pathway' : 'off')}
+        />
       </div>
     </div>
   );

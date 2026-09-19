@@ -1,70 +1,55 @@
 /**
- * Graph engine settings: which projection is active, how links are routed,
- * per-depth sub-layout rules and the renderer switch.
+ * Graph engine settings: spacing, labels and the timeline date field.
+ *
+ * Layout mode / orientation / collapse live in `useGraphInteractionStore`;
+ * the legacy renderer toggle, link-routing choice and per-depth rules were
+ * removed together with the parallel canvas renderer.
  */
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { DepthRule, LayoutKind, LinkRouting } from '@/core/graph/engine/types';
 
 export interface GraphEngineState {
-  /** Use the new Canvas engine instead of react-force-graph-2d. */
-  useCanvasEngine: boolean;
-  layout: LayoutKind;
-  /** 'auto' picks the routing that fits the active layout. */
-  routing: LinkRouting | 'auto';
   timeField: string;
-  linkDistance: number;
-  chargeStrength: number;
   laneHeight: number;
   levelDistance: number;
   showLabels: boolean;
   labelZoomThreshold: number;
-  
-  depthRules: DepthRule[];
-  setLayout: (layout: LayoutKind) => void;
-  patch: (partial: Partial<Omit<GraphEngineState, 'patch' | 'setLayout'>>) => void;
-  addDepthRule: () => void;
-  updateDepthRule: (id: string, partial: Partial<DepthRule>) => void;
-  removeDepthRule: (id: string) => void;
+
+  patch: (partial: Partial<Omit<GraphEngineState, 'patch'>>) => void;
 }
 
 export const useGraphEngineStore = create<GraphEngineState>()(
   persist(
     (set) => ({
-      useCanvasEngine: true,
-      layout: 'force',
-      routing: 'auto',
       timeField: 'date',
-      linkDistance: 60,
-      chargeStrength: -180,
       laneHeight: 46,
       levelDistance: 110,
       showLabels: true,
       labelZoomThreshold: 0.7,
-      
-      depthRules: [],
-      setLayout: (layout) => set({ layout }),
+
       patch: (partial) => set(partial),
-      addDepthRule: () =>
-        set((s) => ({
-          depthRules: [
-            ...s.depthRules,
-            {
-              id: crypto.randomUUID(),
-              fromDepth: 0,
-              toDepth: 2,
-              kind: 'force' as LayoutKind,
-            },
-          ],
-        })),
-      updateDepthRule: (id, partial) =>
-        set((s) => ({
-          depthRules: s.depthRules.map((r) => (r.id === id ? { ...r, ...partial } : r)),
-        })),
-      removeDepthRule: (id) =>
-        set((s) => ({ depthRules: s.depthRules.filter((r) => r.id !== id) })),
     }),
-    { name: 'graph-engine-storage' }
+    {
+      name: 'graph-engine-storage',
+      version: 2,
+      partialize: (state) => ({
+        timeField: state.timeField,
+        laneHeight: state.laneHeight,
+        levelDistance: state.levelDistance,
+        showLabels: state.showLabels,
+        labelZoomThreshold: state.labelZoomThreshold,
+      }),
+      migrate: (persisted) => {
+        const state = (persisted ?? {}) as Partial<GraphEngineState>;
+        return {
+          timeField: state.timeField ?? 'date',
+          laneHeight: state.laneHeight ?? 46,
+          levelDistance: state.levelDistance ?? 110,
+          showLabels: state.showLabels ?? true,
+          labelZoomThreshold: state.labelZoomThreshold ?? 0.7,
+        } as GraphEngineState;
+      },
+    }
   )
 );

@@ -1,8 +1,8 @@
-import type { LayoutKind } from '@/core/graph/engine/types';
 import { Button } from '@/shared/ui/button';
 import { Input } from '@/shared/ui/input';
 import { Label } from '@/shared/ui/label';
 import { Slider } from '@/shared/ui/slider';
+import { Switch } from '@/shared/ui/switch';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/shared/ui/tooltip';
 import { cn } from '@/shared/lib/cn';
 import {
@@ -12,22 +12,33 @@ import {
   Network,
   Search,
   SlidersHorizontal,
+  Sparkles,
+  UnfoldVertical,
   X,
 } from 'lucide-react';
 import { useState } from 'react';
+import type { LayoutMode, MindmapOrientation } from './model/graphTypes';
 
-const LAYOUTS: { value: LayoutKind; label: string; icon: typeof Network }[] = [
-  { value: 'force', label: 'Force', icon: Network },
+const LAYOUTS: { value: LayoutMode; label: string; icon: typeof Network }[] = [
+  { value: 'mindmap', label: 'Mindmap', icon: GitBranch },
   { value: 'timeline', label: 'Timeline', icon: Clock3 },
-  { value: 'tree', label: 'Tree', icon: GitBranch },
   { value: 'fishbone', label: 'Fishbone', icon: SlidersHorizontal },
+  { value: 'free-force', label: 'Free force', icon: Network },
 ];
 
 type Panel = 'controls' | 'search' | 'filters';
 
 interface GraphWorkspaceControlsProps {
-  layout: LayoutKind;
-  onLayoutChange: (layout: LayoutKind) => void;
+  layout: LayoutMode;
+  onLayoutChange: (layout: LayoutMode) => void;
+  orientation: MindmapOrientation;
+  onOrientationChange: (orientation: MindmapOrientation) => void;
+  highlightPathway: boolean;
+  onHighlightPathwayChange: (value: boolean) => void;
+  collapsedCount: number;
+  onExpandAll: () => void;
+  focused: boolean;
+  onClearFocus: () => void;
   search: string;
   onSearchChange: (value: string) => void;
   maxDepth: number;
@@ -41,6 +52,14 @@ interface GraphWorkspaceControlsProps {
 export function GraphWorkspaceControls({
   layout,
   onLayoutChange,
+  orientation,
+  onOrientationChange,
+  highlightPathway,
+  onHighlightPathwayChange,
+  collapsedCount,
+  onExpandAll,
+  focused,
+  onClearFocus,
   search,
   onSearchChange,
   maxDepth,
@@ -112,6 +131,27 @@ export function GraphWorkspaceControls({
             </TooltipTrigger>
             <TooltipContent side="right">Graph filters</TooltipContent>
           </Tooltip>
+
+          {(collapsedCount > 0 || focused) && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="h-9 w-9 text-primary"
+                  aria-label="Show everything"
+                  onClick={() => {
+                    onExpandAll();
+                    onClearFocus();
+                  }}
+                >
+                  <UnfoldVertical className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="right">Show everything</TooltipContent>
+            </Tooltip>
+          )}
         </div>
 
         {panel && (
@@ -132,22 +172,68 @@ export function GraphWorkspaceControls({
 
             <div className="p-3">
               {panel === 'controls' && (
-                <div className="grid grid-cols-2 gap-1.5">
-                  {LAYOUTS.map((item) => {
-                    const Icon = item.icon;
-                    return (
-                      <Button
-                        key={item.value}
-                        type="button"
-                        variant={layout === item.value ? 'secondary' : 'ghost'}
-                        className="h-10 justify-start px-3 text-xs"
-                        onClick={() => onLayoutChange(item.value)}
-                      >
-                        <Icon className="h-4 w-4" />
-                        {item.label}
-                      </Button>
-                    );
-                  })}
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-1.5">
+                    {LAYOUTS.map((item) => {
+                      const Icon = item.icon;
+                      return (
+                        <Button
+                          key={item.value}
+                          type="button"
+                          variant={layout === item.value ? 'secondary' : 'ghost'}
+                          className="h-10 justify-start px-3 text-xs"
+                          onClick={() => onLayoutChange(item.value)}
+                        >
+                          <Icon className="h-4 w-4" />
+                          {item.label}
+                        </Button>
+                      );
+                    })}
+                  </div>
+
+                  {layout === 'mindmap' && (
+                    <div className="grid grid-cols-2 gap-1.5">
+                      {(['balanced', 'radial'] as MindmapOrientation[]).map((value) => (
+                        <Button
+                          key={value}
+                          type="button"
+                          variant={orientation === value ? 'secondary' : 'outline'}
+                          className="h-9 text-xs capitalize"
+                          onClick={() => onOrientationChange(value)}
+                        >
+                          {value}
+                        </Button>
+                      ))}
+                    </div>
+                  )}
+
+                  <div className="flex items-center justify-between gap-3">
+                    <Label htmlFor="graph-pathway" className="flex items-center gap-1.5 text-xs">
+                      <Sparkles className="h-3.5 w-3.5" />
+                      Highlight connected path
+                    </Label>
+                    <Switch
+                      id="graph-pathway"
+                      checked={highlightPathway}
+                      onCheckedChange={onHighlightPathwayChange}
+                    />
+                  </div>
+
+                  {(collapsedCount > 0 || focused) && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="w-full"
+                      onClick={() => {
+                        onExpandAll();
+                        onClearFocus();
+                      }}
+                    >
+                      Show everything
+                      {collapsedCount > 0 ? ` (${collapsedCount} collapsed)` : ''}
+                    </Button>
+                  )}
                 </div>
               )}
 

@@ -46,17 +46,11 @@ export function registerConfigSections(): void {
   const readEngine = () => {
     const s = useGraphEngineStore.getState();
     return {
-      useCanvasEngine: s.useCanvasEngine,
-      layout: s.layout,
-      routing: s.routing,
       timeField: s.timeField,
-      linkDistance: s.linkDistance,
-      chargeStrength: s.chargeStrength,
       laneHeight: s.laneHeight,
       levelDistance: s.levelDistance,
       showLabels: s.showLabels,
       labelZoomThreshold: s.labelZoomThreshold,
-      depthRules: s.depthRules,
     };
   };
 
