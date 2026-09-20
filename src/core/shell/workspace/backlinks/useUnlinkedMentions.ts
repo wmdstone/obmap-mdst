@@ -53,7 +53,7 @@ export function useUnlinkedMentions(
       try {
         if (!workerRef.current) {
           workerRef.current = new Worker(
-            new URL("@/core/metadata/mentions.worker.ts", import.meta.url),
+            new URL("../../system/metadata/mentions.worker.ts", import.meta.url),
             { type: "module" },
           );
         }
