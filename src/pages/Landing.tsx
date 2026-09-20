@@ -1,21 +1,21 @@
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "@/features/auth/hooks/useAuth";
-import { usePWA } from "@/features/sync/hooks/usePWA";
+import { useAuth } from "@/core/shell/auth/hooks/useAuth";
+import { usePWA } from "@/core/system/sync/hooks/usePWA";
 import { Button } from "@/shared/ui/button";
 import { Badge } from "@/shared/ui/badge";
-import { 
-  Network, 
-  Sparkles, 
-  Shield, 
-  Zap, 
-  Cloud, 
+import {
+  Network,
+  Sparkles,
+  Shield,
+  Zap,
+  Cloud,
   FolderTree,
   Download,
   ArrowRight,
   Check,
   GitBranch,
   Link2,
-  Tags
+  Tags,
 } from "lucide-react";
 import { useEffect } from "react";
 
@@ -27,7 +27,7 @@ export default function Landing() {
   // Redirect authenticated users to main app
   useEffect(() => {
     if (!loading && user) {
-      navigate('/app');
+      navigate("/app");
     }
   }, [user, loading, navigate]);
 
@@ -35,54 +35,55 @@ export default function Landing() {
     {
       icon: Network,
       title: "Visual Knowledge Graph",
-      description: "See connections between your ideas with an interactive force-directed graph visualization."
+      description:
+        "See connections between your ideas with an interactive force-directed graph visualization.",
     },
     {
       icon: Link2,
       title: "Bi-directional Links",
-      description: "Create [[wikilinks]] that automatically connect related notes and surface backlinks."
+      description:
+        "Create [[wikilinks]] that automatically connect related notes and surface backlinks.",
     },
     {
       icon: FolderTree,
       title: "Hierarchical Organization",
-      description: "Organize notes in folders while maintaining a flat graph structure for connections."
+      description:
+        "Organize notes in folders while maintaining a flat graph structure for connections.",
     },
     {
       icon: Tags,
       title: "Tag-based Discovery",
-      description: "Use #tags to categorize and filter your knowledge for quick retrieval."
+      description:
+        "Use #tags to categorize and filter your knowledge for quick retrieval.",
     },
     {
       icon: Cloud,
       title: "Multi-device Sync",
-      description: "Sync your vaults across devices with secure cloud storage and offline support."
+      description:
+        "Sync your vaults across devices with secure cloud storage and offline support.",
     },
     {
       icon: Shield,
       title: "Privacy First",
-      description: "Your data stays yours. Choose local-only storage or encrypted cloud sync."
-    }
+      description:
+        "Your data stays yours. Choose local-only storage or encrypted cloud sync.",
+    },
   ];
 
   const storageOptions = [
     {
-      icon: Zap,
-      title: "In-Memory",
-      description: "Fast ephemeral workspace in your browser",
-      badge: "Quick Start"
-    },
-    {
       icon: Cloud,
-      title: "Cloud Sync",
-      description: "Secure cross-device synchronization",
-      badge: "Recommended"
+      title: "Cloud Vault",
+      description: "Stored in your account, reachable from any device",
+      badge: "Recommended",
     },
     {
       icon: GitBranch,
-      title: "Local Files",
-      description: "Native file system integration",
-      badge: "Advanced"
-    }
+      title: "Folder Vault",
+      description:
+        "Real files in a folder on your computer, syncable to the cloud",
+      badge: "Portable",
+    },
   ];
 
   return (
@@ -105,15 +106,24 @@ export default function Landing() {
 
           <div className="flex items-center gap-3">
             {canInstall && !isInstalled && (
-              <Button variant="ghost" size="sm" onClick={installApp} className="gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={installApp}
+                className="gap-2"
+              >
                 <Download className="w-4 h-4" />
                 Install App
               </Button>
             )}
-            <Button variant="ghost" size="sm" onClick={() => navigate('/auth?mode=login')}>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate("/auth?mode=login")}
+            >
               Sign In
             </Button>
-            <Button size="sm" onClick={() => navigate('/auth?mode=register')}>
+            <Button size="sm" onClick={() => navigate("/auth?mode=register")}>
               Get Started
             </Button>
           </div>
@@ -126,21 +136,31 @@ export default function Landing() {
           <Sparkles className="w-3.5 h-3.5 mr-2" />
           Knowledge Graph for Thinkers
         </Badge>
-        
+
         <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight mb-6 bg-gradient-to-br from-foreground via-foreground to-muted-foreground bg-clip-text">
           Map Your Mind
         </h1>
-        
+
         <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-10">
-          Transform scattered thoughts into connected knowledge. Build your personal wiki with visual graphs, bi-directional links, and flexible storage.
+          Transform scattered thoughts into connected knowledge. Build your
+          personal wiki with visual graphs, bi-directional links, and flexible
+          storage.
         </p>
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-          <Button size="lg" onClick={() => navigate('/auth?mode=register')} className="gap-2 px-8">
+          <Button
+            size="lg"
+            onClick={() => navigate("/auth?mode=register")}
+            className="gap-2 px-8"
+          >
             Start Building
             <ArrowRight className="w-4 h-4" />
           </Button>
-          <Button variant="outline" size="lg" onClick={() => navigate('/auth?mode=login')}>
+          <Button
+            variant="outline"
+            size="lg"
+            onClick={() => navigate("/auth?mode=login")}
+          >
             Sign In to Continue
           </Button>
         </div>
@@ -165,7 +185,9 @@ export default function Landing() {
       {/* Features Grid */}
       <section className="relative z-10 container mx-auto px-6 py-20">
         <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">Everything You Need</h2>
+          <h2 className="text-3xl md:text-4xl font-bold mb-4">
+            Everything You Need
+          </h2>
           <p className="text-muted-foreground max-w-xl mx-auto">
             A complete toolkit for building and navigating your knowledge graph
           </p>
@@ -173,7 +195,7 @@ export default function Landing() {
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {features.map((feature, index) => (
-            <div 
+            <div
               key={index}
               className="group p-6 rounded-2xl border border-border/50 bg-card/50 hover:bg-card hover:border-border transition-all duration-300"
             >
@@ -181,7 +203,9 @@ export default function Landing() {
                 <feature.icon className="w-6 h-6 text-primary" />
               </div>
               <h3 className="text-lg font-semibold mb-2">{feature.title}</h3>
-              <p className="text-sm text-muted-foreground">{feature.description}</p>
+              <p className="text-sm text-muted-foreground">
+                {feature.description}
+              </p>
             </div>
           ))}
         </div>
@@ -190,7 +214,9 @@ export default function Landing() {
       {/* Storage Options */}
       <section className="relative z-10 container mx-auto px-6 py-20">
         <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">Your Data, Your Choice</h2>
+          <h2 className="text-3xl md:text-4xl font-bold mb-4">
+            Your Data, Your Choice
+          </h2>
           <p className="text-muted-foreground max-w-xl mx-auto">
             Choose how and where your knowledge lives
           </p>
@@ -198,7 +224,7 @@ export default function Landing() {
 
         <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto">
           {storageOptions.map((option, index) => (
-            <div 
+            <div
               key={index}
               className="relative p-6 rounded-2xl border border-border/50 bg-card/50 text-center hover:border-primary/50 transition-all"
             >
@@ -211,7 +237,9 @@ export default function Landing() {
                 <option.icon className="w-7 h-7 text-primary" />
               </div>
               <h3 className="text-lg font-semibold mb-2">{option.title}</h3>
-              <p className="text-sm text-muted-foreground">{option.description}</p>
+              <p className="text-sm text-muted-foreground">
+                {option.description}
+              </p>
             </div>
           ))}
         </div>
@@ -224,7 +252,8 @@ export default function Landing() {
             <Download className="w-12 h-12 text-primary mx-auto mb-4" />
             <h2 className="text-2xl font-bold mb-3">Install the App</h2>
             <p className="text-muted-foreground mb-6">
-              Get a native app experience with offline support, faster loading, and system integration.
+              Get a native app experience with offline support, faster loading,
+              and system integration.
             </p>
             <Button size="lg" onClick={installApp} className="gap-2">
               <Download className="w-4 h-4" />
@@ -240,7 +269,11 @@ export default function Landing() {
         <p className="text-muted-foreground max-w-xl mx-auto mb-8">
           Join thousands of thinkers building their second brain with ObMap.
         </p>
-        <Button size="lg" onClick={() => navigate('/auth?mode=register')} className="gap-2 px-8">
+        <Button
+          size="lg"
+          onClick={() => navigate("/auth?mode=register")}
+          className="gap-2 px-8"
+        >
           Create Free Account
           <ArrowRight className="w-4 h-4" />
         </Button>
@@ -254,7 +287,10 @@ export default function Landing() {
             <span>ObMap — Your Knowledge Graph</span>
           </div>
           <div className="flex items-center gap-6 text-sm text-muted-foreground">
-            <button onClick={() => navigate('/install')} className="hover:text-foreground transition-colors">
+            <button
+              onClick={() => navigate("/install")}
+              className="hover:text-foreground transition-colors"
+            >
               Install Guide
             </button>
           </div>

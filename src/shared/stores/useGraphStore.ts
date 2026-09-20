@@ -27,6 +27,7 @@ export interface NodeConfig {
   labelSize: number;
   labelColor: string;
   labelFontStyle: 'normal' | 'bold' | 'italic' | 'bold-italic';
+  labelBox: boolean;
   labelBackground: boolean;
   labelBackgroundColor: string;
 }
@@ -121,6 +122,7 @@ export const defaultNodeConfig: NodeConfig = {
   labelSize: 12,
   labelColor: 'hsl(0, 0%, 100%)',
   labelFontStyle: 'normal',
+  labelBox: true,
   labelBackground: true,
   labelBackgroundColor: 'hsl(0, 0%, 0%)',
 };

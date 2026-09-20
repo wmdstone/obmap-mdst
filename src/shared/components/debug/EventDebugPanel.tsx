@@ -1,26 +1,30 @@
 /**
  * EventDebugPanel - Real-time event flow visualization for development
- * 
+ *
  * Shows live domain events flowing through the system for debugging purposes.
  * Only rendered in development mode.
  */
 
-import { useState, useEffect, useRef } from 'react';
-import { useAllVaultEvents, useEventHistory, EventType } from "@/features/vault-dashboard/hooks/useVaultEvents";
+import { useState, useEffect, useRef } from "react";
+import {
+  useAllVaultEvents,
+  useEventHistory,
+  EventType,
+} from "@/core/vault-dashboard/hooks/useVaultEvents";
 import { DomainEvent } from "@/shared/events/events";
 import { Button } from "@/shared/ui/button";
 import { Badge } from "@/shared/ui/badge";
 import { ScrollArea } from "@/shared/ui/scroll-area";
-import { 
-  Bug, 
-  X, 
-  Pause, 
-  Play, 
+import {
+  Bug,
+  X,
+  Pause,
+  Play,
   Trash2,
   ChevronDown,
   ChevronRight,
-  Activity
-} from 'lucide-react';
+  Activity,
+} from "lucide-react";
 import {
   Collapsible,
   CollapsibleContent,
@@ -35,15 +39,21 @@ interface EventLogEntry {
 }
 
 const eventTypeColors: Partial<Record<EventType, string>> = {
-  [EventType.NODE_CREATED]: 'bg-green-500/20 text-green-400 border-green-500/30',
-  [EventType.NODE_UPDATED]: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
-  [EventType.NODE_DELETED]: 'bg-red-500/20 text-red-400 border-red-500/30',
-  [EventType.NODE_MOVED]: 'bg-purple-500/20 text-purple-400 border-purple-500/30',
-  [EventType.GRAPH_UPDATED]: 'bg-amber-500/20 text-amber-400 border-amber-500/30',
-  [EventType.VAULT_SAVED]: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',
-  [EventType.VAULT_SWITCHED]: 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30',
-  [EventType.UNDO_PERFORMED]: 'bg-orange-500/20 text-orange-400 border-orange-500/30',
-  [EventType.REDO_PERFORMED]: 'bg-orange-500/20 text-orange-400 border-orange-500/30',
+  [EventType.NODE_CREATED]:
+    "bg-green-500/20 text-green-400 border-green-500/30",
+  [EventType.NODE_UPDATED]: "bg-blue-500/20 text-blue-400 border-blue-500/30",
+  [EventType.NODE_DELETED]: "bg-red-500/20 text-red-400 border-red-500/30",
+  [EventType.NODE_MOVED]:
+    "bg-purple-500/20 text-purple-400 border-purple-500/30",
+  [EventType.GRAPH_UPDATED]:
+    "bg-amber-500/20 text-amber-400 border-amber-500/30",
+  [EventType.VAULT_SAVED]:
+    "bg-emerald-500/20 text-emerald-400 border-emerald-500/30",
+  [EventType.VAULT_SWITCHED]: "bg-cyan-500/20 text-cyan-400 border-cyan-500/30",
+  [EventType.UNDO_PERFORMED]:
+    "bg-orange-500/20 text-orange-400 border-orange-500/30",
+  [EventType.REDO_PERFORMED]:
+    "bg-orange-500/20 text-orange-400 border-orange-500/30",
 };
 
 export function EventDebugPanel() {
@@ -63,16 +73,16 @@ export function EventDebugPanel() {
   useAllVaultEvents(
     (event) => {
       if (isPaused) return;
-      
+
       const entry: EventLogEntry = {
         id: eventIdRef.current++,
         event,
         timestamp: new Date(),
       };
-      
-      setEvents(prev => [...prev.slice(-99), entry]); // Keep last 100 events
+
+      setEvents((prev) => [...prev.slice(-99), entry]); // Keep last 100 events
     },
-    { enabled: isOpen }
+    { enabled: isOpen },
   );
 
   // Auto-scroll to bottom when new events arrive
@@ -83,7 +93,7 @@ export function EventDebugPanel() {
   }, [events, isPaused]);
 
   const toggleExpand = (id: number) => {
-    setExpandedEvents(prev => {
+    setExpandedEvents((prev) => {
       const next = new Set(prev);
       if (next.has(id)) {
         next.delete(id);
@@ -99,11 +109,13 @@ export function EventDebugPanel() {
   };
 
   const getEventColor = (type: EventType): string => {
-    return eventTypeColors[type] || 'bg-muted text-muted-foreground border-border';
+    return (
+      eventTypeColors[type] || "bg-muted text-muted-foreground border-border"
+    );
   };
 
   const formatEventType = (type: string): string => {
-    return type.replace(/_/g, ' ').toLowerCase();
+    return type.replace(/_/g, " ").toLowerCase();
   };
 
   if (!isOpen) {
@@ -118,7 +130,7 @@ export function EventDebugPanel() {
         <Bug className="h-4 w-4" />
         {events.length > 0 && (
           <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-primary text-[10px] flex items-center justify-center text-primary-foreground">
-            {events.length > 99 ? '99+' : events.length}
+            {events.length > 99 ? "99+" : events.length}
           </span>
         )}
       </Button>
@@ -142,9 +154,13 @@ export function EventDebugPanel() {
             size="icon"
             className="h-7 w-7"
             onClick={() => setIsPaused(!isPaused)}
-            title={isPaused ? 'Resume' : 'Pause'}
+            title={isPaused ? "Resume" : "Pause"}
           >
-            {isPaused ? <Play className="h-3 w-3" /> : <Pause className="h-3 w-3" />}
+            {isPaused ? (
+              <Play className="h-3 w-3" />
+            ) : (
+              <Pause className="h-3 w-3" />
+            )}
           </Button>
           <Button
             variant="ghost"
@@ -173,7 +189,9 @@ export function EventDebugPanel() {
           <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
             <Bug className="h-8 w-8 mb-2 opacity-50" />
             <p className="text-sm">No events captured yet</p>
-            <p className="text-xs opacity-70">Events will appear here in real-time</p>
+            <p className="text-xs opacity-70">
+              Events will appear here in real-time
+            </p>
           </div>
         ) : (
           <div className="space-y-1">
@@ -184,10 +202,12 @@ export function EventDebugPanel() {
                 onOpenChange={() => toggleExpand(entry.id)}
               >
                 <CollapsibleTrigger className="w-full">
-                  <div className={cn(
-                    "flex items-center gap-2 p-2 rounded-md border text-left transition-colors hover:bg-muted/50",
-                    getEventColor(entry.event.type as EventType)
-                  )}>
+                  <div
+                    className={cn(
+                      "flex items-center gap-2 p-2 rounded-md border text-left transition-colors hover:bg-muted/50",
+                      getEventColor(entry.event.type as EventType),
+                    )}
+                  >
                     {expandedEvents.has(entry.id) ? (
                       <ChevronDown className="h-3 w-3 flex-shrink-0" />
                     ) : (
@@ -197,12 +217,17 @@ export function EventDebugPanel() {
                       {formatEventType(entry.event.type)}
                     </span>
                     <span className="text-[10px] opacity-70 flex-shrink-0">
-                      {entry.timestamp.toLocaleTimeString('en-US', { 
-                        hour12: false, 
-                        hour: '2-digit', 
-                        minute: '2-digit', 
-                        second: '2-digit'
-                      })}.{String(entry.timestamp.getMilliseconds()).padStart(3, '0')}
+                      {entry.timestamp.toLocaleTimeString("en-US", {
+                        hour12: false,
+                        hour: "2-digit",
+                        minute: "2-digit",
+                        second: "2-digit",
+                      })}
+                      .
+                      {String(entry.timestamp.getMilliseconds()).padStart(
+                        3,
+                        "0",
+                      )}
                     </span>
                   </div>
                 </CollapsibleTrigger>
@@ -229,7 +254,9 @@ export function EventDebugPanel() {
       {/* Status Bar */}
       {isPaused && (
         <div className="px-3 py-1.5 bg-amber-500/10 border-t border-amber-500/30 text-center">
-          <span className="text-xs text-amber-400">Paused - events are not being captured</span>
+          <span className="text-xs text-amber-400">
+            Paused - events are not being captured
+          </span>
         </div>
       )}
     </div>

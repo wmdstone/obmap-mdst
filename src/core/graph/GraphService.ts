@@ -1,6 +1,6 @@
 /**
  * Graph Service - Computation and Optimization Layer
- * 
+ *
  * Responsibilities:
  * - Consume events from Persistence Service asynchronously
  * - Parse content and extract wikilinks, frontmatter, tags
@@ -9,9 +9,9 @@
  * - Expose graph data for visualization
  */
 
-import { eventBus, EventType, DomainEvent } from '@/shared/events/events';
-import { ContentParser } from '@/core/metadata/content-parser';
-import { RelationshipMapper, GraphNode, GraphLink } from './RelationshipMapper';
+import { eventBus, EventType, DomainEvent } from "@/shared/events/events";
+import { ContentParser } from "@/core/system/metadata/content-parser";
+import { RelationshipMapper, GraphNode, GraphLink } from "./RelationshipMapper";
 
 // Event payload interfaces for type safety
 interface FolderCreatedPayload {
@@ -56,22 +56,34 @@ export class GraphService {
   initialize(): void {
     // Subscribe to vault opened events
     this.unsubscribers.push(
-      eventBus.subscribe(EventType.VAULT_OPENED, this.handleVaultOpened.bind(this))
+      eventBus.subscribe(
+        EventType.VAULT_OPENED,
+        this.handleVaultOpened.bind(this),
+      ),
     );
 
     // Subscribe to folder created events
     this.unsubscribers.push(
-      eventBus.subscribe(EventType.FOLDER_CREATED, this.handleFolderCreated.bind(this))
+      eventBus.subscribe(
+        EventType.FOLDER_CREATED,
+        this.handleFolderCreated.bind(this),
+      ),
     );
 
     // Subscribe to note created events
     this.unsubscribers.push(
-      eventBus.subscribe(EventType.NOTE_CREATED, this.handleNoteCreated.bind(this))
+      eventBus.subscribe(
+        EventType.NOTE_CREATED,
+        this.handleNoteCreated.bind(this),
+      ),
     );
 
     // Subscribe to note updated events
     this.unsubscribers.push(
-      eventBus.subscribe(EventType.NOTE_UPDATED, this.handleNoteUpdated.bind(this))
+      eventBus.subscribe(
+        EventType.NOTE_UPDATED,
+        this.handleNoteUpdated.bind(this),
+      ),
     );
   }
 
@@ -106,7 +118,15 @@ export class GraphService {
     const parsed = this.parser.parse(content);
 
     this.depthMap.set(id, depth);
-    this.mapper.addFile(id, name, content, parentId, depth, parsed.tags, parsed.wikilinks);
+    this.mapper.addFile(
+      id,
+      name,
+      content,
+      parentId,
+      depth,
+      parsed.tags,
+      parsed.wikilinks,
+    );
   }
 
   /**
@@ -120,9 +140,9 @@ export class GraphService {
 
     // Update the node with new parsed data
     const graph = this.mapper.getGraph();
-    const node = graph.nodes.find(n => n.id === id);
+    const node = graph.nodes.find((n) => n.id === id);
 
-    if (node && node.type === 'file') {
+    if (node && node.type === "file") {
       const depth = this.depthMap.get(id) || 0;
       this.mapper.addFile(
         id,
@@ -131,7 +151,7 @@ export class GraphService {
         node.parentId,
         depth,
         parsed.tags,
-        parsed.wikilinks
+        parsed.wikilinks,
       );
     }
   }
@@ -185,7 +205,7 @@ export class GraphService {
    * Cleanup and unsubscribe from events
    */
   cleanup(): void {
-    this.unsubscribers.forEach(unsub => unsub());
+    this.unsubscribers.forEach((unsub) => unsub());
     this.unsubscribers = [];
     this.mapper.clear();
     this.depthMap.clear();
