@@ -84,6 +84,7 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, GraphCanvasProps>(funct
   const transition = useRef(new LayoutTransitionController());
   const zoomRef = useRef(1);
   const particleProgress = useRef(0);
+  const particleStartedAt = useRef(performance.now());
   const [size, setSize] = useState({ width: 800, height: 600 });
 
   const engine = useGraphEngineStore();
@@ -225,22 +226,30 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, GraphCanvasProps>(funct
   useEffect(() => {
     const graph = graphRef.current;
     if (!graph || !simulationCommand || layoutMode !== 'free-force') return;
-    if (simulationCommand.type === 'reheat') graph.d3ReheatSimulation?.();
-    else graph.pauseAnimation?.();
-  }, [simulationCommand, layoutMode]);
+    if (simulationCommand.type === 'reheat') {
+      // Releasing fixed coordinates restarts physics without coupling it to the
+      // canvas animation loop. Particle rendering must remain alive either way.
+      transition.current.release(data.nodes);
+      graph.d3ReheatSimulation?.();
+    } else {
+      // Freeze physics by pinning the current coordinates. pauseAnimation()
+      // cannot be used here because it also stops custom canvas redraws.
+      for (const node of data.nodes) {
+        node.fx = node.x;
+        node.fy = node.y;
+        node.vx = 0;
+        node.vy = 0;
+      }
+      graph.refresh?.();
+    }
+  }, [simulationCommand, layoutMode, data.nodes]);
 
   useEffect(() => {
-    if (!graphConfig.links.showParticles || graphConfig.links.particles <= 0) return;
-    let frame = 0;
-    const started = performance.now();
-    const animate = (now: number) => {
-      particleProgress.current = ((now - started) * graphConfig.links.particleSpeed) / 100;
-      graphRef.current?.refresh?.();
-      frame = requestAnimationFrame(animate);
-    };
-    frame = requestAnimationFrame(animate);
-    return () => cancelAnimationFrame(frame);
+    particleStartedAt.current = performance.now();
+    particleProgress.current = 0;
   }, [graphConfig.links.showParticles, graphConfig.links.particles, graphConfig.links.particleSpeed]);
+
+  const particlesActive = graphConfig.links.showParticles && graphConfig.links.particles > 0;
 
   // ---- highlight sets ------------------------------------------------------
   const pathway = useMemo(
@@ -325,6 +334,12 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, GraphCanvasProps>(funct
 
   const renderDecorations = useCallback(
     (ctx: CanvasRenderingContext2D, globalScale: number) => {
+      // This callback runs inside ForceGraph's own frame cycle, after it clears
+      // the complete backing canvas and before links/nodes are painted.
+      if (particlesActive) {
+        particleProgress.current =
+          ((performance.now() - particleStartedAt.current) * graphConfig.links.particleSpeed) / 100;
+      }
       if (layoutMode === 'fishbone' && !graphConfig.topology.showHierarchy) return;
       const hierarchy = graphConfig.topology.styles.hierarchy;
       drawDecorations(ctx, geometry.decorations, theme, globalScale, {
@@ -334,7 +349,15 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, GraphCanvasProps>(funct
         dash: dashFor(hierarchy.lineStyle, hierarchy.width),
       });
     },
-    [geometry.decorations, theme, layoutMode, graphConfig.topology.showHierarchy, graphConfig.topology.styles.hierarchy]
+    [
+      geometry.decorations,
+      theme,
+      layoutMode,
+      particlesActive,
+      graphConfig.links.particleSpeed,
+      graphConfig.topology.showHierarchy,
+      graphConfig.topology.styles.hierarchy,
+    ]
   );
 
   // ---- interactions --------------------------------------------------------
@@ -394,7 +417,8 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, GraphCanvasProps>(funct
         graphData={data}
         width={size.width}
         height={size.height}
-        backgroundColor="transparent"
+        backgroundColor={theme.card}
+        autoPauseRedraw={!particlesActive}
         nodeRelSize={graphConfig.nodes.relSize}
         nodeCanvasObject={paintNode}
         nodePointerAreaPaint={paintPointer}
