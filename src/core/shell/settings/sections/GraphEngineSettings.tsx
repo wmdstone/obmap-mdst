@@ -2,19 +2,6 @@
  * Visual Graph Engine defaults, surfaced inside the Unified Settings Hub.
  */
 
-<<<<<<< HEAD:src/features/settings/sections/GraphEngineSettings.tsx
-import { useState } from 'react';
-import { Button } from '@/shared/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/tabs';
-import { BarChart3, Circle, Link2, RotateCcw, Zap, LayoutGrid } from 'lucide-react';
-import { LayoutEngineTab } from '@/features/graph/config-panel/LayoutEngineTab';
-import { NodeStylingTab } from '@/features/graph/config-panel/NodeStylingTab';
-import { LinkStylingTab } from '@/features/graph/config-panel/LinkStylingTab';
-import { ForceEngineTab } from '@/features/graph/config-panel/ForceEngineTab';
-import { AnalyticsTab } from '@/features/graph/config-panel/AnalyticsTab';
-import { useGraphStore } from '@/shared/stores/useGraphStore';
-import { useGraphInteractionStore } from '@/features/graph/model/useGraphInteractionStore';
-=======
 import { useState } from "react";
 import { Button } from "@/shared/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/ui/tabs";
@@ -33,7 +20,6 @@ import { ForceEngineTab } from "@/core/graph/config-panel/ForceEngineTab";
 import { AnalyticsTab } from "@/core/graph/config-panel/AnalyticsTab";
 import { useGraphStore } from "@/shared/stores/useGraphStore";
 import { useGraphInteractionStore } from "@/core/graph/model/useGraphInteractionStore";
->>>>>>> c50a88c (thiswrta):src/core/shell/settings/sections/GraphEngineSettings.tsx
 
 const tabItems = [
   { value: "layout", icon: LayoutGrid, label: "Layout" },

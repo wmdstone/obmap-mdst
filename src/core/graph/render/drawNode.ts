@@ -100,10 +100,7 @@ export function drawNode(
 
   const label = labelForNode(node, state.config);
   const fontSize = state.config.labelSize + (state.isRoot ? 2 : 0);
-<<<<<<< HEAD:src/features/graph/render/drawNode.ts
-=======
   const boxed = state.config.labelBox;
->>>>>>> c50a88c (thiswrta):src/core/graph/render/drawNode.ts
   const layout = cardLayout(label, {
     root: state.isRoot,
     badge: node.childCount > 0,
@@ -125,24 +122,6 @@ export function drawNode(
     ctx.shadowBlur = 14;
     ctx.shadowColor = dim(accent, 0.75);
   }
-<<<<<<< HEAD:src/features/graph/render/drawNode.ts
-  roundedRect(ctx, x - w / 2, y - h / 2, w, h, 8);
-  ctx.fillStyle = state.config.labelBackground
-    ? dim(theme.labelBackground, Math.max(0.72, state.config.opacity))
-    : dim(accent, state.selected ? 0.32 : 0.16);
-  ctx.fill();
-  ctx.shadowBlur = 0;
-  ctx.lineWidth = state.selected ? 2 : 1;
-  ctx.strokeStyle = state.selected ? accent : dim(accent, 0.6);
-  ctx.stroke();
-
-  // Configurable node marker.
-  const depthScale = state.config.sizeByDepth
-    ? Math.max(0.45, 1 - node.depth * state.config.depthSizeInterval * 0.08)
-    : 1;
-  const markerRadius = Math.max(3, state.config.relSize * depthScale);
-  const markerX = x - w / 2 + 9;
-=======
 
   if (boxed) {
     roundedRect(ctx, x - w / 2, y - h / 2, w, h, 8);
@@ -158,7 +137,6 @@ export function drawNode(
 
   // Configurable node marker.
   const markerX = boxed ? x - w / 2 + 9 : x;
->>>>>>> c50a88c (thiswrta):src/core/graph/render/drawNode.ts
   ctx.fillStyle = accent;
   drawShape(ctx, state.config.shape, markerX, y, markerRadius);
   ctx.fill();
@@ -178,13 +156,9 @@ export function drawNode(
     ctx.textBaseline = 'middle';
     const lineHeight = fontSize + 4;
     const startY = y - ((layout.lines.length - 1) * lineHeight) / 2;
-<<<<<<< HEAD:src/features/graph/render/drawNode.ts
-    const textX = x - w / 2 + Math.max(18, markerRadius * 2 + 7);
-=======
     const textX = boxed
       ? x - w / 2 + Math.max(18, markerRadius * 2 + 7)
       : markerX + markerRadius + 5;
->>>>>>> c50a88c (thiswrta):src/core/graph/render/drawNode.ts
     layout.lines.forEach((line, index) => {
       ctx.fillText(line, textX, startY + index * lineHeight);
     });
