@@ -1,4 +1,4 @@
-import { BacklinksView } from "@/core/backlinks/BacklinksView";
+import { BacklinksView } from "@/core/shell/workspace/backlinks/BacklinksView";
 import { useVaultSession } from "../VaultSessionContext";
 import { useWorkspaceStore } from "../store/useWorkspaceStore";
 import type { WorkspaceLeaf } from "../store/types";
