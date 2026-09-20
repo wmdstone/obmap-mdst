@@ -9,9 +9,8 @@ import { useState, useEffect, useRef } from "react";
 import {
   useAllVaultEvents,
   useEventHistory,
-  EventType,
-} from "@/core/vault-dashboard/hooks/useVaultEvents";
-import { DomainEvent } from "@/shared/events/events";
+} from "@/core/system/vault/hooks/useVaultEvents";
+import { DomainEvent, EventType } from "@/shared/events/events";
 import { Button } from "@/shared/ui/button";
 import { Badge } from "@/shared/ui/badge";
 import { ScrollArea } from "@/shared/ui/scroll-area";

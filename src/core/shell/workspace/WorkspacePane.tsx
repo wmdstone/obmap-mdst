@@ -1,9 +1,7 @@
 import { cn } from "@/shared/lib";
 import { FileText, Network, FolderOpen, Sparkles } from "lucide-react";
-import type { PaneType } from "./00trash/WorkspaceTabs";
 
 interface WorkspacePaneProps {
-  type: PaneType;
   children?: React.ReactNode;
   isEmpty?: boolean;
   onQuickAction?: (action: string) => void;
@@ -37,7 +35,6 @@ const emptyStateActions = [
 ];
 
 export function WorkspacePane({
-  type,
   children,
   isEmpty,
   onQuickAction,
