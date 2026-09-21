@@ -9,8 +9,6 @@
  */
 
 import { eventBus, EventType } from "@/shared/events/events";
-import { backgroundSyncService } from "@/core/system/sync/BackgroundSyncService";
-import { OBMAP_DIR } from "@/core/system/vault/ObmapConfigService";
 
 export interface FileSystemNode {
   id: string;
@@ -60,6 +58,13 @@ export class FileSystemService {
     vaultName: string;
     handle: FileSystemDirectoryHandle;
   } | null> {
+    // Feature detection first: browsers without the File System Access API
+    // must get a clear message instead of a TypeError.
+    if (typeof (window as any).showDirectoryPicker !== "function") {
+      throw new Error(
+        "This browser cannot open folders on your computer — use Chrome or Edge on desktop.",
+      );
+    }
     try {
       // @ts-ignore - File System Access API
       const dirHandle = await window.showDirectoryPicker({ mode: "readwrite" });
@@ -94,7 +99,7 @@ export class FileSystemService {
 
   /**
    * Read vault structure and emit events for each discovered node.
-   * Hidden entries (including `.obmap`) are ignored.
+   * Hidden entries (dot-files, e.g. `.vault-config.json`) are ignored.
    */
   async readVaultStructure(
     dirHandle: FileSystemDirectoryHandle,
@@ -227,28 +232,15 @@ export class FileSystemService {
       throw new Error("No vault is currently open");
     }
 
-    if (!navigator.onLine) {
-      backgroundSyncService.queueChange(path, content);
-      return;
-    }
+    // Disk writes work offline; only cloud pushes are queued (SyncEngine).
+    const fileHandle = await this.getFileHandle(this.vaultHandle, path);
+    if (!fileHandle) throw new Error("Could not access file");
 
-    try {
-      const fileHandle = await this.getFileHandle(this.vaultHandle, path);
-      if (!fileHandle) throw new Error("Could not access file");
+    const writable = await fileHandle.createWritable();
+    await writable.write(content);
+    await writable.close();
 
-      const writable = await fileHandle.createWritable();
-      await writable.write(content);
-      await writable.close();
-
-      eventBus.emit(EventType.NOTE_UPDATED, { id: path.join("/"), content });
-    } catch (error) {
-      console.error(
-        "[FileSystemService] Save failed, queuing for retry:",
-        error,
-      );
-      backgroundSyncService.queueChange(path, content);
-      throw error;
-    }
+    eventBus.emit(EventType.NOTE_UPDATED, { id: path.join("/"), content });
   }
 
   async deleteEntry(path: string[], type: "file" | "folder"): Promise<boolean> {
@@ -362,7 +354,4 @@ export class FileSystemService {
   getHandle(): FileSystemDirectoryHandle | null {
     return this.vaultHandle;
   }
-
-  /** Folder name to skip when walking the tree. */
-  static readonly configDir = OBMAP_DIR;
 }

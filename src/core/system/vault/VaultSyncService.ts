@@ -1,17 +1,18 @@
 /**
- * VaultSyncService - Bridges local VaultManager with Cloud storage
+ * VaultSyncService - Thin facade over the SyncEngine.
  *
- * Handles bidirectional sync between IndexedDB and Supabase with proper
- * conflict resolution and session-based data isolation.
+ * Every push goes through SyncEngine (dirty tracking, base-version guard,
+ * conflict copies, offline queue). This file only adds the multi-vault
+ * orchestration and the pull direction on top of it.
  *
- * IMPORTANT: Only syncs vaults with cloud sync enabled
+ * IMPORTANT: Only vaults with cloud sync enabled are synced.
  */
 
 import type { BackupConfig } from "./types";
 import { supabase } from "@/integrations/supabase/client";
 import { cloudVaultService, CloudVault } from "./CloudVaultService";
-import { VaultManager, Vault } from "./VaultManager";
-import type { Json } from "@/integrations/supabase/types";
+import { VaultManager } from "./VaultManager";
+import { syncEngine } from "@/core/system/sync/SyncEngine";
 
 export type SyncStatus = "idle" | "syncing" | "synced" | "error" | "offline";
 
@@ -19,6 +20,7 @@ interface SyncResult {
   success: boolean;
   error?: string;
   syncedVaults?: number;
+  conflicts?: string[];
 }
 
 interface SyncProgress {
@@ -36,38 +38,23 @@ export class VaultSyncService {
   private currentProgress: SyncProgress | null = null;
   private syncDebounceTimers: Map<string, NodeJS.Timeout> = new Map();
 
-  /**
-   * Get current sync status
-   */
   getStatus(): SyncStatus {
     return this.syncStatus;
   }
 
-  /**
-   * Get last sync time
-   */
   getLastSyncTime(): Date | null {
     return this.lastSyncTime;
   }
 
-  /**
-   * Get current sync progress
-   */
   getProgress(): SyncProgress | null {
     return this.currentProgress;
   }
 
-  /**
-   * Subscribe to sync status changes
-   */
   onStatusChange(callback: (status: SyncStatus) => void): () => void {
     this.syncListeners.add(callback);
     return () => this.syncListeners.delete(callback);
   }
 
-  /**
-   * Subscribe to sync progress changes
-   */
   onProgressChange(
     callback: (progress: SyncProgress | null) => void,
   ): () => void {
@@ -85,9 +72,6 @@ export class VaultSyncService {
     this.progressListeners.forEach((cb) => cb(progress));
   }
 
-  /**
-   * Check if user is authenticated
-   */
   async isAuthenticated(): Promise<boolean> {
     const {
       data: { user },
@@ -95,10 +79,7 @@ export class VaultSyncService {
     return !!user;
   }
 
-  /**
-   * Sync all cloud-strategy vaults to cloud
-   * Only syncs vaults with cloud sync enabled
-   */
+  /** Push every cloud-sync vault through the engine. */
   async syncToCloud(vaultManager: VaultManager): Promise<SyncResult> {
     if (!navigator.onLine) {
       this.setStatus("offline");
@@ -108,75 +89,47 @@ export class VaultSyncService {
     const {
       data: { user },
     } = await supabase.auth.getUser();
-    if (!user) {
-      return { success: false, error: "Not authenticated" };
-    }
+    if (!user) return { success: false, error: "Not authenticated" };
 
     this.setStatus("syncing");
 
-    try {
-      // Only sync vaults with cloud strategy
-      const cloudVaults = vaultManager.getCloudVaults();
-      let syncedCount = 0;
+    const vaults = vaultManager.getCloudVaults();
+    let syncedCount = 0;
+    const conflicts: string[] = [];
+    let lastError: string | undefined;
 
-      for (const vault of cloudVaults) {
-        const graphData = vault.graphService.getGraphData();
+    for (let i = 0; i < vaults.length; i++) {
+      const vault = vaults[i];
+      this.setProgress({
+        total: vaults.length,
+        current: i + 1,
+        message: `Syncing ${vault.name}`,
+      });
 
-        if (vault.cloudId) {
-          // Update existing cloud vault
-          const { error } = await cloudVaultService.updateVault(vault.cloudId, {
-            name: vault.name,
-            graph_data: graphData,
-            graph_config: vault.graphConfig || {},
-            backup_config: vault.backupConfig || {},
-          });
-
-          if (error) {
-            console.error("Failed to sync vault to cloud:", error);
-            continue;
-          }
-        } else {
-          // Create new vault in cloud
-          const { data, error } = await cloudVaultService.createVault(
-            vault.name,
-            undefined,
-            graphData,
-          );
-
-          if (error || !data) {
-            console.error("Failed to create vault in cloud:", error);
-            continue;
-          }
-
-          // Store cloud ID locally
-          await vaultManager.setCloudId(vault.id, data.id);
-
-          // Update vault config if exists
-          if (vault.graphConfig || vault.backupConfig) {
-            await cloudVaultService.updateVault(data.id, {
-              graph_config: vault.graphConfig || {},
-              backup_config: vault.backupConfig || {},
-            });
-          }
-        }
-
+      const outcome = await syncEngine.syncVault(vaultManager, vault.id);
+      if (outcome.success) {
         syncedCount++;
+        if (outcome.conflicts?.length) conflicts.push(...outcome.conflicts);
+      } else {
+        lastError = outcome.error;
       }
-
-      this.lastSyncTime = new Date();
-      this.setStatus("synced");
-
-      return { success: true, syncedVaults: syncedCount };
-    } catch (error) {
-      console.error("Sync to cloud failed:", error);
-      this.setStatus("error");
-      return { success: false, error: String(error) };
     }
+
+    this.setProgress(null);
+
+    if (syncedCount === 0 && lastError) {
+      this.setStatus("error");
+      return { success: false, error: lastError };
+    }
+
+    this.lastSyncTime = new Date();
+    this.setStatus("synced");
+    return { success: true, syncedVaults: syncedCount, conflicts };
   }
 
   /**
-   * Pull vaults from cloud
-   * Only imports vaults that don't already exist locally with cloud strategy
+   * Pull vaults from cloud. Local notes edited since the last sync are never
+   * silently overwritten — the engine keeps them as conflict copies.
    */
   async syncFromCloud(vaultManager: VaultManager): Promise<SyncResult> {
     if (!navigator.onLine) {
@@ -187,9 +140,7 @@ export class VaultSyncService {
     const {
       data: { user },
     } = await supabase.auth.getUser();
-    if (!user) {
-      return { success: false, error: "Not authenticated" };
-    }
+    if (!user) return { success: false, error: "Not authenticated" };
 
     this.setStatus("syncing");
 
@@ -205,40 +156,45 @@ export class VaultSyncService {
       }
 
       let syncedCount = 0;
-      const existingCloudIds = new Set(
-        vaultManager
-          .getCloudVaults()
-          .map((v) => v.cloudId)
-          .filter(Boolean),
-      );
+      const conflicts: string[] = [];
 
       for (const cloudVault of cloudVaults) {
-        // Skip if vault already exists locally with this cloud ID
-        if (existingCloudIds.has(cloudVault.id)) {
-          // Update existing local vault if cloud is newer
-          const localVault = vaultManager
-            .getCloudVaults()
-            .find((v) => v.cloudId === cloudVault.id);
-          if (localVault) {
-            const cloudUpdated = new Date(cloudVault.updated_at).getTime();
-            if (cloudUpdated > localVault.lastModified) {
-              const graphData = cloudVault.graph_data || {
-                nodes: [],
-                links: [],
-              };
-              localVault.graphService.clearGraph();
-              graphData.nodes.forEach((node) =>
-                localVault.graphService.setNode(node),
-              );
-              localVault.graphService.setLinks(graphData.links || []);
-              localVault.lastModified = cloudUpdated;
-              syncedCount++;
-            }
+        // Match by the shared vault identity: the local id IS the cloud id
+        // for new vaults; older vaults still match through cloudId.
+        const localVault = vaultManager
+          .getCloudVaults()
+          .find((v) => v.id === cloudVault.id || v.cloudId === cloudVault.id);
+
+        if (localVault) {
+          const cloudUpdated = new Date(cloudVault.updated_at).getTime();
+          const hasLocalEdits =
+            syncEngine.getDirty(localVault.id).length > 0;
+
+          if (cloudUpdated > localVault.lastModified || hasLocalEdits) {
+            const remote = (cloudVault.graph_data || {
+              nodes: [],
+              links: [],
+            }) as { nodes: never[]; links: never[] };
+
+            const merged = syncEngine.applyRemoteSnapshot(
+              vaultManager,
+              localVault.id,
+              remote,
+              {
+                cloudId: cloudVault.id,
+                remoteUpdatedAt: cloudVault.updated_at,
+              },
+            );
+            conflicts.push(...merged);
+            localVault.lastModified = Math.max(
+              cloudUpdated,
+              localVault.lastModified,
+            );
+            syncedCount++;
           }
           continue;
         }
 
-        // Import new cloud vault
         await this.importCloudVault(vaultManager, cloudVault);
         syncedCount++;
       }
@@ -246,7 +202,7 @@ export class VaultSyncService {
       this.lastSyncTime = new Date();
       this.setStatus("synced");
 
-      return { success: true, syncedVaults: syncedCount };
+      return { success: true, syncedVaults: syncedCount, conflicts };
     } catch (error) {
       console.error("Sync from cloud failed:", error);
       this.setStatus("error");
@@ -254,165 +210,96 @@ export class VaultSyncService {
     }
   }
 
-  /**
-   * Import a cloud vault into the local VaultManager with cloud strategy
-   */
+  /** Import a cloud vault that has no local counterpart yet. */
   private async importCloudVault(
     vaultManager: VaultManager,
     cloudVault: CloudVault,
   ): Promise<void> {
-    // Create vault with cloud strategy
-    const vaultId = await vaultManager.createCloudVault(cloudVault.name, true);
+    // A local vault with the same identity is linked, never duplicated.
+    const existing = vaultManager.getVault(cloudVault.id);
+    if (existing) {
+      await vaultManager.setCloudId(existing.id, cloudVault.id);
+      return;
+    }
+
+    // The local vault adopts the cloud id as its own, so a second device
+    // importing the same vault lands on the same identity instead of a copy.
+    const vaultId = await vaultManager.createCloudVault(
+      cloudVault.name,
+      true,
+      cloudVault.id,
+    );
     const vault = vaultManager.getVault(vaultId);
+    if (!vault) return;
 
-    if (vault) {
-      // Set cloud ID to link local and cloud vaults
-      await vaultManager.setCloudId(vaultId, cloudVault.id);
+    await vaultManager.setCloudId(vaultId, cloudVault.id);
 
-      const graphData = cloudVault.graph_data || { nodes: [], links: [] };
-      vault.graphService.clearGraph();
-      graphData.nodes.forEach((node) => vault.graphService.setNode(node));
-      vault.graphService.setLinks(graphData.links || []);
+    const graphData = (cloudVault.graph_data || { nodes: [], links: [] }) as {
+      nodes: never[];
+      links: never[];
+    };
+    syncEngine.applyRemoteSnapshot(vaultManager, vaultId, graphData, {
+      cloudId: cloudVault.id,
+      remoteUpdatedAt: cloudVault.updated_at,
+    });
 
-      if (cloudVault.graph_config) {
-        await vaultManager.setGraphConfig(vaultId, cloudVault.graph_config);
-      }
-      if (cloudVault.backup_config) {
-        await vaultManager.setBackupConfig(
-          vaultId,
-          cloudVault.backup_config as BackupConfig,
-        );
-      }
+    if (cloudVault.graph_config) {
+      await vaultManager.setGraphConfig(vaultId, cloudVault.graph_config);
+    }
+    if (cloudVault.backup_config) {
+      await vaultManager.setBackupConfig(
+        vaultId,
+        cloudVault.backup_config as BackupConfig,
+      );
     }
   }
 
-  /**
-   * Full bidirectional sync for cloud-strategy vaults only
-   */
+  /** Pull first, then push. */
   async fullSync(vaultManager: VaultManager): Promise<SyncResult> {
-    // First pull from cloud, then push local changes
     const pullResult = await this.syncFromCloud(vaultManager);
-    if (!pullResult.success) {
-      return pullResult;
-    }
-
-    const pushResult = await this.syncToCloud(vaultManager);
-    return pushResult;
+    if (!pullResult.success) return pullResult;
+    return this.syncToCloud(vaultManager);
   }
 
-  /**
-   * Sync a single vault to cloud (only if it has cloud strategy)
-   */
+  /** Push a single vault through the engine. */
   async syncVaultToCloud(
     vaultManager: VaultManager,
     vaultId: string,
   ): Promise<SyncResult> {
-    if (!navigator.onLine) {
-      return { success: false, error: "No internet connection" };
+    const outcome = await syncEngine.syncVault(vaultManager, vaultId);
+    if (outcome.success) {
+      this.lastSyncTime = new Date();
+      this.setStatus("synced");
+      return { success: true, syncedVaults: 1, conflicts: outcome.conflicts };
     }
-
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) {
-      return { success: false, error: "Not authenticated" };
-    }
-
-    const vault = vaultManager.getVault(vaultId);
-    if (!vault) {
-      return { success: false, error: "Vault not found or not syncable" };
-    }
-
-    // Check if vault has cloud strategy
-    if (!vault.cloudSync) {
-      return {
-        success: false,
-        error: "Cloud sync is off for this vault. Turn on cloud sync first.",
-      };
-    }
-
-    try {
-      const graphData = vault.graphService.getGraphData();
-
-      if (vault.cloudId) {
-        const { error } = await cloudVaultService.updateVault(vault.cloudId, {
-          name: vault.name,
-          graph_data: graphData,
-          graph_config: vault.graphConfig || {},
-          backup_config: vault.backupConfig || {},
-        });
-
-        if (error) {
-          return { success: false, error: error.message };
-        }
-      } else {
-        const { data, error } = await cloudVaultService.createVault(
-          vault.name,
-          undefined,
-          graphData,
-        );
-
-        if (error || !data) {
-          return {
-            success: false,
-            error: error?.message || "Failed to create vault",
-          };
-        }
-
-        // Store cloud ID
-        await vaultManager.setCloudId(vaultId, data.id);
-
-        if (vault.graphConfig || vault.backupConfig) {
-          await cloudVaultService.updateVault(data.id, {
-            graph_config: vault.graphConfig || {},
-            backup_config: vault.backupConfig || {},
-          });
-        }
-      }
-
-      return { success: true, syncedVaults: 1 };
-    } catch (error) {
-      return { success: false, error: String(error) };
-    }
+    if (outcome.queued) this.setStatus("offline");
+    return { success: false, error: outcome.error };
   }
 
-  /**
-   * Delete a cloud vault
-   */
   async deleteCloudVault(cloudId: string): Promise<SyncResult> {
     const {
       data: { user },
     } = await supabase.auth.getUser();
-    if (!user) {
-      return { success: false, error: "Not authenticated" };
-    }
+    if (!user) return { success: false, error: "Not authenticated" };
 
     try {
       const { error } = await cloudVaultService.deleteVault(cloudId);
-      if (error) {
-        return { success: false, error: error.message };
-      }
+      if (error) return { success: false, error: error.message };
       return { success: true };
     } catch (error) {
       return { success: false, error: String(error) };
     }
   }
 
-  /**
-   * Debounced sync for a vault - auto-syncs after changes with delay
-   */
+  /** Debounced push for a vault after local changes. */
   debouncedSyncVault(
     vaultManager: VaultManager,
     vaultId: string,
     delayMs: number = 2000,
   ): void {
-    // Clear existing timer for this vault
     const existingTimer = this.syncDebounceTimers.get(vaultId);
-    if (existingTimer) {
-      clearTimeout(existingTimer);
-    }
+    if (existingTimer) clearTimeout(existingTimer);
 
-    // Set new timer
     const timer = setTimeout(async () => {
       this.syncDebounceTimers.delete(vaultId);
       const result = await this.syncVaultToCloud(vaultManager, vaultId);
@@ -425,25 +312,25 @@ export class VaultSyncService {
   }
 
   /**
-   * Clear all local vault data (for logout)
+   * Clear sync state for logout WITHOUT destroying local vaults.
+   * Local-only vaults survive logout so the user doesn't lose their notes
+   * just because they signed out. Only sync timers, the offline queue,
+   * and the base-version cache are cleared.
    */
   async clearLocalData(): Promise<void> {
-    // Clear all pending sync timers
     this.syncDebounceTimers.forEach((timer) => clearTimeout(timer));
     this.syncDebounceTimers.clear();
+    await syncEngine.clearQueue();
+    this.lastSyncTime = null;
+    this.setStatus("idle");
 
-    // Clear IndexedDB vault data
-    return new Promise((resolve, reject) => {
-      const request = indexedDB.deleteDatabase("VaultManagerDB");
-      request.onerror = () => reject(request.error);
-      request.onsuccess = () => resolve();
-      request.onblocked = () => {
-        console.warn(
-          "IndexedDB deletion blocked - will be deleted on next session",
-        );
-        resolve();
-      };
-    });
+    // Clear the base-version cache so stale timestamps don't cause false
+    // conflicts on the next login.
+    try {
+      localStorage.removeItem("vault_sync_base_versions");
+    } catch {
+      /* ignore */
+    }
   }
 }
 

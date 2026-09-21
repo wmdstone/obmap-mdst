@@ -38,8 +38,8 @@ export interface VaultGraphConfig {
   [key: string]: any;
 }
 
-/** Contents of `<vault>/.obmap/*.json` — portable, isolated, per vault. */
-export interface ObmapVaultFile {
+/** Vault identity inside the derived `.vault-config.json` export. */
+export interface VaultConfigIdentity {
   id: string;
   name: string;
   createdAt: number;
@@ -47,8 +47,9 @@ export interface ObmapVaultFile {
   cloudId?: string;
 }
 
-export interface ObmapConfig {
-  vault: ObmapVaultFile;
+/** Derived, read-never config snapshot for one vault. */
+export interface VaultConfigSnapshot {
+  vault: VaultConfigIdentity;
   settings: Record<string, any>;
   graph: VaultGraphConfig | null;
   workspace: any | null;

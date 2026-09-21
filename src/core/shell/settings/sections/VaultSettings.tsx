@@ -48,6 +48,7 @@ import { ImportExportPanel } from "@/core/shell/workspace/ImportExportPanel";
 import { useVaultSync } from "@/core/system/vault/hooks/useVaultSync";
 import { getVaultManager } from "@/core/system/vault/VaultManagerSingleton";
 import type { VaultLocation } from "@/core/system/vault/types";
+import { pickVaultFolder } from "@/core/system/vault/repository/capabilities";
 
 type BackupEntry = Awaited<
   ReturnType<ReturnType<typeof getVaultManager>["getBackups"]>
@@ -83,8 +84,7 @@ const LOCATION_META: Record<
 };
 
 async function pickFolder(): Promise<FileSystemDirectoryHandle | null> {
-  // @ts-expect-error — File System Access API is not in the TS lib yet
-  return window.showDirectoryPicker({ mode: "readwrite" });
+  return pickVaultFolder();
 }
 
 export function VaultSettings() {
@@ -196,10 +196,8 @@ export function VaultSettings() {
   const handleDeleteVault = async (vaultId: string) => {
     if (!confirm("Delete this vault? All of its backups will be deleted too."))
       return;
-    const { cloudId, wasCloudVault } = await vaultManager.deleteVault(vaultId);
-    if (wasCloudVault && cloudId && isAuthenticated) {
-      await deleteCloudVault(cloudId);
-    }
+    // The manager removes the cloud copy too when the vault was synced.
+    await vaultManager.deleteVault(vaultId);
     await loadVaults();
     toast.success("Vault deleted");
   };

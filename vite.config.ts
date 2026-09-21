@@ -249,7 +249,10 @@ export default defineConfig(({ mode }) => ({
         ]
       },
       devOptions: {
-        enabled: true
+        // Disabled on purpose: the dev service worker is rebuilt on every code
+        // change and, combined with registerType "autoUpdate", it forces a full
+        // page reload that wipes unsaved in-app state.
+        enabled: false
       }
     })
   ].filter(Boolean),

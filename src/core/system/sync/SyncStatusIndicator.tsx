@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Cloud, CloudOff, CheckCircle, RefreshCw, User } from "lucide-react";
 import { eventBus, EventType } from "@/shared/events/events";
-import { backgroundSyncService } from "@/core/system/sync/BackgroundSyncService";
+import { syncEngine } from "@/core/system/sync/SyncEngine";
 import { useVaultSync } from "@/core/system/vault/hooks/useVaultSync";
 import { Button } from "@/shared/ui/button";
 import {
@@ -32,13 +32,9 @@ export function SyncStatusIndicator({
     window.addEventListener("online", handleOnline);
     window.addEventListener("offline", handleOffline);
 
-    // Update pending count
-    const updatePending = () => {
-      setPendingCount(backgroundSyncService.getPendingCount());
-    };
-
-    const interval = setInterval(updatePending, 1000);
-    updatePending();
+    // Pending cloud pushes come from the sync engine's durable queue.
+    setPendingCount(syncEngine.getPendingCount());
+    const unsubscribePending = syncEngine.onPendingChange(setPendingCount);
 
     // Listen for sync complete
     const unsubscribe = eventBus.subscribe(
@@ -46,14 +42,13 @@ export function SyncStatusIndicator({
       () => {
         setJustSynced(true);
         setTimeout(() => setJustSynced(false), 3000);
-        updatePending();
       },
     );
 
     return () => {
       window.removeEventListener("online", handleOnline);
       window.removeEventListener("offline", handleOffline);
-      clearInterval(interval);
+      unsubscribePending();
       unsubscribe();
     };
   }, []);

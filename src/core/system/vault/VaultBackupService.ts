@@ -4,6 +4,11 @@
  * Handles automatic snapshots triggered by time intervals or change counts
  */
 
+import {
+  useBackupConfigStore,
+  type BackupConfigValue,
+} from '@/shared/stores/useBackupConfigStore';
+
 interface BackupSnapshot {
   id: string;
   vaultId: string;
@@ -15,59 +20,21 @@ interface BackupSnapshot {
   description: string;
 }
 
-interface BackupConfig {
-  timeIntervalMinutes: number; // 0 = disabled
-  changeThreshold: number; // 0 = disabled
-  maxSnapshots: number;
-}
+type BackupConfig = BackupConfigValue;
 
 export class VaultBackupService {
   private timers: Map<string, number> = new Map();
   private changeCounts: Map<string, number> = new Map();
-  private configs: Map<string, BackupConfig> = new Map();
   private lastBackupTimes: Map<string, number> = new Map();
 
-  constructor() {
-    this.loadConfigs();
-  }
-
-  private loadConfigs(): void {
-    try {
-      const stored = localStorage.getItem('vault_backup_configs');
-      if (stored) {
-        const configs = JSON.parse(stored);
-        Object.entries(configs).forEach(([vaultId, config]) => {
-          this.configs.set(vaultId, config as BackupConfig);
-        });
-      }
-    } catch (error) {
-      console.error('Failed to load backup configs:', error);
-    }
-  }
-
-  private saveConfigs(): void {
-    try {
-      const configs: Record<string, BackupConfig> = {};
-      this.configs.forEach((config, vaultId) => {
-        configs[vaultId] = config;
-      });
-      localStorage.setItem('vault_backup_configs', JSON.stringify(configs));
-    } catch (error) {
-      console.error('Failed to save backup configs:', error);
-    }
-  }
-
+  /** Backup settings live in the configuration vault, not in localStorage. */
   getConfig(vaultId: string): BackupConfig {
-    return this.configs.get(vaultId) || {
-      timeIntervalMinutes: 5,
-      changeThreshold: 10,
-      maxSnapshots: 30,
-    };
+    return useBackupConfigStore.getState().getConfig(vaultId);
   }
 
   setConfig(vaultId: string, config: BackupConfig): void {
-    this.configs.set(vaultId, config);
-    this.saveConfigs();
+    useBackupConfigStore.getState().setConfig(vaultId, config);
+    
     
     // Restart timer with new config
     this.stopAutoBackup(vaultId);

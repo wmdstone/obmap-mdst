@@ -15,7 +15,11 @@ export interface QueuedVaultPush {
   baseUpdatedAt: string | null;
   queuedAt: number;
   retries: number;
+  /** The user this push belongs to, so a different account can't replay it. */
+  userId?: string;
 }
+
+const QUEUE_USER_KEY = "vault_sync_queue_user";
 
 const DB_NAME = 'VaultSyncQueueDB';
 const DB_VERSION = 1;
@@ -85,5 +89,22 @@ export const syncQueue = {
 
   async clear(): Promise<void> {
     await tx('readwrite', (s) => s.clear() as IDBRequest<undefined>);
+    try { localStorage.removeItem(QUEUE_USER_KEY); } catch { /* ignore */ }
+  },
+
+  /**
+   * If the active user differs from the one that queued these pushes, clear
+   * the queue so one account's offline changes are never replayed for another.
+   */
+  async ensureUserScope(userId: string): Promise<void> {
+    try {
+      const stored = localStorage.getItem(QUEUE_USER_KEY);
+      if (stored && stored !== userId) {
+        await this.clear();
+      }
+      localStorage.setItem(QUEUE_USER_KEY, userId);
+    } catch {
+      /* ignore */
+    }
   },
 };

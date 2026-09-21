@@ -112,7 +112,10 @@ export function timelineLayout({ nodes, parentOf, context }: TimelineInput): Lay
       }
     }
     laneEnd.set(lane, x + half);
-    const y = baselineY + Math.sign(lane) * Math.ceil(Math.abs(lane) / 2) * laneGap;
+    // Each collision lane must map to one distinct visual row. Previously
+    // lanes 1/2 (and 3/4) shared a y-coordinate despite separate occupancy
+    // tracking, allowing cards to overlap on dense timelines.
+    const y = baselineY + lane * laneGap;
     targets.set(node.id, { x, y, lane });
   });
 

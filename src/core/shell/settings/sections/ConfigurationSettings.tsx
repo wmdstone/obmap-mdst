@@ -18,6 +18,8 @@ import {
 } from "lucide-react";
 import {
   configService,
+  configExportFileName,
+  serializeConfigExport,
   listConfigSections,
   useConfigSyncState,
 } from "@/core/system/config";
@@ -49,14 +51,13 @@ export function ConfigurationSettings() {
   const sections = listConfigSections();
 
   const handleExport = () => {
-    const payload = configService.exportConfig();
-    const blob = new Blob([JSON.stringify(payload, null, 2)], {
+    const blob = new Blob([serializeConfigExport()], {
       type: "application/json",
     });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `obmap-config-${new Date().toISOString().slice(0, 10)}.json`;
+    a.download = configExportFileName();
     a.click();
     URL.revokeObjectURL(url);
     toast.success("Configuration exported");

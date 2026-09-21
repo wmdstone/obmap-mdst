@@ -2,7 +2,7 @@ import { useState, useMemo } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/ui/card";
 import { Checkbox } from "@/shared/ui/checkbox";
 import { Label } from "@/shared/ui/label";
-import { Slider } from "@/shared/ui/slider";
+import { Slider } from "@/shared/ui/slider-number";
 import { Input } from "@/shared/ui/input";
 import { Button } from "@/shared/ui/button";
 import { Badge } from "@/shared/ui/badge";

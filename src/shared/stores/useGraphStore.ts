@@ -7,6 +7,13 @@
 import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
 import type { Node, Link } from './types';
+import {
+  defaultHierarchyColorConfig,
+  mergeHierarchyColorConfig,
+  type HierarchyColorConfig,
+} from '@/core/graph/model/hierarchyColors';
+
+export type { HierarchyColorConfig };
 
 // ============= TYPE DEFINITIONS =============
 
@@ -19,6 +26,9 @@ export interface NodeConfig {
   visible: boolean;
   opacity: number;
   autoColorBy: 'none' | 'type' | 'depth' | 'tags';
+  glow: boolean;
+  glowIntensity: number;
+  glowSpeed: number;
   folderColor: string;
   fileColor: string;
   selectedColor: string;
@@ -97,7 +107,10 @@ export interface LinkStats {
 }
 
 export interface GraphConfigState {
+  /** Bumped when the persisted shape changes; drives default merging. */
+  version?: number;
   nodes: NodeConfig;
+  hierarchy: HierarchyColorConfig;
   links: LinkConfig;
   topology: TopologyConfig;
   forces: ForceConfig;
@@ -114,6 +127,9 @@ export const defaultNodeConfig: NodeConfig = {
   visible: true,
   opacity: 1.0,
   autoColorBy: 'type',
+  glow: false,
+  glowIntensity: 0.6,
+  glowSpeed: 1,
   folderColor: 'hsl(48, 100%, 60%)',
   fileColor: 'hsl(270, 70%, 65%)',
   selectedColor: 'hsl(270, 80%, 70%)',
@@ -190,8 +206,12 @@ export const defaultForceConfig: ForceConfig = {
   cooldownTime: 15000,
 };
 
+export const GRAPH_CONFIG_VERSION = 2;
+
 export const defaultGraphConfig: GraphConfigState = {
+  version: GRAPH_CONFIG_VERSION,
   nodes: defaultNodeConfig,
+  hierarchy: defaultHierarchyColorConfig,
   links: defaultLinkConfig,
   topology: defaultTopologyConfig,
   forces: defaultForceConfig,
@@ -215,6 +235,7 @@ interface GraphState {
   updateTopologyConfig: (updates: Partial<TopologyConfig>) => void;
   updateTopologyStyle: (linkType: keyof TopologyConfig['styles'], updates: Partial<LinkStyle>) => void;
   updateForceConfig: (updates: Partial<ForceConfig>) => void;
+  updateHierarchyConfig: (updates: Partial<HierarchyColorConfig>) => void;
   
   // Actions - Full config
   setConfig: (config: GraphConfigState) => void;
@@ -224,6 +245,7 @@ interface GraphState {
   resetLinkConfig: () => void;
   resetTopologyConfig: () => void;
   resetForceConfig: () => void;
+  resetHierarchyConfig: () => void;
   
   // Actions - Stats (computed from nodes/links)
   computeStats: (nodes: Node[], links: Link[]) => void;
@@ -316,6 +338,18 @@ export const useGraphStore = create<GraphState>()(
           'updateForceConfig'
         ),
         
+        updateHierarchyConfig: (updates) => set(
+          (state) => ({
+            config: {
+              ...state.config,
+              hierarchy: { ...state.config.hierarchy, ...updates },
+            },
+            isDirty: true,
+          }),
+          false,
+          'updateHierarchyConfig'
+        ),
+
         // Full config actions
         setConfig: (config) => set(
           { config, isDirty: true },
@@ -339,6 +373,8 @@ export const useGraphStore = create<GraphState>()(
                 },
               },
               forces: { ...defaultForceConfig, ...config.forces },
+              hierarchy: mergeHierarchyColorConfig(config.hierarchy),
+              version: GRAPH_CONFIG_VERSION,
             } : defaultGraphConfig,
             isDirty: false,
           },
@@ -386,6 +422,15 @@ export const useGraphStore = create<GraphState>()(
           }),
           false,
           'resetForceConfig'
+        ),
+
+        resetHierarchyConfig: () => set(
+          (state) => ({
+            config: { ...state.config, hierarchy: defaultHierarchyColorConfig },
+            isDirty: true,
+          }),
+          false,
+          'resetHierarchyConfig'
         ),
         
         // Stats computation
@@ -481,6 +526,8 @@ export const useGraphStore = create<GraphState>()(
                 styles: { ...defaultTopologyConfig.styles, ...config.topology?.styles },
               },
               forces: { ...defaultForceConfig, ...config.forces },
+              hierarchy: mergeHierarchyColorConfig(config.hierarchy),
+              version: GRAPH_CONFIG_VERSION,
             },
           };
         },

@@ -27,8 +27,8 @@ import {
   useMetadataVersion,
 } from "@/core/system/metadata/useMetadataCache";
 import { getVaultManager } from "@/core/system/vault/VaultManagerSingleton";
-import { vaultSyncService } from "@/core/system/vault/VaultSyncService";
 import { syncEngine } from "@/core/system/sync/SyncEngine";
+import { syncCoordinator } from "@/core/system/sync/SyncCoordinator";
 import { eventBus, EventType } from "@/shared/events/events";
 import {
   deleteNodeFromDisk,
@@ -273,8 +273,8 @@ export function VaultSessionProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const reloadVaults = async () => {
       if (isAuthenticated) {
-        await vaultManager.initialize();
-        await vaultSyncService.syncFromCloud(vaultManager);
+        // Coalesced with every other login sync trigger by the coordinator.
+        await syncCoordinator.requestSync("login");
         loadActiveVault();
       } else {
         resetVault();
@@ -282,7 +282,7 @@ export function VaultSessionProvider({ children }: { children: ReactNode }) {
       }
     };
     reloadVaults();
-  }, [isAuthenticated, vaultManager, loadActiveVault, resetVault, resetNodes]);
+  }, [isAuthenticated, loadActiveVault, resetVault, resetNodes]);
 
   // Keep tab titles in sync with note names.
   useEffect(() => {

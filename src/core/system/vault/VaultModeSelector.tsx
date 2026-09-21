@@ -17,6 +17,7 @@ import { Badge } from '@/shared/ui/badge';
 import { Checkbox } from '@/shared/ui/checkbox';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/shared/ui/dialog';
 import { Alert, AlertDescription } from '@/shared/ui/alert';
+import { pickVaultFolder, supportsFolderPicker } from '@/core/system/vault/repository/capabilities';
 
 type VaultKind = 'folder' | 'cloud';
 type Step = 'kind' | 'folder-action' | 'name';
@@ -38,11 +39,10 @@ export interface VaultModeSelectorProps {
   isAuthenticated?: boolean;
 }
 
-const supportsFolders = () => typeof (window as any).showDirectoryPicker === 'function';
+const supportsFolders = supportsFolderPicker;
 
 async function pickFolder(): Promise<FileSystemDirectoryHandle | null> {
-  // @ts-expect-error — File System Access API is not in the TS lib yet
-  return window.showDirectoryPicker({ mode: 'readwrite' });
+  return pickVaultFolder();
 }
 
 export const VaultModeSelector = ({

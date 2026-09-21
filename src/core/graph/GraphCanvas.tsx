@@ -27,6 +27,8 @@ import { drawNode, paintNodePointerArea } from './render/drawNode';
 import { drawLink } from './render/drawLink';
 import { drawDecorations } from './render/drawDecorations';
 import { buildTheme } from './render/theme';
+import { GraphLevelLegend } from './GraphLevelLegend';
+import { resolveHierarchyLinkPaint, uniqueDepths } from './model/hierarchyColors';
 import { cardLayout } from './render/textLayout';
 
 export interface GraphCanvasProps {
@@ -35,6 +37,7 @@ export interface GraphCanvasProps {
   onNodeSelect: (node: Node | null) => void;
   graphConfig: GraphConfigState;
   search: string;
+  minDepth: number;
   maxDepth: number;
   contentFilter: string;
   tagFilter: string;
@@ -75,6 +78,7 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, GraphCanvasProps>(funct
   onNodeSelect,
   graphConfig,
   search,
+  minDepth,
   maxDepth,
   contentFilter,
   tagFilter,
@@ -85,7 +89,10 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, GraphCanvasProps>(funct
   const zoomRef = useRef(1);
   const particleProgress = useRef(0);
   const particleStartedAt = useRef(performance.now());
+  const glowPhase = useRef(0);
+  const glowStartedAt = useRef(performance.now());
   const [size, setSize] = useState({ width: 800, height: 600 });
+  const nodeCache = useRef(new Map<string, RenderNode>());
 
   const engine = useGraphEngineStore();
   const {
@@ -115,10 +122,25 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, GraphCanvasProps>(funct
   }, []);
 
   // ---- projection ----------------------------------------------------------
-  const projection = useMemo(
-    () => buildGraphProjection(graphData.nodes, graphData.links, { timeField: engine.timeField }),
-    [graphData.nodes, graphData.links, engine.timeField]
-  );
+  const projection = useMemo(() => {
+    const next = buildGraphProjection(graphData.nodes, graphData.links, { timeField: engine.timeField });
+    const activeIds = new Set(next.nodes.map((node) => node.id));
+    const nodes = next.nodes.map((node) => {
+      const existing = nodeCache.current.get(node.id);
+      if (!existing) {
+        nodeCache.current.set(node.id, node);
+        return node;
+      }
+      // ForceGraph mutates coordinates on these objects. Preserve that motion
+      // state while refreshing only vault-derived metadata.
+      Object.assign(existing, node);
+      return existing;
+    });
+    for (const id of nodeCache.current.keys()) {
+      if (!activeIds.has(id)) nodeCache.current.delete(id);
+    }
+    return { ...next, nodes, byId: new Map(nodes.map((node) => [node.id, node])) };
+  }, [graphData.nodes, graphData.links, engine.timeField]);
 
   const metrics = useMemo(() => {
     const map = new Map<string, NodeMetric>();
@@ -154,7 +176,7 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, GraphCanvasProps>(funct
       .filter((node) => {
         if (hidden.has(node.id)) return false;
         if (focusSet && !focusSet.has(node.id)) return false;
-        if (node.depth > maxDepth) return false;
+        if (node.depth < minDepth || node.depth > maxDepth) return false;
         if (term && !node.name.toLowerCase().includes(term)) return false;
         if (content && !node.content.toLowerCase().includes(content)) return false;
         if (tag && !node.tags.some((item) => item.toLowerCase().replace(/^#/, '') === tag))
@@ -162,7 +184,7 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, GraphCanvasProps>(funct
         return true;
       })
       .map((node) => node.id);
-  }, [projection, collapsedIds, focusedRootId, search, contentFilter, tagFilter, maxDepth]);
+  }, [projection, collapsedIds, focusedRootId, search, contentFilter, tagFilter, minDepth, maxDepth]);
 
   const geometry = useLayoutEngine(projection, {
     mode: layoutMode,
@@ -182,13 +204,28 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, GraphCanvasProps>(funct
   const data = useMemo(() => {
     const visible = new Set(visibleIds);
     const nodes = projection.nodes.filter((node) => visible.has(node.id));
+    // Seed newly visible nodes at their deterministic target before ForceGraph
+    // sees them. This avoids one-frame links to its temporary simulation
+    // coordinates during data refresh, collapse and expand.
+    for (const node of nodes) {
+      const target = geometry.targets.get(node.id);
+      if (!target) continue;
+      if (!Number.isFinite(node.x) || !Number.isFinite(node.y)) {
+        node.x = target.x;
+        node.y = target.y;
+        if (layoutMode !== 'free-force') {
+          node.fx = target.x;
+          node.fy = target.y;
+        }
+      }
+    }
     const links = projection.links.filter((link) => {
       const source = typeof link.source === 'string' ? link.source : link.source.id;
       const target = typeof link.target === 'string' ? link.target : link.target.id;
       return visible.has(source) && visible.has(target) && topologyEnabled(link.type, graphConfig);
     });
     return { nodes, links };
-  }, [projection, visibleIds, graphConfig]);
+  }, [projection, visibleIds, graphConfig, geometry.targets, layoutMode]);
 
   // ---- layout transitions --------------------------------------------------
   useEffect(() => {
@@ -250,6 +287,13 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, GraphCanvasProps>(funct
   }, [graphConfig.links.showParticles, graphConfig.links.particles, graphConfig.links.particleSpeed]);
 
   const particlesActive = graphConfig.links.showParticles && graphConfig.links.particles > 0;
+  const glowAnimated =
+    graphConfig.nodes.glow && graphConfig.nodes.glowSpeed > 0 && !prefersReducedMotion();
+
+  useEffect(() => {
+    glowStartedAt.current = performance.now();
+    glowPhase.current = 0;
+  }, [graphConfig.nodes.glow, graphConfig.nodes.glowSpeed]);
 
   // ---- highlight sets ------------------------------------------------------
   const pathway = useMemo(
@@ -258,9 +302,15 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, GraphCanvasProps>(funct
   );
 
   const theme = useMemo(() => buildTheme(graphConfig), [graphConfig]);
+  const visibleDepths = useMemo(() => uniqueDepths(data.nodes), [data.nodes]);
   const metricOf = useCallback(
-    (node: RenderNode) => metrics.get(node.id) ?? { width: 90, height: 28 },
-    [metrics]
+    (node: RenderNode) => {
+      const metric = metrics.get(node.id) ?? { width: 90, height: 28 };
+      if (engine.zoomOutRendering !== 'full-detail') return metric;
+      const scale = 1 / Math.max(0.05, zoomRef.current);
+      return { width: metric.width * scale, height: metric.height * scale };
+    },
+    [metrics, engine.zoomOutRendering]
   );
 
   // ---- draw callbacks ------------------------------------------------------
@@ -277,17 +327,27 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, GraphCanvasProps>(funct
         isRoot: node.parentId === null,
         showLabels: engine.showLabels && graphConfig.nodes.showLabels,
         labelThreshold: engine.labelZoomThreshold,
+        preserveDetail: engine.zoomOutRendering === 'full-detail',
         config: graphConfig.nodes,
+        glowPhase: glowPhase.current,
       });
     },
-    [theme, selectedNode, hoveredId, pathway, collapsedIds, engine.showLabels, engine.labelZoomThreshold, graphConfig.nodes]
+    [theme, selectedNode, hoveredId, pathway, collapsedIds, engine.showLabels, engine.labelZoomThreshold, engine.zoomOutRendering, graphConfig.nodes]
   );
 
   const paintPointer = useCallback(
     (node: RenderNode, color: string, ctx: CanvasRenderingContext2D) => {
-      paintNodePointerArea(ctx, node, color, node.parentId === null, graphConfig.nodes);
+      paintNodePointerArea(
+        ctx,
+        node,
+        color,
+        node.parentId === null,
+        graphConfig.nodes,
+        zoomRef.current,
+        engine.zoomOutRendering === 'full-detail'
+      );
     },
-    [graphConfig.nodes]
+    [graphConfig.nodes, engine.zoomOutRendering]
   );
 
   const paintLink = useCallback(
@@ -307,12 +367,21 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, GraphCanvasProps>(funct
       const widthScale = graphConfig.links.width / defaultLinkConfig.width;
       const opacityScale = graphConfig.links.opacity / defaultLinkConfig.opacity;
       const usesDefaultTypeColor = style.color === defaultTypeStyle.color;
+      // Level colouring applies to hierarchy edges only: backlink/tag/semantic
+      // keep their type style so the relation meaning stays readable.
+      const hierarchyPaint =
+        graphConfig.hierarchy.enabled && type === 'hierarchy'
+          ? resolveHierarchyLinkPaint(source.depth, target.depth, graphConfig.hierarchy)
+          : null;
+      const strokeColor = hierarchyPaint
+        ? hierarchyPaint.color
+        : usesDefaultTypeColor ? theme.link : style.color;
       drawLink(ctx, source, target, {
         mode: layoutMode,
         theme,
-        color: usesDefaultTypeColor ? theme.link : style.color,
+        color: strokeColor,
         width: Math.max(0.25, style.width * widthScale),
-        opacity: Math.min(1, style.opacity * opacityScale),
+        opacity: hierarchyPaint?.opacity ?? Math.min(1, style.opacity * opacityScale),
         dash: style.lineStyle === 'solid'
           ? parseDash(graphConfig.links.dashArray, style.width * widthScale)
           : dashFor(style.lineStyle, style.width * widthScale),
@@ -324,39 +393,71 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, GraphCanvasProps>(funct
         curveRotation: graphConfig.links.curveRotation,
         particles: graphConfig.links.showParticles ? graphConfig.links.particles : 0,
         particleWidth: graphConfig.links.particleWidth,
-        particleColor: graphConfig.links.particleColor,
+        particleColor: hierarchyPaint ? hierarchyPaint.color : graphConfig.links.particleColor,
         particleProgress: particleProgress.current,
+        zoom: zoomRef.current,
+        preserveDetail: engine.zoomOutRendering === 'full-detail',
         metricOf,
       });
     },
-    [graphConfig, layoutMode, theme, pathway, metricOf]
+    [graphConfig, layoutMode, theme, pathway, metricOf, engine.zoomOutRendering]
   );
 
   const renderDecorations = useCallback(
     (ctx: CanvasRenderingContext2D, globalScale: number) => {
+      zoomRef.current = globalScale;
       // This callback runs inside ForceGraph's own frame cycle, after it clears
       // the complete backing canvas and before links/nodes are painted.
       if (particlesActive) {
         particleProgress.current =
           ((performance.now() - particleStartedAt.current) * graphConfig.links.particleSpeed) / 100;
       }
+      glowPhase.current = glowAnimated
+        ? ((performance.now() - glowStartedAt.current) / 2400) * graphConfig.nodes.glowSpeed
+        : 0.25;
       if (layoutMode === 'fishbone' && !graphConfig.topology.showHierarchy) return;
       const hierarchy = graphConfig.topology.styles.hierarchy;
-      drawDecorations(ctx, geometry.decorations, theme, globalScale, {
-        color: hierarchy.color || theme.link,
-        opacity: hierarchy.opacity,
-        width: hierarchy.width,
-        dash: dashFor(hierarchy.lineStyle, hierarchy.width),
-      });
+      const levels = graphConfig.hierarchy;
+      drawDecorations(
+        ctx,
+        geometry.decorations,
+        theme,
+        globalScale,
+        {
+          color: hierarchy.color || theme.link,
+          opacity: hierarchy.opacity,
+          width: hierarchy.width,
+          dash: dashFor(hierarchy.lineStyle, hierarchy.width),
+        },
+        levels.enabled
+          ? (decoration) => {
+              const sourceDepth =
+                projection.byId.get((decoration as { sourceId?: string }).sourceId ?? '')?.depth;
+              const targetDepth = projection.byId.get(decoration.targetId ?? '')?.depth;
+              if (sourceDepth === undefined && targetDepth === undefined) return null;
+              return resolveHierarchyLinkPaint(
+                sourceDepth ?? targetDepth ?? 0,
+                targetDepth ?? sourceDepth ?? 0,
+                levels
+              );
+            }
+            : undefined,
+        engine.zoomOutRendering === 'full-detail'
+      );
     },
     [
       geometry.decorations,
       theme,
       layoutMode,
       particlesActive,
+      glowAnimated,
+      graphConfig.nodes.glowSpeed,
       graphConfig.links.particleSpeed,
       graphConfig.topology.showHierarchy,
       graphConfig.topology.styles.hierarchy,
+      graphConfig.hierarchy,
+      projection,
+      engine.zoomOutRendering,
     ]
   );
 
@@ -418,7 +519,7 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, GraphCanvasProps>(funct
         width={size.width}
         height={size.height}
         backgroundColor={theme.card}
-        autoPauseRedraw={!particlesActive}
+        autoPauseRedraw={!particlesActive && !glowAnimated}
         nodeRelSize={graphConfig.nodes.relSize}
         nodeCanvasObject={paintNode}
         nodePointerAreaPaint={paintPointer}
@@ -441,6 +542,8 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, GraphCanvasProps>(funct
         d3VelocityDecay={graphConfig.forces.velocityDecay}
       />
 
+      <GraphLevelLegend depths={visibleDepths} hierarchy={graphConfig.hierarchy} />
+
       <GraphMiniMap
         nodes={data.nodes}
         links={data.links}
@@ -452,8 +555,7 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, GraphCanvasProps>(funct
         linkColor={theme.link}
         selectedNodeId={selectedNode?.id ?? null}
       />
+
     </div>
   );
 });
-
-export default GraphCanvas;

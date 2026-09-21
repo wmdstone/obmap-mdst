@@ -216,7 +216,13 @@ export class SyncEngine {
 
   private async enqueue(entry: QueuedVaultPush): Promise<void> {
     const existing = await syncQueue.get(entry.id);
-    await syncQueue.put({ ...entry, retries: existing?.retries ?? 0 });
+    // Stamp the current user so ensureUserScope can detect cross-account drift.
+    const { data: auth } = await supabase.auth.getUser();
+    await syncQueue.put({
+      ...entry,
+      userId: auth.user?.id,
+      retries: existing?.retries ?? 0,
+    });
     await this.refreshPendingCount();
   }
 
@@ -231,10 +237,13 @@ export class SyncEngine {
     let conflicts: string[] = [];
 
     if (!cloudId) {
+      // The local vault id becomes the cloud primary key, so the vault has a
+      // single stable identity on every device.
       const { data, error } = await cloudVaultService.createVault(
         snapshot.name,
         undefined,
         payload as { nodes: unknown[]; links: unknown[] } as never,
+        vaultId,
       );
       if (error || !data)
         throw new Error(error?.message ?? "Failed to create cloud vault");
@@ -337,16 +346,54 @@ export class SyncEngine {
     return { data: { nodes: merged, links: keptLinks }, conflicts };
   }
 
+  /**
+   * Writes straight into the in-memory graph. GraphService.setNode/setLinks do
+   * not emit domain events, so this cannot loop back into markDirty/saveVault.
+   */
   private applyToLocalVault(
     manager: VaultManager,
     vaultId: string,
     data: { nodes: GraphNodeLike[]; links: GraphLinkLike[] },
   ): void {
     const vault = manager.getVault(vaultId);
-    if (!vault || vault.type !== "in-memory") return;
+    if (!vault) return;
     vault.graphService.clearGraph();
     data.nodes.forEach((n) => vault.graphService.setNode(n as never));
     vault.graphService.setLinks(data.links as never);
+  }
+
+  /**
+   * Bring a remote snapshot into the local vault. Untouched notes take the
+   * remote copy; notes the user edited since the last sync survive as conflict
+   * copies instead of being overwritten.
+   */
+  applyRemoteSnapshot(
+    manager: VaultManager,
+    vaultId: string,
+    remote: { nodes: GraphNodeLike[]; links: GraphLinkLike[] },
+    options: { cloudId?: string | null; remoteUpdatedAt?: string | null } = {},
+  ): string[] {
+    const vault = manager.getVault(vaultId);
+    if (!vault) return [];
+
+    let data = remote;
+    let conflicts: string[] = [];
+
+    if (this.getDirty(vaultId).length > 0) {
+      const local = vault.graphService.getGraphData() as unknown as {
+        nodes: GraphNodeLike[];
+        links: GraphLinkLike[];
+      };
+      const merged = this.mergeWithConflictCopies(remote, local, vaultId);
+      data = merged.data;
+      conflicts = merged.conflicts;
+    }
+
+    this.applyToLocalVault(manager, vaultId, data);
+    if (options.cloudId) {
+      this.setBase(options.cloudId, options.remoteUpdatedAt ?? null);
+    }
+    return conflicts;
   }
 
   // ------------------------------------------------------------ queue replay
@@ -356,17 +403,21 @@ export class SyncEngine {
     const manager = this.manager;
     if (!manager) return;
 
-    const entries = await syncQueue.all();
-    await this.refreshPendingCount();
-    if (entries.length === 0) {
-      if (this.status !== "syncing") this.setStatus("synced");
-      return;
-    }
-
     const { data: auth } = await supabase.auth.getUser();
     if (!auth?.user) {
       // Back online but signed out — surface the backlog instead of "offline".
       this.setStatus("queued");
+      return;
+    }
+
+    // Guard against cross-account leakage: if the queue belongs to a
+    // different user, drop it before replaying anything.
+    await syncQueue.ensureUserScope(auth.user.id);
+
+    const entries = await syncQueue.all();
+    await this.refreshPendingCount();
+    if (entries.length === 0) {
+      if (this.status !== "syncing") this.setStatus("synced");
       return;
     }
 

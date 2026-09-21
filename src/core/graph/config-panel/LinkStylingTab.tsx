@@ -3,7 +3,7 @@
  */
 
 import { Label } from "@/shared/ui/label";
-import { Slider } from "@/shared/ui/slider";
+import { Slider } from "@/shared/ui/slider-number";
 import { Switch } from "@/shared/ui/switch";
 import { Badge } from "@/shared/ui/badge";
 import { Input } from "@/shared/ui/input";
@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import { LinkConfig, TopologyConfig, LinkStyle } from "@/shared/stores/useGraphStore";
 import { ColorPicker } from './ColorPicker';
+import { HierarchyLinkColorControls } from './HierarchyColorControls';
 import { CollapsibleSection } from './CollapsibleSection';
 
 interface LinkStylingTabProps {
@@ -312,6 +313,8 @@ export function LinkStylingTab({
         title="Visual Appearance"
         defaultOpen={false}
       >
+        <HierarchyLinkColorControls />
+
         <div className="space-y-4 p-3 rounded-lg bg-card border border-border">
           {/* Link Color */}
           <ColorPicker

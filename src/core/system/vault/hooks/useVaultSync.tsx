@@ -9,6 +9,7 @@ import {
   SyncStatus,
 } from "@/core/system/vault/VaultSyncService";
 import { getVaultManager } from "@/core/system/vault/VaultManagerSingleton";
+import { syncCoordinator } from "@/core/system/sync/SyncCoordinator";
 import { toast } from "sonner";
 
 interface SyncProgress {
@@ -56,26 +57,22 @@ export function useVaultSync(): UseVaultSyncReturn {
     };
   }, []);
 
-  // Update last sync time periodically
+  // Refresh last sync time whenever a sync finishes
   useEffect(() => {
-    const interval = setInterval(() => {
+    setLastSyncTime(vaultSyncService.getLastSyncTime());
+    return vaultSyncService.onStatusChange(() => {
       setLastSyncTime(vaultSyncService.getLastSyncTime());
-    }, 1000);
-    return () => clearInterval(interval);
+    });
   }, []);
 
-  // Auto-sync from cloud when user logs in
+  // Auto-sync from cloud when user logs in, coalesced through the coordinator
   useEffect(() => {
-    if (isAuthenticated) {
-      const autoSync = async () => {
-        await vaultManager.initialize();
-        const result = await vaultSyncService.syncFromCloud(vaultManager);
-        if (result.success && result.syncedVaults && result.syncedVaults > 0) {
-          toast.success(`Synced ${result.syncedVaults} vault(s) from cloud`);
-        }
-      };
-      autoSync();
-    }
+    if (!isAuthenticated) return;
+    void syncCoordinator.requestSync("login").then((result) => {
+      if (result?.success && result.syncedVaults && result.syncedVaults > 0) {
+        toast.success(`Synced ${result.syncedVaults} vault(s) from cloud`);
+      }
+    });
   }, [isAuthenticated]);
 
   const syncToCloud = useCallback(async () => {

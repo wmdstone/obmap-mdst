@@ -43,6 +43,35 @@ describe('timelineLayout', () => {
     expect(ys.some((y) => y > 0)).toBe(true);
   });
 
+  it('does not overlap cards assigned to the same visual row', () => {
+    const nodes = Array.from({ length: 24 }, (_, i) => ({ id: `n${i}`, time: day + i }));
+    const metrics = new Map(nodes.map((node, index) => [
+      node.id,
+      { width: 100 + (index % 3) * 30, height: 40 },
+    ]));
+    const gap = 24;
+    const geo = timelineLayout({
+      nodes,
+      parentOf: () => null,
+      context: context({ nodeMetrics: metrics, siblingGap: gap }),
+    });
+    const rows = new Map<number, typeof nodes>();
+    for (const node of nodes) {
+      const y = geo.targets.get(node.id)!.y;
+      rows.set(y, [...(rows.get(y) ?? []), node]);
+    }
+    for (const row of rows.values()) {
+      const sorted = [...row].sort((a, b) => geo.targets.get(a.id)!.x - geo.targets.get(b.id)!.x);
+      for (let index = 1; index < sorted.length; index += 1) {
+        const left = sorted[index - 1];
+        const right = sorted[index];
+        const leftEdge = geo.targets.get(left.id)!.x + metrics.get(left.id)!.width / 2;
+        const rightEdge = geo.targets.get(right.id)!.x - metrics.get(right.id)!.width / 2;
+        expect(rightEdge - leftEdge).toBeGreaterThanOrEqual(gap);
+      }
+    }
+  });
+
   it('emits a single axis decoration with ticks', () => {
     const nodes = [
       { id: 'a', time: day },

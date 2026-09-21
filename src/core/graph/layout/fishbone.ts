@@ -47,7 +47,14 @@ export function fishboneLayout({ ids, roots, childrenOf, context }: FishboneInpu
 
   const effectWidth = effect ? context.nodeMetrics.get(effect)?.width ?? 120 : 0;
   if (effect) targets.set(effect, { x: x1 + effectWidth / 2, y: y0, side: 0 });
-  decorations.push({ kind: 'fishbone-spine', x1: x0, y1: y0, x2: x1, y2: y0 } as FishboneSpine);
+  decorations.push({
+    kind: 'fishbone-spine',
+    x1: x0,
+    y1: y0,
+    x2: x1,
+    y2: y0,
+    targetId: effect,
+  } as FishboneSpine);
 
   const count = Math.max(1, categories.length);
   categories.forEach((categoryId, index) => {
@@ -68,6 +75,8 @@ export function fishboneLayout({ ids, roots, childrenOf, context }: FishboneInpu
       x2: cx,
       y2: cy,
       major: true,
+      sourceId: effect,
+      targetId: categoryId,
     } as FishboneRib);
 
     const kids = children(categoryId);
@@ -87,6 +96,8 @@ export function fishboneLayout({ ids, roots, childrenOf, context }: FishboneInpu
         x2: target.x,
         y2: target.y,
         major: false,
+        sourceId: categoryId,
+        targetId: kid,
       } as FishboneRib);
     });
   });
@@ -99,8 +110,9 @@ export function fishboneLayout({ ids, roots, childrenOf, context }: FishboneInpu
     depth: number,
     siblingIndex: number
   ) {
-    // Perpendicular pointing away from the spine on either side.
-    const outwardX = -sign * Math.sin(alpha);
+    // A true perpendicular to the rib tangent (-cos(a), sign*sin(a)),
+    // pointing away from the spine on both sides.
+    const outwardX = Math.sin(alpha);
     const outwardY = sign * Math.cos(alpha);
     const tangentX = -Math.cos(alpha);
     const tangentY = sign * Math.sin(alpha);
@@ -134,6 +146,8 @@ export function fishboneLayout({ ids, roots, childrenOf, context }: FishboneInpu
         x2: childTarget.x,
         y2: childTarget.y,
         major: false,
+        sourceId: id,
+        targetId: kid,
       } as FishboneRib);
     });
   }

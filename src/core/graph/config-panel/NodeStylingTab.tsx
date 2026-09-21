@@ -3,7 +3,7 @@
  */
 
 import { Label } from "@/shared/ui/label";
-import { Slider } from "@/shared/ui/slider";
+import { Slider } from "@/shared/ui/slider-number";
 import { Switch } from "@/shared/ui/switch";
 import { Badge } from "@/shared/ui/badge";
 import {
@@ -27,6 +27,7 @@ import {
 } from 'lucide-react';
 import { NodeConfig } from "@/shared/stores/useGraphStore";
 import { ColorPicker } from './ColorPicker';
+import { HierarchyColorControls } from './HierarchyColorControls';
 import { CollapsibleSection } from './CollapsibleSection';
 
 interface NodeStylingTabProps {
@@ -176,6 +177,64 @@ export function NodeStylingTab({ config, is3D, onUpdate }: NodeStylingTabProps) 
         </div>
       </CollapsibleSection>
 
+      {/* Glow */}
+      <CollapsibleSection
+        icon={<Sparkles className="w-4 h-4 text-primary" />}
+        title="Glow Animation"
+        defaultOpen={false}
+      >
+        <div className="space-y-4 p-3 rounded-lg bg-card border border-border">
+          <div className="flex items-center justify-between">
+            <div>
+              <Label className="text-sm font-medium">Glowing nodes</Label>
+              <p className="text-xs text-muted-foreground">Soft pulsing halo in each node's color</p>
+            </div>
+            <Switch
+              checked={config.glow}
+              onCheckedChange={(checked) => onUpdate({ glow: checked })}
+            />
+          </div>
+
+          {config.glow && (
+            <div className="space-y-4 animate-fade-in">
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label className="text-sm">Glow intensity</Label>
+                  <Badge variant="outline" className="font-mono text-xs">
+                    {config.glowIntensity.toFixed(2)}
+                  </Badge>
+                </div>
+                <Slider
+                  value={[config.glowIntensity]}
+                  onValueChange={([value]) => onUpdate({ glowIntensity: value })}
+                  min={0.1}
+                  max={1}
+                  step={0.05}
+                />
+              </div>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label className="text-sm">Pulse speed</Label>
+                  <Badge variant="outline" className="font-mono text-xs">
+                    {config.glowSpeed === 0 ? 'Static' : `${config.glowSpeed.toFixed(1)}x`}
+                  </Badge>
+                </div>
+                <Slider
+                  value={[config.glowSpeed]}
+                  onValueChange={([value]) => onUpdate({ glowSpeed: value })}
+                  min={0}
+                  max={3}
+                  step={0.1}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Set to 0 for a steady halo without animation
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
+      </CollapsibleSection>
+
       {/* Visibility & Transparency */}
       <CollapsibleSection
         icon={<Eye className="w-4 h-4 text-primary" />}
@@ -220,6 +279,8 @@ export function NodeStylingTab({ config, is3D, onUpdate }: NodeStylingTabProps) 
         title="Color Management"
         defaultOpen={false}
       >
+        <HierarchyColorControls />
+
         <div className="space-y-4 p-3 rounded-lg bg-card border border-border">
           {/* Auto-Color Toggle */}
           <div className="space-y-2">

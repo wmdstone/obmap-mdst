@@ -62,4 +62,21 @@ describe('fishboneLayout', () => {
       expect(Math.sign(c.y)).toBe(Math.sign(p.y));
     }
   });
+
+  it('fans nested causes perpendicular to ribs on both sides', () => {
+    const tree = deepTree();
+    const alpha = Math.PI / 4;
+    const geo = fishboneLayout({ ...tree, context: context({ ribAngle: alpha }) });
+    for (const parent of ['a', 'b'] as const) {
+      const child = tree.childrenOf(parent)[0];
+      const p = geo.targets.get(parent)!;
+      const c = geo.targets.get(child)!;
+      const sign = Math.sign(p.y) || 1;
+      const ribX = -Math.cos(alpha);
+      const ribY = sign * Math.sin(alpha);
+      const dot = (c.x - p.x) * ribX + (c.y - p.y) * ribY;
+      const length = Math.hypot(c.x - p.x, c.y - p.y);
+      expect(Math.abs(dot) / length).toBeLessThan(1);
+    }
+  });
 });

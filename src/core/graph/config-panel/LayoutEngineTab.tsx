@@ -6,7 +6,7 @@
 import { Label } from "@/shared/ui/label";
 import { Input } from "@/shared/ui/input";
 import { Switch } from "@/shared/ui/switch";
-import { Slider } from "@/shared/ui/slider";
+import { Slider } from "@/shared/ui/slider-number";
 import {
   Select,
   SelectContent,
@@ -92,6 +92,29 @@ export function LayoutEngineTab() {
             value={[engine.labelZoomThreshold]}
             onValueChange={([v]) => engine.patch({ labelZoomThreshold: v })}
           />
+        </div>
+
+        <div className="space-y-1.5">
+          <Label className="text-xs">Zoom-out rendering</Label>
+          <Select
+            value={engine.zoomOutRendering}
+            onValueChange={(value) =>
+              engine.patch({
+                zoomOutRendering: value as "optimized" | "full-detail",
+              })
+            }
+          >
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="optimized">Optimized</SelectItem>
+              <SelectItem value="full-detail">Keep full detail</SelectItem>
+            </SelectContent>
+          </Select>
+          <p className="text-xs text-muted-foreground">
+            Keep full detail preserves node cards, labels, and link weight while zooming out.
+          </p>
         </div>
 
         <div className="space-y-1.5">

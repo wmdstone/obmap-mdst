@@ -34,7 +34,7 @@ import { Badge } from "@/shared/ui/badge";
 import { MarkdownRenderer } from "@/core/graph/MarkdownRenderer";
 import { MarkdownView } from "@/core/editor/MarkdownView";
 import { ScrollArea } from "@/shared/ui/scroll-area";
-import { Slider } from "@/shared/ui/slider";
+import { Slider } from "@/shared/ui/slider-number";
 import { cn } from "@/shared/lib";
 import {
   DropdownMenu,

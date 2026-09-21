@@ -21,6 +21,8 @@ export interface DrawLinkState {
   particleWidth: number;
   particleColor: string;
   particleProgress: number;
+  zoom: number;
+  preserveDetail: boolean;
   metricOf: (node: RenderNode) => NodeMetric;
 }
 
@@ -44,14 +46,18 @@ export function drawLink(
   const sy = source.y ?? 0;
   const tx = target.x ?? 0;
   const ty = target.y ?? 0;
-  if (!Number.isFinite(sx) || !Number.isFinite(tx)) return;
+  if (![sx, sy, tx, ty].every(Number.isFinite)) return;
 
   const start = anchorOnCard({ x: sx, y: sy }, state.metricOf(source), { x: tx, y: ty });
   const end = anchorOnCard({ x: tx, y: ty }, state.metricOf(target), { x: sx, y: sy });
+  if (![start.x, start.y, end.x, end.y].every(Number.isFinite)) return;
 
   ctx.save();
   ctx.setLineDash(state.dash);
-  ctx.lineWidth = Math.max(0.4, state.width - source.depth * 0.15);
+  const configuredWidth = Math.max(0.4, state.width - source.depth * 0.15);
+  ctx.lineWidth = state.preserveDetail
+    ? configuredWidth / Math.max(0.05, state.zoom)
+    : configuredWidth;
   ctx.strokeStyle = dim(state.color, state.dimmed ? 0.08 : state.opacity);
   ctx.lineCap = 'round';
   ctx.beginPath();
@@ -90,7 +96,9 @@ export function drawLink(
     : Math.atan2(end.y - start.y, end.x - start.x);
 
   if (state.showArrow && state.arrowLength > 0 && !state.dimmed) {
-    const len = state.arrowLength;
+    const len = state.preserveDetail
+      ? state.arrowLength / Math.max(0.05, state.zoom)
+      : state.arrowLength;
     const arrowT = Math.max(0.05, Math.min(1, state.arrowRelPos));
     const tip = pointAt(arrowT);
     const tangent = tangentAt(arrowT);
@@ -116,7 +124,10 @@ export function drawLink(
       const t = (state.particleProgress + index / state.particles) % 1;
       const point = pointAt(t);
       ctx.beginPath();
-      ctx.arc(point.x, point.y, Math.max(0.75, state.particleWidth / 2), 0, Math.PI * 2);
+      const particleRadius = state.preserveDetail
+        ? state.particleWidth / Math.max(0.05, state.zoom) / 2
+        : state.particleWidth / 2;
+      ctx.arc(point.x, point.y, Math.max(0.75, particleRadius), 0, Math.PI * 2);
       ctx.fill();
     }
   }

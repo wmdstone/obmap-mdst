@@ -15,6 +15,7 @@ export interface GraphEngineState {
   levelDistance: number;
   showLabels: boolean;
   labelZoomThreshold: number;
+  zoomOutRendering: 'optimized' | 'full-detail';
 
   patch: (partial: Partial<Omit<GraphEngineState, 'patch'>>) => void;
 }
@@ -27,18 +28,20 @@ export const useGraphEngineStore = create<GraphEngineState>()(
       levelDistance: 110,
       showLabels: true,
       labelZoomThreshold: 0.7,
+      zoomOutRendering: 'optimized',
 
       patch: (partial) => set(partial),
     }),
     {
       name: 'graph-engine-storage',
-      version: 2,
+      version: 3,
       partialize: (state) => ({
         timeField: state.timeField,
         laneHeight: state.laneHeight,
         levelDistance: state.levelDistance,
         showLabels: state.showLabels,
         labelZoomThreshold: state.labelZoomThreshold,
+        zoomOutRendering: state.zoomOutRendering,
       }),
       migrate: (persisted) => {
         const state = (persisted ?? {}) as Partial<GraphEngineState>;
@@ -48,6 +51,7 @@ export const useGraphEngineStore = create<GraphEngineState>()(
           levelDistance: state.levelDistance ?? 110,
           showLabels: state.showLabels ?? true,
           labelZoomThreshold: state.labelZoomThreshold ?? 0.7,
+          zoomOutRendering: state.zoomOutRendering ?? 'optimized',
         } as GraphEngineState;
       },
     }

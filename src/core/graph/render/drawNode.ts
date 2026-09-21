@@ -15,7 +15,38 @@ export interface DrawNodeState {
   isRoot: boolean;
   showLabels: boolean;
   labelThreshold: number;
+  preserveDetail: boolean;
   config: NodeConfig;
+  /** 0..1 pulse phase for animated glow; static halo when omitted. */
+  glowPhase?: number;
+}
+
+/** Soft radial halo around a node marker, drawn beneath the node itself. */
+function drawGlow(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  radius: number,
+  color: string,
+  intensity: number,
+  phase: number,
+  boost: number
+) {
+  const pulse = 0.65 + 0.35 * Math.sin(phase * Math.PI * 2);
+  const strength = Math.max(0, Math.min(1, intensity)) * pulse * boost;
+  if (strength <= 0.01) return;
+  const outer = radius * (2.2 + intensity * 2.2);
+  const gradient = ctx.createRadialGradient(x, y, radius * 0.4, x, y, outer);
+  gradient.addColorStop(0, dim(color, 0.55 * strength));
+  gradient.addColorStop(0.55, dim(color, 0.22 * strength));
+  gradient.addColorStop(1, dim(color, 0));
+  ctx.save();
+  ctx.globalCompositeOperation = 'lighter';
+  ctx.fillStyle = gradient;
+  ctx.beginPath();
+  ctx.arc(x, y, outer, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
 }
 
 export function labelForNode(node: RenderNode, config: NodeConfig): string {
@@ -86,7 +117,10 @@ export function drawNode(
   const alpha = state.dimmed ? 0.18 : theme.nodeOpacity;
 
   // Below the threshold only a marker is drawn.
-  if (zoom < state.labelThreshold * 0.6) {
+  if (!state.preserveDetail && zoom < state.labelThreshold * 0.6) {
+    if (state.config.glow && !state.dimmed) {
+      drawGlow(ctx, x, y, 5, accent, state.config.glowIntensity, state.glowPhase ?? 0, state.selected || state.hovered ? 1.3 : 1);
+    }
     ctx.save();
     ctx.globalAlpha = alpha;
     ctx.fillStyle = accent;
@@ -97,6 +131,15 @@ export function drawNode(
     node.toggle = null;
     return;
   }
+
+  // Keep the configured node appearance at a stable screen size. Canvas
+  // coordinates are normally scaled by the camera, so counter-scale around
+  // the node while leaving its graph position unchanged.
+  const detailScale = state.preserveDetail ? 1 / Math.max(0.05, zoom) : 1;
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.scale(detailScale, detailScale);
+  ctx.translate(-x, -y);
 
   const label = labelForNode(node, state.config);
   const fontSize = state.config.labelSize + (state.isRoot ? 2 : 0);
@@ -137,6 +180,18 @@ export function drawNode(
 
   // Configurable node marker.
   const markerX = boxed ? x - w / 2 + 9 : x;
+  if (state.config.glow && !state.dimmed) {
+    drawGlow(
+      ctx,
+      markerX,
+      y,
+      markerRadius,
+      accent,
+      state.config.glowIntensity,
+      state.glowPhase ?? 0,
+      state.selected || state.hovered ? 1.35 : 1
+    );
+  }
   ctx.fillStyle = accent;
   drawShape(ctx, state.config.shape, markerX, y, markerRadius);
   ctx.fill();
@@ -147,7 +202,7 @@ export function drawNode(
   }
   ctx.shadowBlur = 0;
 
-  if (state.showLabels && zoom >= state.labelThreshold * 0.6) {
+  if (state.showLabels && (state.preserveDetail || zoom >= state.labelThreshold * 0.6)) {
     const italic = state.config.labelFontStyle.includes('italic') ? 'italic ' : '';
     const weight = state.config.labelFontStyle.includes('bold') || state.isRoot ? '600' : '500';
     ctx.font = `${italic}${cardFont(fontSize, weight)}`;
@@ -165,7 +220,11 @@ export function drawNode(
   }
 
   // Child-count badge.
-  if (boxed && node.childCount > 0 && zoom >= state.labelThreshold) {
+  if (
+    boxed &&
+    node.childCount > 0 &&
+    (state.preserveDetail || zoom >= state.labelThreshold)
+  ) {
     ctx.font = cardFont(9, '600');
     ctx.fillStyle = dim(accent, 0.9);
     ctx.textAlign = 'right';
@@ -200,10 +259,15 @@ export function drawNode(
     }
     ctx.stroke();
     ctx.restore();
-    node.toggle = { x: tx, y: ty, r: r + 3 };
+    node.toggle = {
+      x: x + (tx - x) * detailScale,
+      y: y + (ty - y) * detailScale,
+      r: (r + 3) * detailScale,
+    };
   } else {
     node.toggle = null;
   }
+  ctx.restore();
 }
 
 /** Pointer area covers the card plus its toggle. */
@@ -212,7 +276,9 @@ export function paintNodePointerArea(
   node: RenderNode,
   color: string,
   isRoot: boolean,
-  config?: NodeConfig
+  config?: NodeConfig,
+  zoom = 1,
+  preserveDetail = false
 ) {
   if (config && !config.visible) return;
   const label = config ? labelForNode(node, config) : node.name;
@@ -228,6 +294,12 @@ export function paintNodePointerArea(
   const markerRadius = Math.max(3, config?.relSize ?? 6);
   const width = boxed ? layout.width : markerRadius * 2;
   const height = boxed ? layout.height : markerRadius * 2;
+  const detailScale = preserveDetail ? 1 / Math.max(0.05, zoom) : 1;
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.scale(detailScale, detailScale);
+  ctx.translate(-x, -y);
   ctx.fillStyle = color;
   ctx.fillRect(x - width / 2, y - height / 2, width + extra, height);
+  ctx.restore();
 }

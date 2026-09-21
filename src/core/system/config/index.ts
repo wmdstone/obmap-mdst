@@ -3,4 +3,4 @@ export { registerConfigSection, getConfigSection, listConfigSections } from './r
 export { configService } from './ConfigService';
 export { registerConfigSections } from './sections';
 export { useConfigSync, useConfigSyncState } from './useConfigSync';
-export { folderConfigStore } from './FolderConfigStore';
+export { VAULT_CONFIG_FILE, serializeConfigExport, configExportFileName, writeVaultConfigFile } from './VaultConfigFile';

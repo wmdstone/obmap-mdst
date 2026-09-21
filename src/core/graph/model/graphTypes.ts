@@ -42,6 +42,8 @@ export interface FishboneSpine {
   y1: number;
   x2: number;
   y2: number;
+  /** Effect (root) node the spine belongs to, for hierarchy colouring. */
+  targetId?: string;
 }
 
 export interface FishboneRib {
@@ -51,6 +53,9 @@ export interface FishboneRib {
   x2: number;
   y2: number;
   major: boolean;
+  /** Parent/child ids of the relation this rib draws, for hierarchy colouring. */
+  sourceId?: string;
+  targetId?: string;
 }
 
 export type LayoutDecoration = TimelineAxis | FishboneSpine | FishboneRib;

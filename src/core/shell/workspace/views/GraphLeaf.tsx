@@ -27,6 +27,7 @@ function GraphLeafBody() {
     setFocusedRoot,
   } = useGraphInteractionStore();
   const [search, setSearch] = useState("");
+  const [minDepth, setMinDepth] = useState(0);
   const [maxDepth, setMaxDepth] = useState(10);
   const [contentFilter, setContentFilter] = useState("");
   const [tagFilter, setTagFilter] = useState("");
@@ -50,6 +51,7 @@ function GraphLeafBody() {
         onNodeSelect={handleSelect}
         graphConfig={graphConfig}
         search={search}
+        minDepth={minDepth}
         maxDepth={maxDepth}
         contentFilter={contentFilter}
         tagFilter={tagFilter}
@@ -70,8 +72,16 @@ function GraphLeafBody() {
         onClearFocus={() => setFocusedRoot(null)}
         search={search}
         onSearchChange={setSearch}
+        minDepth={minDepth}
+        onMinDepthChange={(value) => {
+          setMinDepth(value);
+          if (value > maxDepth) setMaxDepth(value);
+        }}
         maxDepth={maxDepth}
-        onMaxDepthChange={setMaxDepth}
+        onMaxDepthChange={(value) => {
+          setMaxDepth(value);
+          if (value < minDepth) setMinDepth(value);
+        }}
         contentFilter={contentFilter}
         onContentFilterChange={setContentFilter}
         tagFilter={tagFilter}

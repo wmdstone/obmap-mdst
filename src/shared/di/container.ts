@@ -204,9 +204,6 @@ export const ServiceIds = {
 	// Persistence services
 	FileSystemService: Symbol('FileSystemService'),
 
-	// Sync services
-	BackgroundSyncService: Symbol('BackgroundSyncService'),
-
 	// Integration services
 	SupabaseClient: Symbol('SupabaseClient'),
 

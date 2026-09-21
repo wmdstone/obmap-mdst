@@ -106,21 +106,28 @@ export class CloudVaultService {
   async createVault(
     name: string,
     description?: string,
-    graphData?: { nodes: any[]; links: any[] }
+    graphData?: { nodes: any[]; links: any[] },
+    id?: string
   ): Promise<{ data: CloudVault | null; error: Error | null }> {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
       return { data: null, error: new Error('Not authenticated') };
     }
 
+    // The vault id doubles as the cloud primary key, so one vault keeps one
+    // identity across devices. Upsert: re-pushing an existing id updates.
     const { data, error } = await supabase
       .from('user_vaults')
-      .insert({
-        user_id: user.id,
-        name,
-        description: description || null,
-        graph_data: (graphData || { nodes: [], links: [] }) as unknown as Json,
-      })
+      .upsert(
+        {
+          ...(id ? { id } : {}),
+          user_id: user.id,
+          name,
+          description: description || null,
+          graph_data: (graphData || { nodes: [], links: [] }) as unknown as Json,
+        },
+        { onConflict: 'id' }
+      )
       .select()
       .single();
 

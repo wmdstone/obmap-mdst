@@ -16,6 +16,7 @@ import { useEditorSettingsStore } from "@/shared/stores/useEditorSettingsStore";
 import { useUIStore } from "@/shared/stores/useUIStore";
 import { useWorkspaceStore } from "@/core/shell/workspace/store/useWorkspaceStore";
 import { useSchemaStore } from "@/core/system/schema/useSchemaStore";
+import { useBackupConfigStore } from "@/shared/stores/useBackupConfigStore";
 import {
   TOGGLEABLE_FEATURES,
   getFeatureToggles,
@@ -33,7 +34,7 @@ export function registerConfigSections(): void {
   registerConfigSection<GraphConfigState>({
     id: "graph",
     label: "Graph styling",
-    version: 1,
+    version: 2,
     scope: "vault",
     read: () => useGraphStore.getState().config,
     write: (value) => useGraphStore.getState().loadConfig(value),
@@ -55,13 +56,14 @@ export function registerConfigSections(): void {
       levelDistance: s.levelDistance,
       showLabels: s.showLabels,
       labelZoomThreshold: s.labelZoomThreshold,
+      zoomOutRendering: s.zoomOutRendering,
     };
   };
 
   registerConfigSection<EngineSnapshot>({
     id: "graph-engine",
-    label: "Graph layout engine",
-    version: 1,
+    label: "Graph engine options",
+    version: 2,
     scope: "vault",
     read: readEngine,
     write: (value) => useGraphEngineStore.getState().patch(value),
@@ -190,6 +192,22 @@ export function registerConfigSections(): void {
     subscribe: (cb) =>
       useSchemaStore.subscribe((s, prev) => {
         if (s.schema !== prev.schema) cb();
+      }),
+  });
+
+  /* -------------------------------- backup ------------------------------- */
+  registerConfigSection({
+    id: "backup",
+    label: "Backup settings",
+    version: 1,
+    scope: "user",
+    read: () => useBackupConfigStore.getState().configs,
+    write: (value) =>
+      useBackupConfigStore.getState().loadAll(value as never),
+    reset: () => useBackupConfigStore.getState().reset(),
+    subscribe: (cb) =>
+      useBackupConfigStore.subscribe((s, prev) => {
+        if (s.configs !== prev.configs) cb();
       }),
   });
 

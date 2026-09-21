@@ -3,7 +3,7 @@
  */
 
 import { Label } from "@/shared/ui/label";
-import { Slider } from "@/shared/ui/slider";
+import { Slider } from "@/shared/ui/slider-number";
 import { Badge } from "@/shared/ui/badge";
 import { Button } from "@/shared/ui/button";
 import {

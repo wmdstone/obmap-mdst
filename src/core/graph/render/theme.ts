@@ -3,6 +3,10 @@
 import { colorWithOpacity, resolveColor } from '@/shared/lib/color-utils';
 import type { GraphConfigState } from '@/shared/stores/useGraphStore';
 import type { RenderNode } from '../model/graphTypes';
+import {
+  resolveLevelColor,
+  type HierarchyColorConfig,
+} from '../model/hierarchyColors';
 
 export interface GraphTheme {
   folder: string;
@@ -19,6 +23,7 @@ export interface GraphTheme {
   nodeOpacity: number;
   autoColorBy: GraphConfigState['nodes']['autoColorBy'];
   labelSize: number;
+  hierarchy: HierarchyColorConfig;
 }
 
 export function buildTheme(config: GraphConfigState): GraphTheme {
@@ -37,11 +42,14 @@ export function buildTheme(config: GraphConfigState): GraphTheme {
     nodeOpacity: config.nodes.opacity,
     autoColorBy: config.nodes.autoColorBy,
     labelSize: config.nodes.labelSize,
+    hierarchy: config.hierarchy,
   };
 }
 
 export function accentFor(node: RenderNode, theme: GraphTheme, selected: boolean): string {
   if (selected) return theme.selected;
+  // Hierarchy colouring wins over autoColorBy, but keeps the selected accent.
+  if (theme.hierarchy?.enabled) return resolveLevelColor(node.depth, theme.hierarchy);
   if (theme.autoColorBy === 'depth') return `hsl(${(node.depth * 40) % 360}, 70%, 55%)`;
   if (theme.autoColorBy === 'tags' && node.tags.length) {
     const hash = node.tags[0]

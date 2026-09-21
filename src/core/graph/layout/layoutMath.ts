@@ -63,8 +63,10 @@ export function anchorOnCard(
   const dx = towards.x - center.x;
   const dy = towards.y - center.y;
   if (dx === 0 && dy === 0) return { ...center };
-  const halfW = size.width / 2;
-  const halfH = size.height / 2;
+  const halfW = Math.max(0.5, size.width / 2);
+  const halfH = Math.max(0.5, size.height / 2);
   const scale = 1 / Math.max(Math.abs(dx) / halfW, Math.abs(dy) / halfH);
-  return { x: center.x + dx * scale, y: center.y + dy * scale };
+  const x = center.x + dx * scale;
+  const y = center.y + dy * scale;
+  return Number.isFinite(x) && Number.isFinite(y) ? { x, y } : { ...center };
 }
