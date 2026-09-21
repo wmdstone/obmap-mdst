@@ -53,6 +53,7 @@ interface Node {
 
 interface SidebarPanelProps {
   activeTool: RibbonTool | null;
+  open?: boolean;
   onClose: () => void;
   nodes: Node[];
   selectedNode: Node | null;
