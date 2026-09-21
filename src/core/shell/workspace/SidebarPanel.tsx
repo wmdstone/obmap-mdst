@@ -332,11 +332,12 @@ export function SidebarPanel({
             >
               {isFolder && hasChildren && (
                 <span className="p-0.5 rounded">
-                  {isExpanded ? (
-                    <ChevronDown className="w-3 h-3" />
-                  ) : (
-                    <ChevronRight className="w-3 h-3" />
-                  )}
+                  <ChevronRight
+                    className={cn(
+                      "w-3 h-3 transition-transform duration-200 ease-out",
+                      isExpanded && "rotate-90",
+                    )}
+                  />
                 </span>
               )}
               {isFolder && !hasChildren && <span className="w-4" />}
@@ -350,14 +351,23 @@ export function SidebarPanel({
             </div>
           </div>
 
-          {hasChildren && isExpanded && (
-            <div className="relative">
-              {children.map((child, idx) =>
-                renderNode(child, level + 1, idx === children.length - 1, [
-                  ...parentLines,
-                  !isLastChild,
-                ]),
+          {hasChildren && (
+            <div
+              className={cn(
+                "grid transition-[grid-template-rows,opacity] duration-200 ease-out motion-reduce:transition-none",
+                isExpanded
+                  ? "grid-rows-[1fr] opacity-100"
+                  : "grid-rows-[0fr] opacity-0",
               )}
+            >
+              <div className="relative overflow-hidden">
+                {children.map((child, idx) =>
+                  renderNode(child, level + 1, idx === children.length - 1, [
+                    ...parentLines,
+                    !isLastChild,
+                  ]),
+                )}
+              </div>
             </div>
           )}
         </div>
