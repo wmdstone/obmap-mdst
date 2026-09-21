@@ -640,6 +640,7 @@ export function SidebarPanel({
           </ScrollArea>
         )}
       </div>
+      </div>
 
       {/* Resize Handle */}
       <div
@@ -647,6 +648,7 @@ export function SidebarPanel({
           "absolute top-0 right-0 w-1 h-full cursor-col-resize group",
           "hover:bg-primary/50 transition-colors",
           isResizing && "bg-primary/50",
+          !open && "pointer-events-none",
         )}
         onMouseDown={handleResizeStart}
       >
