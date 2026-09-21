@@ -403,12 +403,26 @@ export function SidebarPanel({
   return (
     <div
       ref={panelRef}
+      aria-hidden={!open}
       className={cn(
-        "h-full bg-sidebar border-r border-sidebar-border flex flex-col relative",
-        "animate-in slide-in-from-left-2 duration-200 ease-out",
+        "h-full relative shrink-0 overflow-hidden bg-sidebar",
+        "border-r border-sidebar-border",
+        open ? "border-r" : "border-r-0",
+        !isResizing &&
+          "transition-[width,opacity] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none",
+        open ? "opacity-100" : "opacity-0",
       )}
-      style={{ width: `${width}px` }}
+      style={{ width: open ? `${width}px` : "0px" }}
     >
+      <div
+        className={cn(
+          "h-full flex flex-col",
+          !isResizing &&
+            "transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none",
+          open ? "translate-x-0" : "-translate-x-4",
+        )}
+        style={{ width: `${width}px` }}
+      >
       {/* Panel Header */}
       <div className="h-12 px-3 flex items-center justify-between border-b border-sidebar-border shrink-0">
         <span className="text-sm font-medium text-sidebar-foreground">
