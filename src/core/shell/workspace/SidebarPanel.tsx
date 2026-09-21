@@ -53,6 +53,7 @@ interface Node {
 
 interface SidebarPanelProps {
   activeTool: RibbonTool | null;
+  open?: boolean;
   onClose: () => void;
   nodes: Node[];
   selectedNode: Node | null;
@@ -82,6 +83,7 @@ const DEFAULT_WIDTH = 256;
 
 export function SidebarPanel({
   activeTool,
+  open = true,
   onClose,
   nodes,
   selectedNode,
@@ -332,11 +334,12 @@ export function SidebarPanel({
             >
               {isFolder && hasChildren && (
                 <span className="p-0.5 rounded">
-                  {isExpanded ? (
-                    <ChevronDown className="w-3 h-3" />
-                  ) : (
-                    <ChevronRight className="w-3 h-3" />
-                  )}
+                  <ChevronRight
+                    className={cn(
+                      "w-3 h-3 transition-transform duration-200 ease-out",
+                      isExpanded && "rotate-90",
+                    )}
+                  />
                 </span>
               )}
               {isFolder && !hasChildren && <span className="w-4" />}
@@ -350,14 +353,23 @@ export function SidebarPanel({
             </div>
           </div>
 
-          {hasChildren && isExpanded && (
-            <div className="relative">
-              {children.map((child, idx) =>
-                renderNode(child, level + 1, idx === children.length - 1, [
-                  ...parentLines,
-                  !isLastChild,
-                ]),
+          {hasChildren && (
+            <div
+              className={cn(
+                "grid transition-[grid-template-rows,opacity] duration-200 ease-out motion-reduce:transition-none",
+                isExpanded
+                  ? "grid-rows-[1fr] opacity-100"
+                  : "grid-rows-[0fr] opacity-0",
               )}
+            >
+              <div className="relative overflow-hidden">
+                {children.map((child, idx) =>
+                  renderNode(child, level + 1, idx === children.length - 1, [
+                    ...parentLines,
+                    !isLastChild,
+                  ]),
+                )}
+              </div>
             </div>
           )}
         </div>
@@ -393,12 +405,26 @@ export function SidebarPanel({
   return (
     <div
       ref={panelRef}
+      aria-hidden={!open}
       className={cn(
-        "h-full bg-sidebar border-r border-sidebar-border flex flex-col relative",
-        "animate-in slide-in-from-left-2 duration-200 ease-out",
+        "h-full relative shrink-0 overflow-hidden bg-sidebar",
+        "border-r border-sidebar-border",
+        open ? "border-r" : "border-r-0",
+        !isResizing &&
+          "transition-[width,opacity] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none",
+        open ? "opacity-100" : "opacity-0",
       )}
-      style={{ width: `${width}px` }}
+      style={{ width: open ? `${width}px` : "0px" }}
     >
+      <div
+        className={cn(
+          "h-full flex flex-col",
+          !isResizing &&
+            "transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none",
+          open ? "translate-x-0" : "-translate-x-4",
+        )}
+        style={{ width: `${width}px` }}
+      >
       {/* Panel Header */}
       <div className="h-12 px-3 flex items-center justify-between border-b border-sidebar-border shrink-0">
         <span className="text-sm font-medium text-sidebar-foreground">
@@ -616,6 +642,7 @@ export function SidebarPanel({
           </ScrollArea>
         )}
       </div>
+      </div>
 
       {/* Resize Handle */}
       <div
@@ -623,6 +650,7 @@ export function SidebarPanel({
           "absolute top-0 right-0 w-1 h-full cursor-col-resize group",
           "hover:bg-primary/50 transition-colors",
           isResizing && "bg-primary/50",
+          !open && "pointer-events-none",
         )}
         onMouseDown={handleResizeStart}
       >
