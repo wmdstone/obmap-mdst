@@ -83,6 +83,7 @@ const DEFAULT_WIDTH = 256;
 
 export function SidebarPanel({
   activeTool,
+  open = true,
   onClose,
   nodes,
   selectedNode,
