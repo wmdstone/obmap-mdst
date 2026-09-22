@@ -445,25 +445,10 @@ export const PropertiesPanel = ({ value, onChange }: PropertiesPanelProps) => {
 
               {/* Add Property Input */}
               <div className="group mt-1 flex items-center gap-2 rounded-md py-1 transition-colors hover:bg-accent/30">
-                <div className="flex w-[140px] shrink-0 items-center gap-1.5 pl-6 text-muted-foreground/60 group-hover:text-muted-foreground">
-                  <Plus className="h-3.5 w-3.5" />
-                  <SuggestInput
-                    value={newKey}
-                    onChange={setNewKey}
-                    onCommit={(next) => addProperty(next)}
-                    suggestions={(propertySuggestionsEnabled
-                      ? keySuggestions
-                      : []
-                    ).filter(
-                      (k) =>
-                        !properties.some(
-                          (p) => p.key.toLowerCase() === k.toLowerCase(),
-                        ),
-                    )}
-                    placeholder="Add property"
-                    className="px-0"
-                  />
-                </div>
+<div className="flex w-[140px] shrink-0 items-center gap-1.5 pl-1 text-muted-foreground/60 group-hover:text-muted-foreground">
+  <Plus className="h-3.5 w-3.5" />
+  <SuggestInput ... />
+</div>
                 {duplicateKey && (
                   <span className="text-[10px] text-destructive">
                     Key exists
@@ -519,29 +504,11 @@ const PropertyRow = ({
     <div
       className={cn(
         "group flex items-center min-h-[32px] rounded-md transition-colors hover:bg-accent/40",
-        dragRow === index && "bg-accent",
         invalid && "bg-destructive/10",
-      )}
-      onDragOver={(e) => dragRow !== null && e.preventDefault()}
-      onDrop={(e) => {
-        if (dragRow === null) return;
-        e.preventDefault();
-        actions.moveRow(dragRow, index);
-        setDragRow(null);
-      }}
+      )}}
     >
       {/* Left Column: Key & Actions */}
       <div className="flex w-[140px] shrink-0 items-center gap-1 py-1 pr-2">
-        {/* Drag Handle */}
-        <button
-          type="button"
-          draggable
-          onDragStart={() => setDragRow(index)}
-          onDragEnd={() => setDragRow(null)}
-          className="cursor-grab p-1 text-muted-foreground/30 opacity-0 transition-opacity hover:text-foreground group-hover:opacity-100"
-        >
-          <GripVertical className="h-3.5 w-3.5" />
-        </button>
 
         {/* Type Icon Selector */}
         <DropdownMenu>
