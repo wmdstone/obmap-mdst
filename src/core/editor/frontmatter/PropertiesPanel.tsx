@@ -515,7 +515,7 @@ const PropertyRow = ({
       className={cn(
         "group flex items-center min-h-[32px] rounded-md transition-colors hover:bg-accent/40",
         invalid && "bg-destructive/10",
-      )}}
+      )}
     >
       {/* Left Column: Key & Actions */}
       <div className="flex w-[140px] shrink-0 items-center gap-1 py-1 pr-2">
