@@ -53,7 +53,7 @@ const Section = ({
   const Tag = `h${node.level}` as "h1";
 
   return (
-    <section className="scroll-mt-16">
+    <section className="scroll-mt-16 min-w-0">
       <div className="mb-2 mt-4 group flex items-center">
         <button
           type="button"

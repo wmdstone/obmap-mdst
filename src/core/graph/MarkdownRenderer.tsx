@@ -58,10 +58,14 @@ export const MarkdownRenderer = ({
   };
 
   return (
-    <div 
-      className={cn("prose prose-sm dark:prose-invert max-w-none", className)}
-      onClick={handleClick}
-    >
+<div 
+  className={cn(
+    "prose prose-sm dark:prose-invert max-w-none break-words [overflow-wrap:anywhere]",
+    className
+  )}
+  onClick={handleClick}
+>
+
       <ReactMarkdown
         remarkPlugins={[remarkGfm, remarkBreaks]}
         rehypePlugins={[rehypeRaw]}
@@ -79,6 +83,11 @@ export const MarkdownRenderer = ({
             }
             return <input {...props} />;
           },
+          p: ({ node, children, ...props }) => (
+  <p {...props} className="break-words [overflow-wrap:anywhere]">
+    {children}
+  </p>
+),
           // Custom link rendering
           a: ({ node, ...props }) => (
             <a 
@@ -88,6 +97,7 @@ export const MarkdownRenderer = ({
               rel="noopener noreferrer"
             />
           ),
+          
           // Custom code block rendering
           code: ({ node, className, children, ...props }) => {
             const isInline = !className?.includes('language-');
