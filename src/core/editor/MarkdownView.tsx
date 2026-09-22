@@ -2,8 +2,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { EditorView } from "@codemirror/view";
 import { EditorState } from "@codemirror/state";
 import { cn } from "@/shared/lib";
-import { MarkdownRenderer } from "@/core/graph/MarkdownRenderer";
-import { EditorToolbar } from "@/core/editor/toolbar/EditorToolbar";
 import { PropertiesPanel } from "@/core/editor/frontmatter/PropertiesPanel";
 import {
   createEditorExtensions,
@@ -21,6 +19,7 @@ import type { SuggestSource } from "@/core/editor/suggest/suggestions";
 import type { EditorApi, EditorMode } from "@/core/editor/types";
 import { useNodeStore } from "@/shared/stores";
 import { useEditorSettingsStore } from "@/shared/stores/useEditorSettingsStore";
+import { FoldableMarkdown } from "@/core/editor/headings/FoldableMarkdown";
 
 interface MarkdownViewProps {
   value: string;
@@ -164,11 +163,29 @@ export const MarkdownView = ({
   const words = useMemo(() => countWords(value), [value]);
 
   const editorSurface = (
-    <div
-      ref={hostRef}
-      className="min-h-[50vh] w-full text-sm"
-      onFocus={() => api && setActiveEditor(api)}
-    />
+    <div className="relative w-full">
+      <div
+        ref={hostRef}
+        className="min-h-[50vh] w-full text-sm"
+        onFocus={() => api && setActiveEditor(api)}
+      />
+    </div>
+  );
+
+  const previewSurface = (
+    <div className="relative">
+      {body ? (
+        <FoldableMarkdown
+          content={body}
+          onWikilinkClick={onWikilinkClick}
+          onTagClick={onTagClick}
+        />
+      ) : (
+        <p className="text-muted-foreground/30 text-sm italic">
+          Nothing to preview
+        </p>
+      )}
+    </div>
   );
 
   return (
@@ -176,41 +193,16 @@ export const MarkdownView = ({
       {showProperties && toolbarSettings.showProperties && (
         <PropertiesPanel value={value} onChange={onChange} />
       )}
-      {/* {showToolbar && toolbarSettings.showToolbar && !isReading && (
-        <EditorToolbar editor={api} groups={toolbarSettings.groups} />
-      )} */}
 
       {isReading ? (
-        <div className="prose-container min-h-[50vh] py-3">
-          {body ? (
-            <MarkdownRenderer
-              content={body}
-              onWikilinkClick={onWikilinkClick}
-              onTagClick={onTagClick}
-            />
-          ) : (
-            <p className="text-muted-foreground/30 text-sm italic">
-              Nothing to preview
-            </p>
-          )}
-        </div>
+        <div className="prose-container min-h-[50vh] py-3">{previewSurface}</div>
       ) : sideBySide ? (
         <div className="grid grid-cols-2 gap-6 min-h-[50vh]">
           <div className="rounded-lg border border-border/30 bg-muted/20 overflow-hidden">
             {editorSurface}
           </div>
           <div className="rounded-lg border border-border/30 bg-muted/20 p-5 overflow-auto">
-            {body ? (
-              <MarkdownRenderer
-                content={body}
-                onWikilinkClick={onWikilinkClick}
-                onTagClick={onTagClick}
-              />
-            ) : (
-              <p className="text-muted-foreground/30 text-sm italic">
-                Nothing to preview
-              </p>
-            )}
+            {previewSurface}
           </div>
         </div>
       ) : (

@@ -31,6 +31,7 @@ import {
 } from "@codemirror/language";
 
 import { editorTheme, markdownHighlight } from "./theme";
+import { headingFolding } from "./extensions/headingFold";
 import { livePreview, sourceHighlighting } from "./extensions/livePreview";
 import {
   wikilinkExtension,
@@ -126,6 +127,7 @@ export function createEditorExtensions(
       addKeymap: true,
     }),
     markdownHighlight,
+    headingFolding(),
     editorTheme,
     appearanceCompartment.of(appearanceTheme(appearance)),
     frontmatterField,
