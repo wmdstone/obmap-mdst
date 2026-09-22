@@ -120,7 +120,7 @@ export function createEditorExtensions(
     EditorView.contentAttributes.of({
       spellcheck: behavior.spellcheck ? "true" : "false",
     }),
-    placeholderExt(options.placeholder ?? "Start writing..."),
+    placeholderExt(options.placeholder ?? "Write '/' or start writing..."),
     markdown({
       base: markdownLanguage,
       codeLanguages: languages,

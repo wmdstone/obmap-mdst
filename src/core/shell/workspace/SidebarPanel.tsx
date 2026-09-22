@@ -39,6 +39,8 @@ import {
 } from "@/shared/ui/dropdown-menu";
 import type { RibbonTool } from "./IconRibbon";
 import { useWorkspaceStore } from "./store/useWorkspaceStore";
+import { useUIStore } from "@/shared/stores";
+
 
 interface Node {
   id: string;
@@ -98,9 +100,11 @@ export function SidebarPanel({
   onImportComplete,
 }: SidebarPanelProps) {
   const openView = useWorkspaceStore((state) => state.openView);
-  const [expandedFolders, setExpandedFolders] = useState<Set<string>>(
-    new Set(),
-  );
+const expandedFolderIds = useUIStore((state) => state.expandedFolderIds);
+const setExpandedFolderIds = useUIStore(
+  (state) => state.setExpandedFolderIds,
+);
+const expandedFolders = new Set(expandedFolderIds);
   const [expandedSettingsGroups, setExpandedSettingsGroups] = useState<
     Set<string>
   >(() => new Set(SETTINGS_GROUPS));
@@ -118,18 +122,16 @@ export function SidebarPanel({
     openView({ type: "settings", title: label, settingsSection: section });
   };
 
-  const toggleFolder = useCallback((folderId: string, e?: React.MouseEvent) => {
-    e?.stopPropagation();
-    setExpandedFolders((prev) => {
-      const next = new Set(prev);
-      if (next.has(folderId)) {
-        next.delete(folderId);
-      } else {
-        next.add(folderId);
-      }
-      return next;
-    });
-  }, []);
+const toggleFolder = useCallback((folderId: string, e?: React.MouseEvent) => {
+  e?.stopPropagation();
+
+  setExpandedFolderIds(
+    expandedFolders.has(folderId)
+      ? expandedFolderIds.filter((id) => id !== folderId)
+      : [...expandedFolderIds, folderId],
+  );
+}, [expandedFolderIds, expandedFolders, setExpandedFolderIds]);
+
 
   const handleDragStart = (node: Node, e: React.DragEvent) => {
     e.stopPropagation();
@@ -372,16 +374,18 @@ export function SidebarPanel({
   const folderCount = nodes.filter((n) => n.type === "folder").length;
   const fileCount = nodes.filter((n) => n.type === "file").length;
 
-  const expandAll = () => {
-    const allFolderIds = nodes
-      .filter((n) => n.type === "folder")
-      .map((n) => n.id);
-    setExpandedFolders(new Set(allFolderIds));
-  };
+const expandAll = () => {
+  setExpandedFolderIds(
+    nodes
+      .filter((node) => node.type === "folder")
+      .map((node) => node.id),
+  );
+};
 
-  const collapseAll = () => {
-    setExpandedFolders(new Set());
-  };
+
+const collapseAll = () => {
+  setExpandedFolderIds([]);
+};
 
   const panelTitles: Record<RibbonTool, string> = {
     files: "File Explorer",

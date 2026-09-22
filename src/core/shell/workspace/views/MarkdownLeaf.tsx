@@ -2,6 +2,8 @@ import { NodePanel } from "@/core/graph/NodePanel";
 import { useVaultSession } from "../VaultSessionContext";
 import { useWorkspaceStore } from "../store/useWorkspaceStore";
 import type { WorkspaceLeaf } from "../store/types";
+import { useUIStore } from "@/shared/stores";
+
 
 export default function MarkdownLeaf({ leaf }: { leaf: WorkspaceLeaf }) {
   const {
@@ -25,6 +27,18 @@ export default function MarkdownLeaf({ leaf }: { leaf: WorkspaceLeaf }) {
     );
   }
 
+  const handleBreadcrumbClick = (target: (typeof nodes)[number]) => {
+  setSelectedNode(target);
+
+  if (target.type === "folder") {
+    useUIStore.getState().revealFolderPath(target.id, nodes);
+    return;
+  }
+
+  useWorkspaceStore.getState().openFile(target.id, target.name);
+};
+
+
   return (
     <div className="w-full h-full">
       <NodePanel
@@ -43,6 +57,7 @@ export default function MarkdownLeaf({ leaf }: { leaf: WorkspaceLeaf }) {
           }
         }}
         onTagClick={onTagClick}
+        onBreadcrumbClick={handleBreadcrumbClick}
       />
     </div>
   );

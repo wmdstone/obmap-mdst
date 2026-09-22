@@ -34,6 +34,13 @@ interface UIState {
   setActiveTool: (tool: ActiveTool) => void;
   toggleSidebar: () => void;
   setSidebarOpen: (open: boolean) => void;
+  expandedFolderIds: string[];
+setExpandedFolderIds: (ids: string[]) => void;
+revealFolderPath: (
+  folderId: string,
+  nodes: Array<{ id: string; parentId: string | null }>
+) => void;
+
   
   // Actions - Tabs
   setTabs: (tabs: Tab[]) => void;
@@ -72,12 +79,51 @@ export const useUIStore = create<UIState>()(
           false,
           'setActiveTool'
         ),
+
+        setExpandedFolderIds: (ids) =>
+  set(
+    { expandedFolderIds: ids },
+    false,
+    "setExpandedFolderIds",
+  ),
+
+revealFolderPath: (folderId, nodes) => {
+  const byId = new Map(nodes.map((node) => [node.id, node]));
+  const path: string[] = [];
+
+  let current = byId.get(folderId);
+
+  // Sertakan folder target + seluruh folder parent hingga root.
+  // Set mencegah infinite loop bila data parent rusak/cyclic.
+  const visited = new Set<string>();
+
+  while (current && !visited.has(current.id)) {
+    visited.add(current.id);
+    path.unshift(current.id);
+
+    current = current.parentId
+      ? byId.get(current.parentId)
+      : undefined;
+  }
+
+  set(
+    {
+      activeTool: "files",
+      sidebarOpen: true,
+      expandedFolderIds: path,
+    },
+    false,
+    "revealFolderPath",
+  );
+},
         
         toggleSidebar: () => set(
           (state) => ({ sidebarOpen: !state.sidebarOpen }),
           false,
           'toggleSidebar'
         ),
+
+        expandedFolderIds: [],
         
         setSidebarOpen: (open) => set({ sidebarOpen: open }, false, 'setSidebarOpen'),
         

@@ -34,9 +34,6 @@ export function StatusBar() {
 
   return (
     <div className="h-6 shrink-0 flex items-center gap-4 px-3 border-t border-border bg-muted/30 text-[11px] text-muted-foreground">
-      <span className="truncate max-w-[40%]">
-        {node ? getNodePath(node.id) : (vaultName ?? "No vault")}
-      </span>
       {node && <span>{words} words</span>}
       <div className="flex-1" />
       <span className="flex items-center gap-1">
