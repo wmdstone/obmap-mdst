@@ -445,10 +445,20 @@ export const PropertiesPanel = ({ value, onChange }: PropertiesPanelProps) => {
 
               {/* Add Property Input */}
               <div className="group mt-1 flex items-center gap-2 rounded-md py-1 transition-colors hover:bg-accent/30">
-<div className="flex w-[140px] shrink-0 items-center gap-1.5 pl-1 text-muted-foreground/60 group-hover:text-muted-foreground">
-  <Plus className="h-3.5 w-3.5" />
-  <SuggestInput ... />
-</div>
+                <div className="flex w-[140px] shrink-0 items-center gap-1.5 pl-1 text-muted-foreground/60 group-hover:text-muted-foreground">
+                  <Plus className="h-3.5 w-3.5" />
+                  <SuggestInput
+                    value={newKey}
+                    onChange={setNewKey}
+                    onCommit={(next) => {
+                      if (next.trim()) addProperty(next);
+                    }}
+                    suggestions={
+                      propertySuggestionsEnabled ? keySuggestions : []
+                    }
+                    placeholder="Add property"
+                  />
+                </div>
                 {duplicateKey && (
                   <span className="text-[10px] text-destructive">
                     Key exists
