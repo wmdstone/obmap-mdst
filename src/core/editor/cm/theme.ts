@@ -77,7 +77,7 @@ export const editorTheme = EditorView.theme({
     color: "hsl(var(--muted-foreground))",
     borderRadius: "0",
     padding: "0 0.45em",
-    margin: "0 0.25em 0 1.5em",
+    margin: "0 0.25em 0 0.65em",
     cursor: "pointer",
   },
   ".cm-foldPlaceholder:hover": {

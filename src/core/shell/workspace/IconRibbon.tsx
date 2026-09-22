@@ -35,12 +35,14 @@ export function IconRibbon({ activeTool, onToolSelect, className }: IconRibbonPr
           variant="ghost"
           size="icon"
           onClick={() => onToolSelect(item.id)}
-          className={cn(
-            "w-10 h-10 flex items-center justify-center rounded-lg transition-all duration-200",
-            "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
-            "focus:outline-none focus:ring-2 focus:ring-sidebar-ring focus:ring-offset-1 focus:ring-offset-sidebar",
-            isActive && "bg-sidebar-accent text-sidebar-primary"
-          )}
+className={cn(
+  "w-10 h-10 flex items-center justify-center rounded-lg transition-all duration-200",
+  // Ganti hover background jika ingin benar-benar transparan:
+  "hover:bg-accent/50 hover:text-foreground",
+  "focus:outline-none focus:ring-1 focus:ring-ring",
+  // Sesuaikan state aktif:
+  isActive && "text-primary" // tanpa bg-sidebar-accent
+)}
           aria-label={item.label}
           aria-pressed={isActive}
         >
