@@ -4,7 +4,7 @@
  */
 
 import { useEffect, useMemo, useState } from "react";
-import { ChevronDown, ChevronRight } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import { MarkdownRenderer } from "@/core/graph/MarkdownRenderer";
 import { buildHeadingTree, type HeadingNode } from "./headingTree";
 import { cn } from "@/shared/lib";
