@@ -11,6 +11,7 @@ import {
   Eye,
   Code,
   Split,
+  BookOpen,
   Image,
   Music,
   Video,
@@ -421,9 +422,7 @@ export const NodePanel = ({
   const [content, setContent] = useState("");
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState("");
-  const [editorMode, setEditorMode] = useState<
-    "source" | "live" | "preview" | "split"
-  >("live");
+const [editorMode, setEditorMode] = useState<"editor" | "reading">("editor");
   const [hasChanges, setHasChanges] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [layoutMode, setLayoutMode] = useState<"wide" | "narrow">("wide");
@@ -620,44 +619,28 @@ export const NodePanel = ({
             )}
           </Button>
 
-          {node.type === "file" && (
-            <div className="flex items-center border border-border/40 rounded-md p-0.5 ml-1">
-              <Button
-                variant="ghost"
-                size="sm"
-                className={cn(
-                  "h-6 px-2 text-xs",
-                  editorMode === "source" && "bg-secondary",
-                )}
-                onClick={() => setEditorMode("source")}
-                title="Source mode"
-              >
-                <PenLine className="w-3 h-3" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                className={cn(
-                  "h-6 px-2 text-xs",
-                  editorMode === "preview" && "bg-secondary",
-                )}
-                onClick={() => setEditorMode("preview")}
-              >
-                <Eye className="w-3 h-3" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                className={cn(
-                  "h-6 px-2 text-xs",
-                  editorMode === "split" && "bg-secondary",
-                )}
-                onClick={() => setEditorMode("split")}
-              >
-                <Split className="w-3 h-3" />
-              </Button>
-            </div>
-          )}
+{node.type === "file" && (
+  <Button
+    variant="ghost"
+    size="icon"
+    className="h-7 w-7 text-muted-foreground hover:text-foreground hover:bg-accent/50 transition-colors"
+    onClick={() =>
+      setEditorMode((prev) => (prev === "editor" ? "reading" : "editor"))
+    }
+    title={
+      editorMode === "editor"
+        ? "Beralih ke mode membaca (Reading)"
+        : "Beralih ke mode mengedit (Editor)"
+    }
+  >
+    {editorMode === "editor" ? (
+      <BookOpen className="w-3.5 h-3.5" />
+    ) : (
+      <PenLine className="w-3.5 h-3.5" />
+    )}
+  </Button>
+)}
+
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -729,28 +712,22 @@ export const NodePanel = ({
             </div>
           )}
 
-          {/* Content Editor */}
-          {node.type === "file" && (
-            <div className="min-h-[50vh]">
-              <MarkdownView
-                value={content}
-                onChange={setContent}
-                showProperties
-                mode={
-                  editorMode === "preview"
-                    ? "reading"
-                    : editorMode === "live"
-                      ? "live"
-                      : "source"
-                }
-                sideBySide={editorMode === "split"}
-                placeholder="Start writing..."
-                onWikilinkClick={onWikilinkClick}
-                onTagClick={onTagClick}
-                onSave={() => handleSave(false)}
-              />
-            </div>
-          )}
+{/* Content Editor */}
+{node.type === "file" && (
+  <div className="min-h-[50vh]">
+    <MarkdownView
+      value={content}
+      onChange={setContent}
+      showProperties
+      mode={editorMode === "reading" ? "reading" : "live"}
+      placeholder="Start writing..."
+      onWikilinkClick={onWikilinkClick}
+      onTagClick={onTagClick}
+      onSave={() => handleSave(false)}
+    />
+  </div>
+)}
+
 
           {/* Folder Description */}
           {node.type === "folder" && (
