@@ -196,6 +196,24 @@ All colors MUST be HSL.
   @apply outline-none;
 }
 
+/* CodeMirror fold placeholder — replace the default light chip with a
+   theme-aware, subtle token that matches the dark surface */
+.cm-foldPlaceholder {
+  background-color: hsl(var(--muted) / 0.5) !important;
+  border: 1px solid hsl(var(--border)) !important;
+  color: hsl(var(--muted-foreground)) !important;
+  border-radius: 0.4rem;
+  padding: 0 0.45em;
+  margin: 0 0.25em;
+  cursor: pointer;
+  transition: background-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.cm-foldPlaceholder:hover {
+  background-color: hsl(var(--primary) / 0.12) !important;
+  box-shadow: 0 0 8px hsl(var(--primary) / 0.2);
+}
+
 /* Custom scrollbar utilities */
 @layer utilities {
   .no-scrollbar::-webkit-scrollbar {
