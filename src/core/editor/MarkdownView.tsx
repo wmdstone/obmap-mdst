@@ -12,7 +12,11 @@ import {
 } from "@/core/editor/cm/setup";
 import { createEditorApi } from "@/core/editor/cm/state/editorApi";
 import { setActiveEditor } from "@/core/editor/activeEditor";
-import { countWords } from "@/core/editor/cm/extensions/frontmatterField";
+import {
+  countWords,
+  splitDocument,
+  replaceBody,
+} from "@/core/editor/cm/extensions/frontmatterField";
 import type { SuggestSource } from "@/core/editor/suggest/suggestions";
 import type { EditorApi, EditorMode } from "@/core/editor/types";
 import { useNodeStore } from "@/shared/stores";
@@ -59,6 +63,12 @@ export const MarkdownView = ({
   saveRef.current = onSave;
   handlersRef.current = { onWikilinkClick, onTagClick };
 
+  // The YAML frontmatter never reaches the text editor — it is edited
+  // exclusively through the collapsible properties panel.
+  const body = useMemo(() => splitDocument(value).body, [value]);
+  const bodyRef = useRef(body);
+  bodyRef.current = body;
+
   const nodes = useNodeStore((state) => state.nodes);
   const suggestRef = useRef<SuggestSource>({ files: [], tags: [] });
   suggestRef.current = useMemo<SuggestSource>(() => {
@@ -98,7 +108,7 @@ export const MarkdownView = ({
 
     const editorApi = createEditorApi(() => viewRef.current);
     const state = EditorState.create({
-      doc: valueRef.current,
+      doc: bodyRef.current,
       extensions: createEditorExtensions({
         mode: mode === "live" ? "live" : "source",
         placeholder,
@@ -109,8 +119,10 @@ export const MarkdownView = ({
           onTagClick: (t) => handlersRef.current.onTagClick?.(t),
         },
         onChange: (next) => {
-          valueRef.current = next;
-          changeRef.current(next);
+          bodyRef.current = next;
+          const doc = replaceBody(valueRef.current, next);
+          valueRef.current = doc;
+          changeRef.current(doc);
         },
         onSave: () => saveRef.current?.(),
       }),
@@ -143,11 +155,11 @@ export const MarkdownView = ({
     const view = viewRef.current;
     if (!view) return;
     const current = view.state.doc.toString();
-    if (current === value) return;
+    if (current === body) return;
     view.dispatch({
-      changes: { from: 0, to: current.length, insert: value },
+      changes: { from: 0, to: current.length, insert: body },
     });
-  }, [value]);
+  }, [body]);
 
   const words = useMemo(() => countWords(value), [value]);
 
@@ -170,9 +182,9 @@ export const MarkdownView = ({
 
       {isReading ? (
         <div className="prose-container min-h-[50vh] py-3">
-          {value ? (
+          {body ? (
             <MarkdownRenderer
-              content={value}
+              content={body}
               onWikilinkClick={onWikilinkClick}
               onTagClick={onTagClick}
             />
@@ -188,9 +200,9 @@ export const MarkdownView = ({
             {editorSurface}
           </div>
           <div className="rounded-lg border border-border/30 bg-muted/20 p-5 overflow-auto">
-            {value ? (
+            {body ? (
               <MarkdownRenderer
-                content={value}
+                content={body}
                 onWikilinkClick={onWikilinkClick}
                 onTagClick={onTagClick}
               />

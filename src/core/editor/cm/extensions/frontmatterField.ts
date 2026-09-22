@@ -82,6 +82,13 @@ export function writeRawFrontmatter(doc: string, yaml: string): string {
   return `---\n${trimmed}\n---\n${body}`;
 }
 
+/** Replace the body of a document, keeping its frontmatter block intact. */
+export function replaceBody(doc: string, body: string): string {
+  const info = parseFrontmatter(doc);
+  if (!info.range || !info.raw.trim()) return body;
+  return `---\n${info.raw.trim()}\n---\n${body}`;
+}
+
 /** Serialize properties back into a document, leaving the body untouched. */
 export function writeFrontmatter(
   doc: string,

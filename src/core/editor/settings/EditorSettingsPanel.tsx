@@ -298,13 +298,14 @@ export function EditorSettingsContent() {
                     />
                     <ToggleRow
                       label="Properties"
+                      description="Show suggestions while editing property names and values."
                       checked={suggestions.properties}
                       onChange={(v) => updateSuggestions({ properties: v })}
                     />
                   </div>
                   <ToggleRow
                     label="Slash commands"
-                    description="Type / on an empty line to open the command palette."
+                    description="Type / in the editor to show inline command suggestions."
                     checked={suggestions.slashCommands}
                     onChange={(v) => updateSuggestions({ slashCommands: v })}
                   />

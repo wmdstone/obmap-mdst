@@ -3,7 +3,6 @@
  * the vault session, so no props are drilled through the workspace.
  */
 
-import { useEffect, useState } from "react";
 import { IconRibbon, type RibbonTool } from "./IconRibbon";
 import { SidebarPanel } from "./SidebarPanel";
 import { useUIStore } from "@/shared/stores";
@@ -29,19 +28,6 @@ export function Ribbon() {
     onSwitchVault,
   } = useVaultSession();
 
-  const [renderedTool, setRenderedTool] = useState<RibbonTool | null>(
-    activeTool,
-  );
-
-  useEffect(() => {
-    if (activeTool) {
-      setRenderedTool(activeTool);
-      return;
-    }
-    const timer = window.setTimeout(() => setRenderedTool(null), 320);
-    return () => window.clearTimeout(timer);
-  }, [activeTool]);
-
   const handleToolSelect = (tool: RibbonTool) => {
     if (tool === "settings") {
       setActiveTool(activeTool === "settings" ? null : "settings");
@@ -53,10 +39,9 @@ export function Ribbon() {
   return (
     <>
       <IconRibbon activeTool={activeTool} onToolSelect={handleToolSelect} />
-      {renderedTool && (
+      {activeTool && (
         <SidebarPanel
-          activeTool={renderedTool}
-          open={!!activeTool}
+          activeTool={activeTool}
           onClose={() => setActiveTool(null)}
           nodes={nodes}
           selectedNode={selectedNode}
