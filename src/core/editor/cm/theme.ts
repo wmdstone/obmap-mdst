@@ -70,6 +70,21 @@ export const editorTheme = EditorView.theme({
   },
   ".cm-md-task": { marginRight: "0.4em", verticalAlign: "middle", accentColor: "hsl(var(--primary))" },
 
+  // Fold placeholder — themed instead of CodeMirror's default light chip
+  ".cm-foldPlaceholder": {
+    backgroundColor: "hsl(var(--muted) / 0.5)",
+    border: "1px solid hsl(var(--border))",
+    color: "hsl(var(--muted-foreground))",
+    borderRadius: "0.4rem",
+    padding: "0 0.45em",
+    margin: "0 0.25em",
+    cursor: "pointer",
+  },
+  ".cm-foldPlaceholder:hover": {
+    backgroundColor: "hsl(var(--primary) / 0.12)",
+    boxShadow: "0 0 8px hsl(var(--primary) / 0.2)",
+  },
+
   // Autocomplete popup
   ".cm-tooltip": {
     backgroundColor: "hsl(var(--popover))",

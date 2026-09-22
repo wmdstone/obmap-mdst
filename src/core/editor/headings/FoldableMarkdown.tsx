@@ -4,7 +4,7 @@
  */
 
 import { useEffect, useMemo, useState } from "react";
-import { ChevronDown, ChevronRight } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import { MarkdownRenderer } from "@/core/graph/MarkdownRenderer";
 import { buildHeadingTree, type HeadingNode } from "./headingTree";
 import { cn } from "@/shared/lib";
@@ -54,31 +54,37 @@ const Section = ({
 
   return (
     <section className="scroll-mt-16">
-      <div className="group flex items-start gap-1">
+      <div className="mb-2 mt-4 group flex items-center">
         <button
           type="button"
           onClick={() => toggle(node.id)}
           aria-expanded={!isCollapsed}
           aria-label={isCollapsed ? `Expand ${node.label}` : `Collapse ${node.label}`}
-          className="mt-[0.35em] rounded p-0.5 text-muted-foreground/50 opacity-0 transition-opacity hover:text-foreground focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring group-hover:opacity-100"
+          className="rounded p-0.5 text-muted-foreground/50 transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring group-hover:text-foreground"
         >
-          {isCollapsed ? (
-            <ChevronRight className="h-3.5 w-3.5" />
-          ) : (
-            <ChevronDown className="h-3.5 w-3.5" />
-          )}
+          <ChevronRight
+            className={cn(
+              "h-3.5 w-3.5 transition-transform duration-200 ease-out motion-reduce:transition-none",
+              !isCollapsed && "rotate-90"
+            )}
+          />
         </button>
         <Tag
           id={node.id}
           data-heading-id={node.id}
-          className={cn("mb-2 mt-4 flex-1", HEADING_CLASS[node.level])}
+          className={cn("flex-1 leading-snug", HEADING_CLASS[node.level])}
         >
           {node.label}
         </Tag>
       </div>
 
       {isCollapsed ? (
-        <div className="pl-10 text-sm text-muted-foreground/40"> masalahnya disini …</div>
+        <div
+          aria-hidden="true"
+          className="ml-[0.9rem] select-none text-sm text-muted-foreground/30"
+        >
+          …
+        </div>
       ) : (
         <div className="pl-5">
           {own && (
