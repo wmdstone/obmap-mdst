@@ -21,11 +21,12 @@ function headingsFor(doc: string): HeadingNode[] {
 
 function chevron(open: boolean): HTMLElement {
   const span = document.createElement("span");
-  span.className = "cm-heading-fold-chevron";
+  span.className = `cm-heading-fold-chevron${open ? " is-open" : ""}`;
   span.setAttribute("aria-hidden", "true");
-  span.innerHTML = open
-    ? '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>'
-    : '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>';
+  span.setAttribute("role", "button");
+  span.setAttribute("tabindex", "-1");
+  // Menggunakan 1 ikon ChevronRight (Lucide SVG 14x14) identik dengan mode baca & properties
+  span.innerHTML = `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="cm-chevron-icon"><path d="m9 18 6-6-6-6"/></svg>`;
   return span;
 }
 
