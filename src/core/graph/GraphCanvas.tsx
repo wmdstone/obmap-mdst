@@ -13,7 +13,7 @@ import type { GraphConfigState } from '@/shared/stores/useGraphStore';
 import { defaultLinkConfig, defaultTopologyConfig } from '@/shared/stores/useGraphStore';
 import type { Link, Node } from '@/shared/stores/types';
 import { useGraphEngineStore } from '@/shared/stores/useGraphEngineStore';
-import { GraphMiniMap } from './GraphMiniMap';
+import { GraphBottomOverlays } from './GraphBottomOverlays';
 import { buildGraphProjection } from './model/buildGraphProjection';
 import type { NodeMetric, RenderNode, RenderLink } from './model/graphTypes';
 import { useGraphInteractionStore } from './model/useGraphInteractionStore';
@@ -28,7 +28,6 @@ import { drawNode, paintNodePointerArea } from './render/drawNode';
 import { drawLink } from './render/drawLink';
 import { drawDecorations } from './render/drawDecorations';
 import { buildTheme } from './render/theme';
-import { GraphLevelLegend } from './GraphLevelLegend';
 import { resolveHierarchyLinkPaint, uniqueDepths } from './model/hierarchyColors';
 import { cardLayout } from './render/textLayout';
 // Tambahkan import ini di bagian atas bersama import interactions lainnya:
@@ -912,14 +911,9 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, GraphCanvasProps>(funct
         d3VelocityDecay={graphConfig.forces.velocityDecay}
       />
 
-      {/* Bottom-Right Controls: Unified Minimalist Horizontal Group (Levels + MiniMap) */}
-      <div className="pointer-events-auto absolute bottom-3 right-3 z-30 flex items-center rounded-lg border border-border/80 bg-card/95 p-0.5 shadow-md backdrop-blur-md divide-x divide-border/60 sm:bottom-4 sm:right-4">
-        {/* Dynamic Levels: otomatis tampil jika hierarchy color aktif */}
-        <GraphLevelLegend depths={visibleDepths} hierarchy={graphConfig.hierarchy} />
-
-        {/* MiniMap Button / Popover */}
-        <div className="pl-0.5">
-          <GraphMiniMap
+      <GraphBottomOverlays
+            depths={visibleDepths}
+            hierarchy={graphConfig.hierarchy}
             nodes={data.nodes}
             links={data.links}
             graphRef={graphRef}
@@ -929,9 +923,7 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, GraphCanvasProps>(funct
             fileColor={theme.file}
             linkColor={theme.link}
             selectedNodeId={selectedNode?.id ?? null}
-          />
-        </div>
-      </div>
+      />
 
       {/* Tampilkan Toolbar saat isToolbarVisible aktif (baik di mode Mindmap maupun Graph) */}
       {isToolbarVisible && selectedNode && toolbarCoords && (

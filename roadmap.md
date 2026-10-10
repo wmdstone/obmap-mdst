@@ -1,5 +1,8 @@
 # Roadmap
 
+- [ ] Consolidate MiniMap and Levels into a stable icon-only toolbar with bounded, mutually exclusive panels.
+- [ ] Verify graph overlay interactions and responsive sizing; resolve the existing graph controls prop error.
+
 - [x] Make the Settings Hub responsive across mobile, tablet, and desktop.
 - [x] Consolidate graph layout, search, and filters into one compact tool rail.
 - [x] Default the graph mini-map to its minimized state.
