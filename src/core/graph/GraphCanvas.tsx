@@ -912,23 +912,25 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, GraphCanvasProps>(funct
         d3VelocityDecay={graphConfig.forces.velocityDecay}
       />
 
-      {/* Bottom-Right Controls Group: Dynamic Levels Legend + Mini-Map (Horizontal) */}
-      <div className="pointer-events-none absolute bottom-3 right-3 z-30 flex items-end gap-2 sm:bottom-4 sm:right-4">
-        {/* Dynamic Levels button: otomatis muncul bila hierarchy color aktif */}
+      {/* Bottom-Right Controls: Unified Minimalist Horizontal Group (Levels + MiniMap) */}
+      <div className="pointer-events-auto absolute bottom-3 right-3 z-30 flex items-center rounded-lg border border-border/80 bg-card/95 p-0.5 shadow-md backdrop-blur-md divide-x divide-border/60 sm:bottom-4 sm:right-4">
+        {/* Dynamic Levels: otomatis tampil jika hierarchy color aktif */}
         <GraphLevelLegend depths={visibleDepths} hierarchy={graphConfig.hierarchy} />
 
-        {/* MiniMap Overview */}
-        <GraphMiniMap
-          nodes={data.nodes}
-          links={data.links}
-          graphRef={graphRef}
-          viewportWidth={size.width}
-          viewportHeight={size.height}
-          folderColor={theme.folder}
-          fileColor={theme.file}
-          linkColor={theme.link}
-          selectedNodeId={selectedNode?.id ?? null}
-        />
+        {/* MiniMap Button / Popover */}
+        <div className="pl-0.5">
+          <GraphMiniMap
+            nodes={data.nodes}
+            links={data.links}
+            graphRef={graphRef}
+            viewportWidth={size.width}
+            viewportHeight={size.height}
+            folderColor={theme.folder}
+            fileColor={theme.file}
+            linkColor={theme.link}
+            selectedNodeId={selectedNode?.id ?? null}
+          />
+        </div>
       </div>
 
       {/* Tampilkan Toolbar saat isToolbarVisible aktif (baik di mode Mindmap maupun Graph) */}

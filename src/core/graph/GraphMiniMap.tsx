@@ -271,20 +271,21 @@ export function GraphMiniMap({
 
   if (!isExpanded) {
     return (
-      <TooltipProvider delayDuration={250}>
+      <TooltipProvider delayDuration={200}>
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
-              variant="secondary"
+              type="button"
+              variant="ghost"
               size="icon"
               onClick={() => setIsExpanded(true)}
-              className="h-9 w-9 border border-border/80 bg-card/95 shadow-lg backdrop-blur-md"
+              className="h-8 w-8 shrink-0 rounded-md transition-colors hover:text-foreground"
               aria-label="Open mini-map"
             >
-              <Map className="w-4 h-4" />
+              <Map className="h-4 w-4 text-muted-foreground hover:text-foreground" />
             </Button>
           </TooltipTrigger>
-          <TooltipContent side="left">Open mini-map</TooltipContent>
+          <TooltipContent side="top">Open mini-map</TooltipContent>
         </Tooltip>
       </TooltipProvider>
     );

@@ -373,214 +373,152 @@ export function GraphWorkspaceControls({
 
   return (
     <TooltipProvider delayDuration={200}>
-      <div className="pointer-events-none absolute right-2 top-2 z-40 flex flex-col items-end gap-2 sm:right-4 sm:top-4">
-        {/* Baris Atas: Gear Button & Horizontal Expanding Submenu + Zoom Actions */}
-        <div className="flex items-start gap-2">
-          {/* Quick Zoom Actions + Dynamic Expand Button di Bagian Paling Bawah */}
-          <div className="pointer-events-auto flex flex-col items-center gap-1 rounded-lg border border-border/80 bg-card/95 p-1 shadow-xl backdrop-blur-md">
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8"
-                  aria-label="Zoom to fit"
-                  onClick={() => onSmartZoom('fit')}
-                >
-                  <Frame className="h-4 w-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="left">Zoom to fit</TooltipContent>
-            </Tooltip>
-
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8"
-                  aria-label="Zoom to selection"
-                  onClick={() => onSmartZoom('selection')}
-                >
-                  <Focus className="h-4 w-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="left">Zoom to selection</TooltipContent>
-            </Tooltip>
-
-            {/* Dynamic Expand All / Clear Focus Button (Muncul di paling bawah zoom group) */}
-            {(collapsedCount > 0 || focused) && (
+      <div className="pointer-events-none absolute right-2 top-2 z-40 flex flex-col items-end gap-1.5 sm:right-4 sm:top-4">
+        {/* 1. Baris Setting: Gear Button & Horizontal Submenu */}
+        <div className="pointer-events-auto flex items-center rounded-lg border border-border/60 bg-card/90 p-1 shadow-md shadow-black/25 backdrop-blur-md transition-all">
+          {/* Horizontal Expanding Options ke arah Kiri (Width 280px max, smooth scroll) */}
+          {isGearOpen && (
+            <div className="mr-1 flex max-w-[calc(100vw-80px)] sm:w-[280px] items-center gap-1 overflow-x-auto overscroll-contain pr-1 border-r border-border/50 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden animate-in fade-in-0 slide-in-from-right-2 duration-150">
+              {/* 1. Search & Filters */}
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
                     type="button"
-                    variant="ghost"
+                    variant={activePanel === 'search' ? 'secondary' : 'ghost'}
                     size="icon"
-                    className="h-8 w-8 text-primary border-t border-border/60 pt-0.5 animate-in fade-in zoom-in-90 duration-150"
-                    aria-label="Show everything"
-                    onClick={() => {
-                      onExpandAll();
-                      onClearFocus();
-                    }}
+                    className={cn('relative h-7 w-7 rounded-md shrink-0 transition-colors', filterCount > 0 && 'text-primary')}
+                    onClick={() => togglePanel('search')}
+                    aria-label="Search and Depth Filters"
                   >
-                    <UnfoldVertical className="h-4 w-4" />
+                    <Search className="h-3.5 w-3.5" />
+                    {filterCount > 0 && (
+                      <span className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-primary ring-1 ring-background" />
+                    )}
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent side="left">
-                  Show everything ({collapsedCount} collapsed)
-                </TooltipContent>
+                <TooltipContent side="bottom" className="text-xs">Search & Filters</TooltipContent>
               </Tooltip>
-            )}
-          </div>
 
-          {/* Area Gear Button & Horizontal Submenu */}
-          <div className="pointer-events-auto flex items-center rounded-lg border border-border/80 bg-card/95 p-1 shadow-xl backdrop-blur-md">
-            {/* Horizontal Expanding Options ke arah Kiri (Width 240px max, scrollable bila overflow) */}
-            {isGearOpen && (
-              <div className="mr-1 flex w-[240px] max-w-[240px] items-center gap-1 overflow-x-auto overscroll-contain pr-1 border-r border-border/60 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden animate-in fade-in-0 slide-in-from-right-2 duration-200">
-                {/* 1. Search & Filters */}
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      type="button"
-                      variant={activePanel === 'search' ? 'secondary' : 'ghost'}
-                      size="icon"
-                      className={cn('relative h-8 w-8 shrink-0', filterCount > 0 && 'text-primary')}
-                      onClick={() => togglePanel('search')}
-                      aria-label="Search and Depth Filters"
-                    >
-                      <Search className="h-4 w-4" />
-                      {filterCount > 0 && (
-                        <span className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-primary" />
-                      )}
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent side="bottom">Search & Filters</TooltipContent>
-                </Tooltip>
+              {/* 2. Layout Engine */}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    type="button"
+                    variant={activePanel === 'layout' ? 'secondary' : 'ghost'}
+                    size="icon"
+                    className="h-7 w-7 rounded-md shrink-0 transition-colors"
+                    onClick={() => togglePanel('layout')}
+                    aria-label="Layout Engine"
+                  >
+                    <Network className="h-3.5 w-3.5" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="text-xs">Layout & Hierarchy</TooltipContent>
+              </Tooltip>
 
-                {/* 2. Layout Engine */}
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      type="button"
-                      variant={activePanel === 'layout' ? 'secondary' : 'ghost'}
-                      size="icon"
-                      className="h-8 w-8 shrink-0"
-                      onClick={() => togglePanel('layout')}
-                      aria-label="Layout Engine"
-                    >
-                      <Network className="h-4 w-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent side="bottom">Layout & Hierarchy</TooltipContent>
-                </Tooltip>
+              {/* 3. Color Engine */}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    type="button"
+                    variant={activePanel === 'colors' ? 'secondary' : 'ghost'}
+                    size="icon"
+                    className="h-7 w-7 rounded-md shrink-0 transition-colors"
+                    onClick={() => togglePanel('colors')}
+                    aria-label="Color Engine"
+                  >
+                    <Palette className="h-3.5 w-3.5 text-primary" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="text-xs">Color Engine</TooltipContent>
+              </Tooltip>
 
-                {/* 3. Color Engine */}
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      type="button"
-                      variant={activePanel === 'colors' ? 'secondary' : 'ghost'}
-                      size="icon"
-                      className="h-8 w-8 shrink-0"
-                      onClick={() => togglePanel('colors')}
-                      aria-label="Color Engine"
-                    >
-                      <Palette className="h-4 w-4 text-primary" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent side="bottom">Color Engine</TooltipContent>
-                </Tooltip>
+              {/* 4. Atmosphere & Effects */}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    type="button"
+                    variant={activePanel === 'atmosphere' ? 'secondary' : 'ghost'}
+                    size="icon"
+                    className="h-7 w-7 rounded-md shrink-0 transition-colors"
+                    onClick={() => togglePanel('atmosphere')}
+                    aria-label="Atmosphere & Effects"
+                  >
+                    <Sparkles className="h-3.5 w-3.5 text-primary" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="text-xs">Atmosphere & Living Canvas</TooltipContent>
+              </Tooltip>
 
-                {/* 4. Atmosphere & Effects */}
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      type="button"
-                      variant={activePanel === 'atmosphere' ? 'secondary' : 'ghost'}
-                      size="icon"
-                      className="h-8 w-8 shrink-0"
-                      onClick={() => togglePanel('atmosphere')}
-                      aria-label="Atmosphere & Effects"
-                    >
-                      <Sparkles className="h-4 w-4 text-primary" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent side="bottom">Atmosphere & Living Canvas</TooltipContent>
-                </Tooltip>
+              {/* 5. Nodes & Links */}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    type="button"
+                    variant={activePanel === 'appearance' ? 'secondary' : 'ghost'}
+                    size="icon"
+                    className="h-7 w-7 rounded-md shrink-0 transition-colors"
+                    onClick={() => togglePanel('appearance')}
+                    aria-label="Nodes & Links"
+                  >
+                    <Link2 className="h-3.5 w-3.5" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="text-xs">Nodes & Links</TooltipContent>
+              </Tooltip>
 
-                {/* 5. Nodes & Links */}
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      type="button"
-                      variant={activePanel === 'appearance' ? 'secondary' : 'ghost'}
-                      size="icon"
-                      className="h-8 w-8 shrink-0"
-                      onClick={() => togglePanel('appearance')}
-                      aria-label="Nodes & Links"
-                    >
-                      <Link2 className="h-4 w-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent side="bottom">Nodes & Links</TooltipContent>
-                </Tooltip>
+              {/* 6. Global & Stats */}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    type="button"
+                    variant={activePanel === 'global' ? 'secondary' : 'ghost'}
+                    size="icon"
+                    className="h-7 w-7 rounded-md shrink-0 transition-colors"
+                    onClick={() => togglePanel('global')}
+                    aria-label="Graph Global & Templates"
+                  >
+                    <Globe className="h-3.5 w-3.5" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="text-xs">Graph Global & Templates</TooltipContent>
+              </Tooltip>
+            </div>
+          )}
 
-                {/* 6. Global & Stats */}
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      type="button"
-                      variant={activePanel === 'global' ? 'secondary' : 'ghost'}
-                      size="icon"
-                      className="h-8 w-8 shrink-0"
-                      onClick={() => togglePanel('global')}
-                      aria-label="Graph Global & Templates"
-                    >
-                      <Globe className="h-4 w-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent side="bottom">Graph Global & Templates</TooltipContent>
-                </Tooltip>
-              </div>
-            )}
-
-            {/* Main Gear Button */}
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  type="button"
-                  variant={isGearOpen ? 'secondary' : 'ghost'}
-                  size="icon"
-                  className={cn('relative h-9 w-9 shrink-0 transition-transform duration-200', isGearOpen && 'rotate-45')}
-                  aria-label="Toggle Graph Settings Menu"
-                  onClick={() => {
-                    setIsGearOpen((prev) => !prev);
-                    if (isGearOpen) setActivePanel(null);
-                  }}
-                >
-                  <Settings2 className="h-4 w-4" />
-                  {filterCount > 0 && !isGearOpen && (
-                    <span className="absolute right-1 top-1 h-2 w-2 rounded-full bg-primary ring-2 ring-background" />
-                  )}
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="left">
-                {isGearOpen ? 'Collapse Settings' : 'Expand Graph Settings'}
-              </TooltipContent>
-            </Tooltip>
-          </div>
+          {/* Main Gear Toggle Button */}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                type="button"
+                variant={isGearOpen ? 'secondary' : 'ghost'}
+                size="icon"
+                className={cn('relative h-7 w-7 rounded-md shrink-0 transition-transform duration-200', isGearOpen && 'rotate-45')}
+                aria-label="Toggle Graph Settings Menu"
+                onClick={() => {
+                  setIsGearOpen((prev) => !prev);
+                  if (isGearOpen) setActivePanel(null);
+                }}
+              >
+                <Settings2 className="h-3.5 w-3.5" />
+                {filterCount > 0 && !isGearOpen && (
+                  <span className="absolute right-0.5 top-0.5 h-1.5 w-1.5 rounded-full bg-primary ring-1 ring-background" />
+                )}
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="left" className="text-xs">
+              {isGearOpen ? 'Collapse Settings' : 'Expand Graph Settings'}
+            </TooltipContent>
+          </Tooltip>
         </div>
 
-        {/* Panel Pop-up Pengaturan di Bawah Secara Vertikal (Lebar 240px & Fixed Height 280px) */}
+        {/* 2. Active Settings Panel (Width 100% simetris dengan Toolbar atas: 280px + gear = ~320px) */}
         {activePanel && (
-          <section className="pointer-events-auto flex h-[280px] max-h-[280px] min-h-[280px] w-[240px] max-w-[240px] flex-col overflow-hidden rounded-lg border border-border/80 bg-card/95 shadow-2xl backdrop-blur-md animate-in fade-in-0 slide-in-from-top-2 duration-150">
+          <section className="pointer-events-auto flex h-[280px] max-h-[280px] min-h-[280px] w-[min(324px,calc(100vw-32px))] flex-col overflow-hidden rounded-lg border border-border/60 bg-card/95 shadow-lg shadow-black/30 backdrop-blur-md animate-in fade-in-0 slide-in-from-top-1 duration-150">
             {/* Header Panel */}
-            <header className="flex h-8 shrink-0 items-center justify-between border-b border-border/70 px-2.5 bg-secondary/15">
+            <header className="flex h-7 shrink-0 items-center justify-between border-b border-border/50 px-2.5 bg-muted/20">
               <div className="flex items-center gap-1.5 min-w-0 pr-1">
-                <span className="truncate text-[11px] font-semibold capitalize text-foreground">
+                <span className="truncate text-[11px] font-medium text-foreground tracking-tight">
                   {activePanel === 'search' && 'Search & Depth'}
                   {activePanel === 'layout' && 'Layout Engine'}
                   {activePanel === 'appearance' && 'Nodes & Links'}
@@ -593,7 +531,7 @@ export function GraphWorkspaceControls({
                 type="button"
                 variant="ghost"
                 size="icon"
-                className="h-5 w-5 shrink-0 text-muted-foreground hover:text-foreground"
+                className="h-5 w-5 rounded shrink-0 text-muted-foreground hover:text-foreground"
                 aria-label="Close settings panel"
                 onClick={() => setActivePanel(null)}
               >
@@ -601,8 +539,8 @@ export function GraphWorkspaceControls({
               </Button>
             </header>
 
-            {/* Body Panel Presisi 180px dengan internal smooth scroll */}
-            <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain p-2.5 [scrollbar-width:thin] [scrollbar-color:hsl(var(--muted-foreground)/0.3)_transparent] [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-muted-foreground/30 hover:[&::-webkit-scrollbar-thumb]:bg-muted-foreground/50">
+            {/* Body Panel dengan scrollbar halus */}
+            <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain p-2.5 [scrollbar-width:thin] [scrollbar-color:hsl(var(--muted-foreground)/0.2)_transparent] [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-muted-foreground/20 hover:[&::-webkit-scrollbar-thumb]:bg-muted-foreground/40">
               {/* 1. SEARCH & DEPTH PANEL */}
               {activePanel === 'search' && (
                 <div className="space-y-3.5">
@@ -817,6 +755,7 @@ export function GraphWorkspaceControls({
                   </div>
                 </div>
               )}
+
 
               {/* COLOR ENGINE PANEL */}
               {activePanel === 'colors' && (
@@ -1436,6 +1375,65 @@ export function GraphWorkspaceControls({
             </div>
           </section>
         )}
+
+        {/* 3. Quick Zoom Group (Otomatis berada di bawah Setting Bar, dan ikut terdorong turun jika Active Panel terbuka) */}
+        <div className="pointer-events-auto flex flex-col items-center gap-0.5 rounded-lg border border-border/60 bg-card/90 p-0.5 shadow-md shadow-black/25 backdrop-blur-md transition-all">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7 rounded-md"
+                aria-label="Zoom to fit"
+                onClick={() => onSmartZoom('fit')}
+              >
+                <Frame className="h-3.5 w-3.5" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="left" className="text-xs">Zoom to fit</TooltipContent>
+          </Tooltip>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7 rounded-md"
+                aria-label="Zoom to selection"
+                onClick={() => onSmartZoom('selection')}
+              >
+                <Focus className="h-3.5 w-3.5" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="left" className="text-xs">Zoom to selection</TooltipContent>
+          </Tooltip>
+
+          {/* Dynamic Expand All / Clear Focus Button */}
+          {(collapsedCount > 0 || focused) && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7 rounded-md text-primary border-t border-border/40 pt-0.5 animate-in fade-in zoom-in-90 duration-150"
+                  aria-label="Show everything"
+                  onClick={() => {
+                    onExpandAll();
+                    onClearFocus();
+                  }}
+                >
+                  <UnfoldVertical className="h-3.5 w-3.5" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="left" className="text-xs">
+                Show everything ({collapsedCount} collapsed)
+              </TooltipContent>
+            </Tooltip>
+          )}
+        </div>
       </div>
     </TooltipProvider>
   );

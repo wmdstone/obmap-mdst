@@ -1,12 +1,13 @@
 /**
  * Compact hierarchy-level legend, shown on the graph canvas only while
- * hierarchy colouring is active. Levels come from the projected graph, so
- * loop/gradient overflow levels appear exactly as they are painted.
+ * hierarchy colouring is active. Icon-only variant for toolbar grouping.
  */
 
 import { useState } from 'react';
-import { ChevronDown, Layers } from 'lucide-react';
+import { Layers } from 'lucide-react';
 import { Button } from '@/shared/ui/button';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/shared/ui/tooltip';
+import { cn } from '@/shared/lib';
 import {
   resolveLevelColor,
   type HierarchyColorConfig,
@@ -18,35 +19,46 @@ interface GraphLevelLegendProps {
 }
 
 export function GraphLevelLegend({ depths, hierarchy }: GraphLevelLegendProps) {
-  const [open, setOpen] = useState(false); // default collapsed agar hemat ruang
+  const [open, setOpen] = useState(false);
   if (!hierarchy.enabled || depths.length === 0) return null;
 
   return (
-    <div className="pointer-events-auto relative rounded-lg border border-border/80 bg-card/95 shadow-lg backdrop-blur-md">
-      <Button
-        variant="secondary"
-        size="sm"
-        onClick={() => setOpen((value) => !value)}
-        className="h-9 gap-1.5 px-2.5 text-xs font-medium"
-      >
-        <Layers className="h-4 w-4 text-primary" />
-        <span>Levels</span>
-        <ChevronDown
-          className={`h-3.5 w-3.5 transition-transform ${open ? 'rotate-180' : ''}`}
-        />
-      </Button>
+    <div className="relative">
+      <TooltipProvider delayDuration={200}>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              type="button"
+              variant={open ? 'secondary' : 'ghost'}
+              size="icon"
+              onClick={() => setOpen((value) => !value)}
+              className={cn(
+                "h-8 w-8 shrink-0 rounded-md transition-colors",
+                open && "bg-secondary text-primary"
+              )}
+              aria-label="Toggle Hierarchy Levels Legend"
+            >
+              <Layers className="h-4 w-4 text-primary" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="top">Hierarchy Levels</TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
 
       {open && (
-        <div className="absolute bottom-11 right-0 max-h-[220px] w-40 space-y-1 overflow-y-auto rounded-lg border border-border/80 bg-card/95 p-2 shadow-2xl backdrop-blur-md">
+        <div className="absolute bottom-10 right-0 z-50 max-h-[220px] w-40 space-y-1 overflow-y-auto rounded-lg border border-border/80 bg-card/95 p-2 shadow-xl backdrop-blur-md animate-in fade-in-0 zoom-in-95 duration-150">
+          <div className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground px-1">
+            Active Levels
+          </div>
           {depths.map((depth) => (
-            <div key={depth} className="flex items-center gap-2 text-xs">
+            <div key={depth} className="flex items-center gap-2 rounded px-1.5 py-1 text-xs hover:bg-secondary/40">
               <span
-                className="h-3 w-3 flex-shrink-0 rounded-sm border border-border/60"
+                className="h-2.5 w-2.5 flex-shrink-0 rounded-full border border-border/60"
                 style={{ backgroundColor: resolveLevelColor(depth, hierarchy) }}
               />
-              <span className="truncate text-muted-foreground">
+              <span className="truncate text-foreground/80 text-[11px]">
                 Level {depth}
-                {depth === 0 ? ' · Root' : ''}
+                {depth === 0 ? ' (Root)' : ''}
               </span>
             </div>
           ))}
