@@ -137,81 +137,79 @@ export function ColorEngineControls({
     });
   };
 
-  return (
-    <div className={cn('space-y-3.5', className)}>
-      {/* Segmented Mode Selector */}
-      <div className="space-y-1.5">
-        <div className="flex items-center justify-between">
-          <Label className="flex items-center gap-1.5 text-xs font-semibold text-foreground">
-            <Palette className="h-3.5 w-3.5 text-primary" />
-            Color Engine Mode
-          </Label>
-          <span className="text-[10px] text-muted-foreground capitalize font-medium">
-            {activeMode}
-          </span>
-        </div>
-        <Tabs
-          value={activeMode}
-          onValueChange={(val) => handleModeChange(val as 'hierarchy' | 'categorical' | 'custom')}
-          className="w-full"
-        >
-          <TabsList className="grid w-full grid-cols-3 h-8 bg-secondary/40 p-0.5">
-            <TabsTrigger
-              value="hierarchy"
-              className="text-[11px] gap-1 px-1 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
-            >
-              <Layers className="h-3 w-3 text-amber-400" />
-              Hierarchy
-            </TabsTrigger>
-            <TabsTrigger
-              value="categorical"
-              className="text-[11px] gap-1 px-1 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
-            >
-              <Tag className="h-3 w-3 text-cyan-400" />
-              Categorical
-            </TabsTrigger>
-            <TabsTrigger
-              value="custom"
-              className="text-[11px] gap-1 px-1 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
-            >
-              <Paintbrush className="h-3 w-3 text-primary" />
-              Custom
-            </TabsTrigger>
-          </TabsList>
+return (
+  <div className={cn('space-y-2.5', className)}>
+    {/* Segmented Mode Selector */}
+    <div className="space-y-1">
+      <div className="flex items-center justify-between">
+        <Label className="flex items-center gap-1 text-[11px] font-semibold text-foreground truncate">
+          <Palette className="h-3 w-3 text-primary shrink-0" />
+          <span className="truncate">Color Engine Mode</span>
+        </Label>
+        <span className="text-[9px] text-muted-foreground capitalize font-medium shrink-0">
+          {activeMode}
+        </span>
+      </div>
+      <Tabs
+        value={activeMode}
+        onValueChange={(val) => handleModeChange(val as 'hierarchy' | 'categorical' | 'custom')}
+        className="w-full"
+      >
+        <TabsList className="grid w-full grid-cols-3 h-7 bg-secondary/40 p-0.5">
+          <TabsTrigger
+            value="hierarchy"
+            className="text-[10px] gap-1 px-0.5 py-0.5 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
+          >
+            <Layers className="h-2.5 w-2.5 text-amber-400 shrink-0" />
+            <span className="truncate">Hierarchy</span>
+          </TabsTrigger>
+          <TabsTrigger
+            value="categorical"
+            className="text-[10px] gap-1 px-0.5 py-0.5 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
+          >
+            <Tag className="h-2.5 w-2.5 text-cyan-400 shrink-0" />
+            <span className="truncate">Category</span>
+          </TabsTrigger>
+          <TabsTrigger
+            value="custom"
+            className="text-[10px] gap-1 px-0.5 py-0.5 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
+          >
+            <Paintbrush className="h-2.5 w-2.5 text-primary shrink-0" />
+            <span className="truncate">Custom</span>
+          </TabsTrigger>
+        </TabsList>
 
-          {/* TAB 1: HIERARCHY (DEPTH-BASED) */}
-          <TabsContent value="hierarchy" className="mt-3 space-y-3 focus-visible:outline-none">
-            {/* Interactive Depth Gradient Preview Strip */}
-            <div className="rounded-lg border border-border/80 bg-secondary/30 p-2.5 space-y-2">
-              <div className="flex items-center justify-between text-[11px]">
-                <span className="font-medium text-foreground">Depth Gradient Flow</span>
-                <span className="text-[10px] text-muted-foreground">
-                  Root ➔ L1 ➔ L2 ➔ L3
-                </span>
-              </div>
-
-              {/* Gradient Ribbon */}
-              <div className="relative flex h-6 w-full overflow-hidden rounded-md border border-border shadow-inner">
-                {hierarchy.levelColors.map((col, idx) => (
-                  <div
-                    key={idx}
-                    className="group relative flex-1 transition-all hover:flex-[1.5]"
-                    style={{ backgroundColor: col }}
-                    title={`Level ${idx}: ${col}`}
-                  >
-                    <span className="absolute inset-0 flex items-center justify-center text-[9px] font-bold text-black/80 drop-shadow-sm opacity-80 group-hover:opacity-100">
-                      {idx === 0 ? 'R' : `L${idx}`}
-                    </span>
-                  </div>
-                ))}
-              </div>
-
-              <div className="flex items-center justify-between text-[10px] text-muted-foreground px-0.5">
-                <span>Level 0 (Root)</span>
-                <span>Sub-levels...</span>
-                <span>Deepest</span>
-              </div>
+        {/* TAB 1: HIERARCHY */}
+        <TabsContent value="hierarchy" className="mt-2 space-y-2 focus-visible:outline-none">
+          {/* Interactive Depth Gradient Preview Strip */}
+          <div className="rounded-md border border-border/70 bg-secondary/25 p-2 space-y-1.5">
+            <div className="flex items-center justify-between text-[10px]">
+              <span className="font-medium text-foreground">Depth Gradient Flow</span>
+              <span className="text-[9px] text-muted-foreground">Root ➔ Deepest</span>
             </div>
+
+            {/* Gradient Ribbon */}
+            <div className="relative flex h-5 w-full overflow-hidden rounded border border-border shadow-inner">
+              {hierarchy.levelColors.map((col, idx) => (
+                <div
+                  key={idx}
+                  className="group relative flex-1 transition-all hover:flex-[1.5]"
+                  style={{ backgroundColor: col }}
+                  title={`Level ${idx}: ${col}`}
+                >
+                  <span className="absolute inset-0 flex items-center justify-center text-[8px] font-bold text-black/80 drop-shadow-sm opacity-80 group-hover:opacity-100">
+                    {idx === 0 ? 'R' : `L${idx}`}
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            <div className="flex items-center justify-between text-[9px] text-muted-foreground px-0.5">
+              <span>L0 (Root)</span>
+              <span>Sub-levels</span>
+              <span>Deepest</span>
+            </div>
+          </div>
 
             {/* 1-Click Action Preset Buttons */}
             <div className="space-y-1.5">
@@ -496,14 +494,6 @@ export function ColorEngineControls({
                 value={nodeConfig.selectedColor}
                 onChange={(val) => onNodeConfigUpdate({ selectedColor: val })}
               />
-
-              <div className="flex items-center justify-between border-t border-border/60 pt-2">
-                <Label className="text-xs">Node Glow Effect</Label>
-                <Switch
-                  checked={nodeConfig.glow}
-                  onCheckedChange={(checked) => onNodeConfigUpdate({ glow: checked })}
-                />
-              </div>
             </div>
           </TabsContent>
         </Tabs>

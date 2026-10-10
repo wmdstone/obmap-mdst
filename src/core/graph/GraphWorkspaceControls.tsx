@@ -166,8 +166,6 @@ interface GraphWorkspaceControlsProps {
   onLayoutChange: (layout: LayoutMode) => void;
   orientation: MindmapOrientation;
   onOrientationChange: (orientation: MindmapOrientation) => void;
-  highlightPathway: boolean;
-  onHighlightPathwayChange: (value: boolean) => void;
   collapsedCount: number;
   onExpandAll: () => void;
   focused: boolean;
@@ -192,8 +190,6 @@ export function GraphWorkspaceControls({
   onLayoutChange,
   orientation,
   onOrientationChange,
-  highlightPathway,
-  onHighlightPathwayChange,
   collapsedCount,
   onExpandAll,
   focused,
@@ -569,11 +565,11 @@ export function GraphWorkspaceControls({
 
         {/* Panel Pop-up Konten Pengaturan di Kiri Toolbar */}
         {activePanel && (
-          <section className="pointer-events-auto flex max-h-[min(640px,calc(100dvh-100px))] min-h-0 w-[min(340px,calc(100vw-76px))] flex-col rounded-lg border border-border/80 bg-card/95 shadow-2xl backdrop-blur-md animate-in fade-in-0 slide-in-from-right-2 duration-150">
-            {/* Header Panel */}
-            <header className="flex h-10 shrink-0 items-center justify-between border-b border-border px-3">
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-semibold capitalize text-foreground">
+          <section className="pointer-events-auto flex h-[180px] max-h-[180px] min-h-[180px] w-[min(310px,calc(100vw-64px))] flex-col overflow-hidden rounded-lg border border-border/80 bg-card/95 shadow-2xl backdrop-blur-md animate-in fade-in-0 slide-in-from-right-2 duration-150">
+            {/* Header Panel Kompak & Responsif */}
+            <header className="flex h-8 shrink-0 items-center justify-between border-b border-border/70 px-2.5 bg-secondary/15">
+              <div className="flex items-center gap-1.5 min-w-0 pr-1">
+                <span className="truncate text-[11px] font-semibold capitalize text-foreground">
                   {activePanel === 'search' && 'Search & Depth'}
                   {activePanel === 'layout' && 'Layout Engine'}
                   {activePanel === 'appearance' && 'Nodes & Links'}
@@ -586,16 +582,16 @@ export function GraphWorkspaceControls({
                 type="button"
                 variant="ghost"
                 size="icon"
-                className="h-6 w-6 text-muted-foreground hover:text-foreground"
+                className="h-5 w-5 shrink-0 text-muted-foreground hover:text-foreground"
                 aria-label="Close settings panel"
                 onClick={() => setActivePanel(null)}
               >
-                <X className="h-3.5 w-3.5" />
+                <X className="h-3 w-3" />
               </Button>
             </header>
 
-            {/* Body Panel dengan Thin Scrollbar */}
-            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4 [scrollbar-width:thin] [scrollbar-color:hsl(var(--muted-foreground)/0.3)_transparent] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-muted-foreground/30 hover:[&::-webkit-scrollbar-thumb]:bg-muted-foreground/50">
+            {/* Body Panel Presisi 180px dengan internal smooth scroll */}
+            <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain p-2.5 [scrollbar-width:thin] [scrollbar-color:hsl(var(--muted-foreground)/0.3)_transparent] [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-muted-foreground/30 hover:[&::-webkit-scrollbar-thumb]:bg-muted-foreground/50">
               {/* 1. SEARCH & DEPTH PANEL */}
               {activePanel === 'search' && (
                 <div className="space-y-3.5">
@@ -806,18 +802,6 @@ export function GraphWorkspaceControls({
                       max={3}
                       step={0.05}
                       onValueChange={([v]) => patchEngine({ labelZoomThreshold: v })}
-                    />
-                  </div>
-
-                  {/* Opsi Umum: Highlight connected path */}
-                  <div className="flex items-center justify-between border-t border-border/60 pt-2.5">
-                    <Label className="flex items-center gap-1.5 text-xs">
-                      <Sparkles className="h-3.5 w-3.5 text-primary" />
-                      Highlight connected path
-                    </Label>
-                    <Switch
-                      checked={highlightPathway}
-                      onCheckedChange={onHighlightPathwayChange}
                     />
                   </div>
                 </div>

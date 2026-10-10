@@ -156,21 +156,6 @@ export function LayoutEngineTab() {
           onCheckedChange={(v) => engine.patch({ showLabels: v })}
         />
       </div>
-
-      <div className="flex items-center justify-between gap-4">
-        <div>
-          <Label className="text-sm">Highlight connected path</Label>
-          <p className="text-xs text-muted-foreground">
-            Dim unrelated nodes while hovering.
-          </p>
-        </div>
-        <Switch
-          checked={interaction.highlightMode === "pathway"}
-          onCheckedChange={(v) =>
-            interaction.setHighlightMode(v ? "pathway" : "off")
-          }
-        />
-      </div>
     </div>
   );
 }

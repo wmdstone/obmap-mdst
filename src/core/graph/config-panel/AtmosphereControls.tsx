@@ -5,6 +5,8 @@ import { Button } from '@/shared/ui/button';
 import { ColorPicker } from './ColorPicker';
 import type { NodeConfig, LinkConfig } from '@/shared/stores/useGraphStore';
 import { COSMIC_PRESETS, type AtmosphereConfig } from '../model/atmosphereConfig';
+import { useGraphInteractionStore } from '../model/useGraphInteractionStore';
+import { Sparkles } from 'lucide-react';
 export type { AtmosphereConfig } from '../model/atmosphereConfig';
 
 interface AtmosphereControlsProps {
@@ -33,8 +35,33 @@ function EffectSlider({ label, value, display, min, max, step, disabled, onChang
 export function AtmosphereControls({ atmosphere, linkConfig, nodeConfig,
   onAtmosphereUpdate, onLinkUpdate, onNodeUpdate }: AtmosphereControlsProps) {
   const flowEnabled = linkConfig.showParticles && linkConfig.particles > 0;
+  const highlightMode = useGraphInteractionStore((s) => s.highlightMode);
+  const setHighlightMode = useGraphInteractionStore((s) => s.setHighlightMode);
+
   return <div className="space-y-5">
-    <section className="space-y-4" aria-labelledby="cosmic-title">
+
+    {/* 1. HIGHLIGHT CONNECTED PATHWAY */}
+    <section className="space-y-2">
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <Label htmlFor="highlight-pathway-toggle" className="flex items-center gap-1.5 text-sm font-medium">
+            <Sparkles className="h-3.5 w-3.5 text-primary" />
+            Highlight connected path
+          </Label>
+          <p className="text-[11px] text-muted-foreground leading-tight">
+            Dim unrelated nodes & focus active branch on hover.
+          </p>
+        </div>
+        <Switch
+          id="highlight-pathway-toggle"
+          checked={highlightMode === 'pathway'}
+          onCheckedChange={(checked) => setHighlightMode(checked ? 'pathway' : 'off')}
+        />
+      </div>
+    </section>
+
+    {/* 2. COSMIC PARTICLES */}
+    <section className="space-y-4 border-t border-border pt-4" aria-labelledby="cosmic-title">
       <div className="flex items-center justify-between gap-3">
         <Label id="cosmic-title" className="text-sm font-medium">Cosmic particles & dust</Label>
         <span className="shrink-0 text-xs font-mono text-primary">{atmosphere.cosmicParticles}%</span>

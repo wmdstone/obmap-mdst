@@ -145,7 +145,6 @@ export function drawNode(
   ctx.translate(-x, -y)
 
   if (state.isDragged) {
-    ctx.scale(1.05, 1.05);
     ctx.shadowColor = 'rgba(0, 0, 0, 0.45)';
     ctx.shadowBlur = 12;
     ctx.shadowOffsetX = 0;
@@ -177,47 +176,35 @@ export function drawNode(
   const isElevated = state.selected || state.hovered;
 
   if (isElevated) {
-    // Micro scale-lift for tactile feedback
-    ctx.scale(1.03, 1.03);
-
     // Multi-layer ambient drop shadow (Physical depth)
     ctx.shadowColor = 'rgba(0, 0, 0, 0.55)';
     ctx.shadowBlur = 22;
-    ctx.shadowOffsetX = 0;
-    ctx.shadowOffsetY = 8;
   }
 
   if (boxed) {
     roundedRect(ctx, x - w / 2, y - h / 2, w, h, 8);
     
-    // Background fill dengan glassmorphism transparency
+    // Background fill stabil
     ctx.fillStyle = state.config.labelBackground
-      ? dim(theme.labelBackground, isElevated ? 0.92 : Math.max(0.72, state.config.opacity))
-      : dim(accent, isElevated ? 0.38 : 0.16);
+      ? dim(theme.labelBackground, state.selected ? 0.95 : Math.max(0.72, state.config.opacity))
+      : dim(accent, state.selected ? 0.35 : state.hovered ? 0.25 : 0.16);
     ctx.fill();
 
-    // Reset shadow blur sebelum menggambar stroke
+    // Reset shadow blur
     ctx.shadowBlur = 0;
     ctx.shadowOffsetX = 0;
     ctx.shadowOffsetY = 0;
 
-    // Outer border stroke
+    // Outer border stroke: pertegas saat dipilih/di-hover tanpa mengubah ketebalan geometri
     ctx.lineWidth = state.selected ? 2 : 1;
-    ctx.strokeStyle = state.selected ? accent : isElevated ? dim(accent, 0.85) : dim(accent, 0.5);
+    ctx.strokeStyle = state.selected 
+      ? accent 
+      : state.hovered 
+        ? dim(accent, 0.85) 
+        : dim(accent, 0.5);
     ctx.stroke();
-
-    // Specular highlight line di sisi atas (Frosted glass look)
-    if (isElevated) {
-      ctx.save();
-      ctx.beginPath();
-      ctx.moveTo(x - w / 2 + 8, y - h / 2 + 1);
-      ctx.lineTo(x + w / 2 - 8, y - h / 2 + 1);
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.28)';
-      ctx.lineWidth = 1;
-      ctx.stroke();
-      ctx.restore();
-    }
   }
+
 
   // Configurable node marker.
   const markerX = boxed ? x - w / 2 + 9 : x;
