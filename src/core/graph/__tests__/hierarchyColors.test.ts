@@ -1,13 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import {
   HIERARCHY_PRESETS,
+  HierarchyPresetId,
   defaultHierarchyColorConfig,
-  mergeHierarchyColorConfig,
   presetById,
   resolveHierarchyLinkPaint,
   resolveLevelColor,
   resolveLevelOpacity,
   uniqueDepths,
+  mergeHierarchyColorConfig,
   type HierarchyColorConfig,
 } from '../model/hierarchyColors';
 
@@ -19,11 +20,13 @@ const cfg = (over: Partial<HierarchyColorConfig> = {}): HierarchyColorConfig => 
 });
 
 describe('presets', () => {
-  it('exposes the five documented palettes', () => {
+  it('exposes the seven documented palettes', () => {
     expect(HIERARCHY_PRESETS.map((p) => p.id)).toEqual([
       'classic',
       'mono-blue',
       'dark-friendly',
+      'neon',
+      'pastel',
       'warm',
       'cool',
     ]);

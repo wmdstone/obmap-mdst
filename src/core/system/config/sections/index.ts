@@ -23,6 +23,7 @@ import {
   onFeatureTogglesChange,
   setFeatureEnabled,
 } from "@/core/system/plugins/feature-toggles";
+import { useGraphTemplatesStore } from "@/shared/stores/useGraphTemplatesStore";
 
 let registered = false;
 
@@ -235,4 +236,25 @@ export function registerConfigSections(): void {
     },
     subscribe: (cb) => onFeatureTogglesChange(() => cb()),
   });
+
+ /* ------------------------------- template ------------------------------ */
+registerConfigSection({
+  id: "graph-templates",
+  label: "Graph templates",
+  version: 1,
+  scope: "vault",
+  read: () => ({
+    templates: useGraphTemplatesStore.getState().templates,
+    defaultTemplateId: useGraphTemplatesStore.getState().defaultTemplateId,
+  }),
+  write: (value: any) => {
+    if (value) {
+      useGraphTemplatesStore.getState().setAll(value);
+    }
+  },
+  reset: () => {
+    useGraphTemplatesStore.getState().setAll({ templates: {}, defaultTemplateId: null });
+  },
+  subscribe: (cb) => useGraphTemplatesStore.subscribe(() => cb()),
+});
 }

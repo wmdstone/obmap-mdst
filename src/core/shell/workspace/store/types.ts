@@ -15,6 +15,8 @@ export interface ViewState {
   mode?: 'source' | 'live' | 'reading';
   /** Selected subsection for the settings view. */
   settingsSection?: string;
+  /** Graph tabs: network graph or structured mindmap. */
+  canvasMode?: 'graph' | 'mindmap';
 }
 
 export interface WorkspaceLeaf {

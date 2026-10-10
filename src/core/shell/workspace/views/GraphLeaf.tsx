@@ -5,15 +5,60 @@ import {
   useGraphInteractionStore,
   useLeafGraphInteractionStore,
 } from "@/core/graph/model/useGraphInteractionStore";
-import { useGraphStore } from "@/shared/stores";
+import {
+  LeafGraphConfigProvider,
+  useLeafGraphConfig,
+  useLeafGraphConfigStore,
+} from "@/core/graph/model/useLeafGraphConfigStore";
+import { useGraphStore, useNodeStore } from "@/shared/stores";
 import { useVaultSession } from "../VaultSessionContext";
 import { useWorkspaceStore } from "../store/useWorkspaceStore";
 import type { LeafViewProps } from "../ViewRegistry";
-import { useRef, useState } from "react";
+import type { ViewState } from "../store/types";
+import { useEffect, useRef, useState } from "react";
 
-function GraphLeafBody() {
-  const { graphData, selectedNode, setSelectedNode } = useVaultSession();
-  const graphConfig = useGraphStore((s) => s.config);
+function GraphLeafBody({ leafId, canvasMode: requestedMode, view }: { leafId: string; view?: ViewState; isActive?: boolean; canvasMode?: "graph" | "mindmap" }) {
+
+  const { 
+    graphData, 
+    selectedNode, 
+    setSelectedNode, 
+    onNodeMove, 
+    onNodeDelete,
+    onNodeUpdate,
+    nodes 
+  } = useVaultSession();
+
+  const handleAddSubNode = async (parentId: string, type: "file" | "folder") => {
+    const parentNode = nodes.find((n) => n.id === parentId);
+    if (!parentNode) return;
+
+    // Jika node saat ini berupa file, konversi menjadi folder agar bisa memiliki children
+    if (parentNode.type !== "folder") {
+      onNodeUpdate({ ...parentNode, type: "folder" });
+    }
+
+    const newNode = {
+      id: `node-${Date.now()}`,
+      name: type === "folder" 
+        ? `New Folder ${nodes.filter((n) => n.type === "folder").length + 1}`
+        : `New File ${nodes.filter((n) => n.type === "file").length + 1}`,
+      content: "",
+      type,
+      parentId: parentNode.id,
+      depth: parentNode.depth + 1,
+      tags: [],
+    };
+
+    useNodeStore.getState().addNode(newNode);
+    setSelectedNode(newNode);
+  };
+
+  // Ambil config dari store lokal tab ini (fallback ke global store bila di luar provider)
+  const localConfig = useLeafGraphConfig((s) => s.config);
+  const fallbackConfig = useGraphStore((s) => s.config);
+  const graphConfig = localConfig ?? fallbackConfig;
+
   const {
     layoutMode,
     setLayoutMode,
@@ -25,7 +70,35 @@ function GraphLeafBody() {
     expandAll,
     focusedRootId,
     setFocusedRoot,
+    canvasMode,
+    setCanvasMode,
   } = useGraphInteractionStore();
+
+    useEffect(() => {
+    if (requestedMode) setCanvasMode(requestedMode);
+  }, [requestedMode, setCanvasMode]);
+
+  // Sinkronkan tab title & canvasMode pada leaf view
+  useEffect(() => {
+    const title = canvasMode === "mindmap" ? "Mindmap View" : "Graph View";
+    if (view && (view.title !== title || view.canvasMode !== canvasMode)) {
+      useWorkspaceStore.getState().setLeafView(leafId, { ...view, title, canvasMode });
+    }
+  }, [canvasMode, leafId, view]);
+
+  // The ribbon / shortcuts set the requested mode on the tab's view state.
+  useEffect(() => {
+    if (requestedMode) setCanvasMode(requestedMode);
+  }, [requestedMode, setCanvasMode]);
+
+  // Keep the tab title in sync with the active mode.
+  useEffect(() => {
+    const title = canvasMode === "mindmap" ? "Mindmap View" : "Graph View";
+    if (view && view.title !== title) {
+      useWorkspaceStore.getState().setLeafView(leafId, { ...view, title });
+    }
+  }, [canvasMode, leafId, view]);
+
   const [search, setSearch] = useState("");
   const [minDepth, setMinDepth] = useState(0);
   const [maxDepth, setMaxDepth] = useState(10);
@@ -37,6 +110,9 @@ function GraphLeafBody() {
 
   const handleSelect = (node: typeof selectedNode) => {
     setSelectedNode(node);
+  };
+
+  const handleOpen = (node: typeof selectedNode) => {
     if (node && node.type !== "folder") {
       useWorkspaceStore.getState().openFile(node.id, node.name);
     }
@@ -49,6 +125,10 @@ function GraphLeafBody() {
         graphData={graphData}
         selectedNode={selectedNode}
         onNodeSelect={handleSelect}
+        onNodeOpen={handleOpen}
+        onNodeMove={onNodeMove}
+        onNodeDelete={onNodeDelete}
+        onAddSubNode={handleAddSubNode}
         graphConfig={graphConfig}
         search={search}
         minDepth={minDepth}
@@ -59,6 +139,8 @@ function GraphLeafBody() {
 
       <GraphWorkspaceControls
         layout={layoutMode}
+        canvasMode={canvasMode}
+        onCanvasModeChange={setCanvasMode}
         onLayoutChange={setLayoutMode}
         orientation={orientation}
         onOrientationChange={setOrientation}
@@ -92,13 +174,15 @@ function GraphLeafBody() {
   );
 }
 
-export default function GraphLeaf({ leaf }: LeafViewProps) {
-  // One interaction store per graph tab: each graph keeps its own layout,
-  // orientation, collapse set, focus and highlight state.
-  const store = useLeafGraphInteractionStore(leaf.id);
+export default function GraphLeaf({ leaf, isActive = true }: LeafViewProps) {
+  const interactionStore = useLeafGraphInteractionStore(leaf.id);
+  const configStore = useLeafGraphConfigStore(leaf.id);
+
   return (
-    <GraphInteractionProvider store={store}>
-      <GraphLeafBody />
-    </GraphInteractionProvider>
+    <LeafGraphConfigProvider store={configStore}>
+      <GraphInteractionProvider store={interactionStore}>
+        <GraphLeafBody leafId={leaf.id} isActive={isActive} canvasMode={leaf.view.canvasMode} view={leaf.view} />
+      </GraphInteractionProvider>
+    </LeafGraphConfigProvider>
   );
 }

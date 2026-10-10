@@ -36,7 +36,6 @@ import {
 } from "@/shared/stores/useGraphStore";
 import { NodeStylingTab } from './NodeStylingTab';
 import { LinkStylingTab } from './LinkStylingTab';
-import { ForceEngineTab } from './ForceEngineTab';
 import { AnalyticsTab } from './AnalyticsTab';
 import { useIsMobile } from "@/shared/hooks/useMobile";
 
@@ -175,15 +174,6 @@ export function GraphConfigPanel({
                   />
                 </TabsContent>
                 
-                <TabsContent value="forces" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
-                  <ForceEngineTab
-                    config={config.forces}
-                    onUpdate={onForceConfigUpdate}
-                    onReheat={onReheatSimulation}
-                    onStop={onStopSimulation}
-                  />
-                </TabsContent>
-
                 <TabsContent value="analytics" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
                   <AnalyticsTab
                     stats={stats}

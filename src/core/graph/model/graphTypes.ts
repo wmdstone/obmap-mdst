@@ -7,8 +7,22 @@
 
 import type { Link, Node } from '@/shared/stores/types';
 
-export type LayoutMode = 'mindmap' | 'timeline' | 'fishbone' | 'free-force';
+export type GraphLayoutMode = 'free-force' | 'fr-standard' | 'fr-radial' | 'kamada-kawai' | 'grid';
+export type MindmapLayoutMode = 'mindmap' | 'org-chart' | 'brace-map' | 'timeline' | 'fishbone';
+export type LayoutMode = GraphLayoutMode | MindmapLayoutMode;
+/** Which family of layouts a graph tab shows: network topology or folder hierarchy. */
+export type CanvasMode = 'graph' | 'mindmap';
+
+export const GRAPH_LAYOUT_MODES: GraphLayoutMode[] = ['free-force', 'fr-standard', 'fr-radial', 'kamada-kawai', 'grid'];
+export const MINDMAP_LAYOUT_MODES: MindmapLayoutMode[] = ['mindmap', 'org-chart', 'brace-map', 'timeline', 'fishbone'];
+
+export type SubtreeLayoutMap = Record<string, MindmapLayoutMode>;
+export type BranchColorMap = Record<string, string>;
+
+export const canvasModeOf = (mode: LayoutMode): CanvasMode =>
+  (GRAPH_LAYOUT_MODES as string[]).includes(mode) ? 'graph' : 'mindmap';
 export type MindmapOrientation = 'balanced' | 'radial';
+export type TimelineStructure = 'horizontal' | 'vertical' | 'off-axis';
 
 export interface LayoutPoint {
   x: number;
@@ -30,10 +44,13 @@ export interface Bounds {
 
 export interface TimelineAxis {
   kind: 'timeline-axis';
-  y: number;
+  direction?: 'horizontal' | 'vertical';
   x1: number;
+  y1?: number;
   x2: number;
-  ticks: { x: number; label: string }[];
+  y2?: number;
+  y: number; // Tetap sertakan untuk backward compatibility jika ada fungsi lain yang membaca .y
+  ticks: { x: number; y?: number; label: string; nodeId?: string }[];
 }
 
 export interface FishboneSpine {
@@ -77,6 +94,7 @@ export interface LayoutContext {
   height: number;
   rootId?: string;
   orientation: MindmapOrientation;
+  timelineStructure?: TimelineStructure;
   levelGap: number;
   siblingGap: number;
   laneGap: number;
@@ -96,6 +114,8 @@ export interface RenderNode {
   time?: number;
   category?: string;
   childCount: number;
+  branchId?: string;
+  branchColor?: string;
   x?: number;
   y?: number;
   vx?: number;

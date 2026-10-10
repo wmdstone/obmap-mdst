@@ -16,7 +16,6 @@ import {
 import { LayoutEngineTab } from "@/core/graph/config-panel/LayoutEngineTab";
 import { NodeStylingTab } from "@/core/graph/config-panel/NodeStylingTab";
 import { LinkStylingTab } from "@/core/graph/config-panel/LinkStylingTab";
-import { ForceEngineTab } from "@/core/graph/config-panel/ForceEngineTab";
 import { AnalyticsTab } from "@/core/graph/config-panel/AnalyticsTab";
 import { useGraphStore } from "@/shared/stores/useGraphStore";
 import { useGraphInteractionStore } from "@/core/graph/model/useGraphInteractionStore";
@@ -93,14 +92,6 @@ export function GraphEngineSettings() {
             onUpdate={updateLinkConfig}
             onTopologyUpdate={updateTopologyConfig}
             onTopologyStyleUpdate={updateTopologyStyle}
-          />
-        </TabsContent>
-        <TabsContent value="forces" className="mt-4">
-          <ForceEngineTab
-            config={config.forces}
-            onUpdate={updateForceConfig}
-            onReheat={requestReheat}
-            onStop={requestStop}
           />
         </TabsContent>
         <TabsContent value="analytics" className="mt-4">

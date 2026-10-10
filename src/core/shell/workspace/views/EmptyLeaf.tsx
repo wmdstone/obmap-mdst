@@ -15,12 +15,6 @@ export default function EmptyLeaf({ leaf }: LeafViewProps) {
       label: 'Open graph',
       run: () => setLeafView(leaf.id, { type: 'graph', title: 'Graph View' }),
     },
-    {
-      icon: FolderOpen,
-      label: 'Vault management',
-      run: () =>
-        setLeafView(leaf.id, { type: 'settings', settingsSection: 'vaults', title: 'Settings' }),
-    },
   ];
 
   return (

@@ -1,7 +1,6 @@
 import {
   Cloud,
   Database,
-  Network,
   Pencil,
   ShieldCheck,
   SlidersHorizontal,
@@ -19,7 +18,6 @@ export type SettingsSectionId =
   | 'configuration'
   | 'editor'
   | 'schema'
-  | 'graph'
   | 'roles';
 
 export interface SettingsSection {
@@ -35,7 +33,6 @@ export const SETTINGS_GROUPS = [
   'Vault Management',
   'System & Sync',
   'Editor & Schema',
-  'Visual',
   'Collaboration',
 ] as const;
 
@@ -47,7 +44,6 @@ export const SETTINGS_SECTIONS: SettingsSection[] = [
   { id: 'configuration', label: 'Configuration Vault', group: 'System & Sync', icon: SlidersHorizontal, description: 'Where your settings are saved, plus export, import and reset.' },
   { id: 'editor', label: 'Editor', group: 'Editor & Schema', icon: Pencil, description: 'Typography, typing behaviour, assistance and toolbar.' },
   { id: 'schema', label: 'Properties & Schema', group: 'Editor & Schema', icon: ShieldCheck, description: 'Global property rules inherited by every note.' },
-  { id: 'graph', label: 'Visual Graph Engine', group: 'Visual', icon: Network, description: 'Default layout, colours, link routing and depth rules.' },
   { id: 'roles', label: 'User Roles', group: 'Collaboration', icon: Users, description: 'Who can write, review and publish.' },
 ];
 

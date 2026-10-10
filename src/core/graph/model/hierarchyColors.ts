@@ -13,6 +13,8 @@ export type HierarchyPresetId =
   | 'dark-friendly'
   | 'warm'
   | 'cool'
+  | 'neon'
+  | 'pastel'
   | 'custom';
 
 export interface HierarchyColorConfig {
@@ -75,6 +77,32 @@ export const HIERARCHY_PRESETS: HierarchyPreset[] = [
     ],
   },
   {
+    id: 'neon',
+    label: 'Dark Neon Cyber',
+    description: 'High intensity glowing neons',
+    colors: [
+      'hsl(48, 100%, 55%)',  // Gold / Amber root
+      'hsl(190, 100%, 55%)', // Electric Cyan
+      'hsl(285, 100%, 65%)', // Neon Magenta/Purple
+      'hsl(140, 100%, 55%)', // Vivid Green
+      'hsl(15, 100%, 60%)',  // Blaze Orange
+      'hsl(330, 100%, 60%)', // Hot Pink
+    ],
+  },
+  {
+    id: 'pastel',
+    label: 'Pastel Palette',
+    description: 'Soft, elegant low-strain hues',
+    colors: [
+      'hsl(42, 85%, 70%)',
+      'hsl(205, 75%, 72%)',
+      'hsl(155, 60%, 68%)',
+      'hsl(275, 65%, 75%)',
+      'hsl(15, 80%, 74%)',
+      'hsl(340, 70%, 74%)',
+    ],
+  },
+  {
     id: 'warm',
     label: 'Warm Tones',
     description: 'Amber through crimson',
@@ -116,7 +144,7 @@ export const defaultHierarchyColorConfig: HierarchyColorConfig = {
 
 /* ------------------------------ colour maths ------------------------------ */
 
-interface Hsl {
+export interface Hsl {
   h: number;
   s: number;
   l: number;
@@ -125,10 +153,10 @@ interface Hsl {
 const clamp = (value: number, min: number, max: number) =>
   Math.min(max, Math.max(min, value));
 
-function parseHsl(color: string): Hsl | null {
+export function parseHsl(color: string): Hsl | null {
   const hsl = color
     .trim()
-    .match(/hsla?\(\s*([\d.]+)\s*[, ]\s*([\d.]+)%\s*[, ]\s*([\d.]+)%/i);
+    .match(/hsla?\(\s*([\d.]+)\s*[, ]\s*([\d.]+)%?\s*[, ]\s*([\d.]+)%?/i);
   if (hsl) {
     return { h: Number(hsl[1]), s: Number(hsl[2]), l: Number(hsl[3]) };
   }
@@ -153,14 +181,54 @@ function parseHsl(color: string): Hsl | null {
   return { h: h * 360, s: s * 100, l: l * 100 };
 }
 
-const formatHsl = ({ h, s, l }: Hsl) =>
+export const formatHsl = ({ h, s, l }: Hsl) =>
   `hsl(${Math.round(h)}, ${Math.round(s)}%, ${Math.round(l)}%)`;
 
 /**
- * Deterministic extension of the palette: lightness alternates lighter/darker
- * around the last palette colour so the result stays readable on light and
- * dark canvases alike.
+ * 1-Click Harmony Generator: Golden ratio hue wheel rotation
  */
+export function generateHarmonyPalette(baseColor = 'hsl(45, 95%, 60%)', count = 6): string[] {
+  const parsed = parseHsl(baseColor) || { h: 45, s: 95, l: 60 };
+  const goldenRatio = 137.50776405; // degrees
+  const palette: string[] = [];
+  for (let i = 0; i < count; i++) {
+    const hue = (parsed.h + i * goldenRatio) % 360;
+    const sat = clamp(parsed.s + (i % 2 === 0 ? 5 : -5), 60, 95);
+    const light = clamp(parsed.l + (i % 2 === 0 ? 0 : 5), 45, 68);
+    palette.push(formatHsl({ h: hue, s: sat, l: light }));
+  }
+  return palette;
+}
+
+/**
+ * Applies dynamic color spread & saturation shift across level colors.
+ */
+export function transformPaletteSpreadAndSaturation(
+  colors: string[],
+  spreadFactor: number, // 0.5 to 2.0 (1.0 = normal)
+  saturationShift: number // -50 to +50 (0 = neutral)
+): string[] {
+  if (!colors.length) return colors;
+  const firstHsl = parseHsl(colors[0]) || { h: 45, s: 80, l: 55 };
+
+  return colors.map((col, idx) => {
+    const hsl = parseHsl(col);
+    if (!hsl) return col;
+    if (idx === 0) {
+      return formatHsl({
+        h: hsl.h,
+        s: clamp(hsl.s + saturationShift, 10, 100),
+        l: hsl.l,
+      });
+    }
+    const diff = (hsl.h - firstHsl.h + 360) % 360;
+    const scaledDiff = (diff * spreadFactor) % 360;
+    const newHue = (firstHsl.h + scaledDiff) % 360;
+    const newSat = clamp(hsl.s + saturationShift, 10, 100);
+    return formatHsl({ h: newHue, s: newSat, l: hsl.l });
+  });
+}
+
 function gradientStep(base: string, step: number): string {
   const hsl = parseHsl(base);
   if (!hsl) return base;
@@ -181,7 +249,6 @@ export function paletteOf(config: HierarchyColorConfig): string[] {
   return preset ? preset.colors : HIERARCHY_PRESETS[0].colors;
 }
 
-/** Colour for a hierarchy depth (0 = root), honouring the overflow strategy. */
 export function resolveLevelColor(depth: number, config: HierarchyColorConfig): string {
   const palette = paletteOf(config);
   const level = Math.max(0, Math.floor(depth));
@@ -190,7 +257,6 @@ export function resolveLevelColor(depth: number, config: HierarchyColorConfig): 
   return gradientStep(palette[palette.length - 1], level - palette.length + 1);
 }
 
-/** Per-level opacity for the Level Specific link mode. */
 export function resolveLevelOpacity(depth: number, config: HierarchyColorConfig): number {
   const list = config.levelOpacity;
   if (!list.length) return 1;
@@ -200,11 +266,9 @@ export function resolveLevelOpacity(depth: number, config: HierarchyColorConfig)
 
 export interface HierarchyLinkPaint {
   color: string;
-  /** Present only for the Level Specific mode; otherwise the type style wins. */
   opacity?: number;
 }
 
-/** Stroke/arrow/particle paint for a hierarchy link between two depths. */
 export function resolveHierarchyLinkPaint(
   sourceDepth: number,
   targetDepth: number,
@@ -222,36 +286,47 @@ export function resolveHierarchyLinkPaint(
   return { color: resolveLevelColor(sourceDepth, config) };
 }
 
-/** Sorted unique depths actually present in the projected graph. */
 export function uniqueDepths(nodes: { depth: number }[]): number[] {
   const set = new Set<number>();
   for (const node of nodes) set.add(Math.max(0, Math.floor(node.depth)));
   return [...set].sort((a, b) => a - b);
 }
 
-/** Merge persisted (possibly older) config onto the current defaults. */
+/**
+ * Merges any (possibly legacy/partial/invalid) stored hierarchy config onto
+ * the defaults so consumers never see `undefined` or malformed fields.
+ */
 export function mergeHierarchyColorConfig(
-  value: Partial<HierarchyColorConfig> | null | undefined
+  raw?: Partial<HierarchyColorConfig> | null
 ): HierarchyColorConfig {
-  const base = defaultHierarchyColorConfig;
-  if (!value) return { ...base, levelColors: [...base.levelColors], levelOpacity: [...base.levelOpacity] };
-  const levelColors = Array.isArray(value.levelColors) && value.levelColors.length
-    ? value.levelColors.filter((color) => typeof color === 'string' && color.trim().length > 0)
-    : [...base.levelColors];
-  const levelOpacity = Array.isArray(value.levelOpacity) && value.levelOpacity.length
-    ? value.levelOpacity.filter((item) => typeof item === 'number' && Number.isFinite(item))
-    : [...base.levelOpacity];
+  if (!raw) return { ...defaultHierarchyColorConfig };
+  const validPreset =
+    raw.preset === 'custom' || presetById(raw.preset as HierarchyPresetId)
+      ? raw.preset
+      : defaultHierarchyColorConfig.preset;
+  const validOverflow =
+    raw.overflow === 'gradient' || raw.overflow === 'loop'
+      ? raw.overflow
+      : defaultHierarchyColorConfig.overflow;
+  const validLinkMode =
+    raw.linkColorMode === 'parent' ||
+    raw.linkColorMode === 'child' ||
+    raw.linkColorMode === 'level'
+      ? raw.linkColorMode
+      : defaultHierarchyColorConfig.linkColorMode;
+  const levelColors =
+    Array.isArray(raw.levelColors) && raw.levelColors.length > 0
+      ? raw.levelColors
+      : [...defaultHierarchyColorConfig.levelColors];
+
   return {
-    enabled: typeof value.enabled === 'boolean' ? value.enabled : base.enabled,
-    preset: value.preset && (value.preset === 'custom' || presetById(value.preset))
-      ? value.preset
-      : base.preset,
-    levelColors: levelColors.length ? levelColors : [...base.levelColors],
-    overflow: value.overflow === 'gradient' ? 'gradient' : 'loop',
-    linkColorMode:
-      value.linkColorMode === 'child' || value.linkColorMode === 'level'
-        ? value.linkColorMode
-        : 'parent',
-    levelOpacity: levelOpacity.length ? levelOpacity : [...base.levelOpacity],
+    enabled: typeof raw.enabled === 'boolean' ? raw.enabled : defaultHierarchyColorConfig.enabled,
+    preset: validPreset,
+    levelColors,
+    overflow: validOverflow,
+    linkColorMode: validLinkMode,
+    levelOpacity: Array.isArray(raw.levelOpacity) && raw.levelOpacity.length > 0
+      ? raw.levelOpacity
+      : [...defaultHierarchyColorConfig.levelOpacity],
   };
 }

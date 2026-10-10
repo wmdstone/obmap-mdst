@@ -98,6 +98,18 @@ export function buildGraphProjection(
     return current;
   };
 
+  // Menentukan branch root (ancestor pada depth 1)
+  const branchRootOf = (id: string): string => {
+    let current = id;
+    let parent = parentByChild.get(current) ?? null;
+    if (!parent) return id; // Jika root, cabangnya adalah diri sendiri
+    while (parent && (depthOf.get(parent) ?? 0) > 0) {
+      current = parent;
+      parent = parentByChild.get(current) ?? null;
+    }
+    return current;
+  };
+
   const renderNodes: RenderNode[] = nodes.map((node) => ({
     id: node.id,
     name: node.name,
@@ -108,6 +120,7 @@ export function buildGraphProjection(
     content: node.content ?? '',
     time: node.type === 'folder' ? undefined : noteTime(node.content ?? '', timeField),
     category: rootOf(node.id),
+    branchId: branchRootOf(node.id),
     childCount: (childrenByParent.get(node.id) ?? []).length,
   }));
 

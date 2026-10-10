@@ -8,6 +8,7 @@ import { SidebarPanel } from "./SidebarPanel";
 import { useUIStore } from "@/shared/stores";
 import { useVaultSession } from "./VaultSessionContext";
 import { useWorkspaceStore } from "./store/useWorkspaceStore";
+import { openGraphCanvas } from "./graphCanvasCommands";
 
 export function Ribbon() {
   const activeTool = useUIStore((s) => s.activeTool);
@@ -19,6 +20,8 @@ export function Ribbon() {
     setSelectedNode,
     onNodeMove,
     onAddNode,
+    onNodeDelete,
+    onNodeUpdate,
     onImportComplete,
     onCloseVault,
     currentVaultId,
@@ -36,9 +39,17 @@ export function Ribbon() {
     setActiveTool(activeTool === tool ? null : tool);
   };
 
+  const handleOpenGraph = () => openGraphCanvas("graph");
+  const handleOpenMindmap = () => openGraphCanvas("mindmap");
+
   return (
     <>
-      <IconRibbon activeTool={activeTool} onToolSelect={handleToolSelect} />
+      <IconRibbon
+        activeTool={activeTool}
+        onToolSelect={handleToolSelect}
+        onOpenGraph={handleOpenGraph}
+        onOpenMindmap={handleOpenMindmap}
+      />
       {activeTool && (
         <SidebarPanel
           activeTool={activeTool}
@@ -54,6 +65,8 @@ export function Ribbon() {
               openView({ type: "markdown", nodeId: node.id, title: node.name });
           }}
           onNodeMove={onNodeMove}
+          onNodeDelete={onNodeDelete}
+          onNodeUpdate={onNodeUpdate}
           onAddNode={onAddNode}
           isVaultMode={!!currentVaultId}
           vaultName={vaultName}

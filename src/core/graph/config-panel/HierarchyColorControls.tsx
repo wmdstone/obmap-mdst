@@ -17,7 +17,7 @@ import {
   SelectValue,
 } from '@/shared/ui/select';
 import { Plus, Trash2 } from 'lucide-react';
-import { useGraphStore } from '@/shared/stores/useGraphStore';
+import { useGraphStore, type HierarchyColorConfig } from '@/shared/stores/useGraphStore';
 import {
   HIERARCHY_PRESETS,
   presetById,
@@ -31,9 +31,20 @@ import { ColorPicker } from './ColorPicker';
 
 const MIN_LEVELS = 3;
 
-export function HierarchyColorControls() {
-  const hierarchy = useGraphStore((s) => s.config.hierarchy);
-  const updateHierarchyConfig = useGraphStore((s) => s.updateHierarchyConfig);
+/**
+ * Optional overrides let a per-tab (leaf) graph config drive these controls;
+ * without them they fall back to the global graph store.
+ */
+interface HierarchyControlsProps {
+  hierarchy?: HierarchyColorConfig;
+  onChange?: (updates: Partial<HierarchyColorConfig>) => void;
+}
+
+export function HierarchyColorControls({ hierarchy: hierarchyProp, onChange }: HierarchyControlsProps = {}) {
+  const globalHierarchy = useGraphStore((s) => s.config.hierarchy);
+  const globalUpdate = useGraphStore((s) => s.updateHierarchyConfig);
+  const hierarchy = hierarchyProp ?? globalHierarchy;
+  const updateHierarchyConfig = onChange ?? globalUpdate;
 
   const setPreset = (preset: HierarchyPresetId) => {
     const found = presetById(preset);
@@ -159,9 +170,11 @@ export function HierarchyColorControls() {
   );
 }
 
-export function HierarchyLinkColorControls() {
-  const hierarchy = useGraphStore((s) => s.config.hierarchy);
-  const updateHierarchyConfig = useGraphStore((s) => s.updateHierarchyConfig);
+export function HierarchyLinkColorControls({ hierarchy: hierarchyProp, onChange }: HierarchyControlsProps = {}) {
+  const globalHierarchy = useGraphStore((s) => s.config.hierarchy);
+  const globalUpdate = useGraphStore((s) => s.updateHierarchyConfig);
+  const hierarchy = hierarchyProp ?? globalHierarchy;
+  const updateHierarchyConfig = onChange ?? globalUpdate;
   if (!hierarchy.enabled) return null;
 
   const levelCount = hierarchy.levelColors.length;

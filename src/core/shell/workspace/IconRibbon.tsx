@@ -3,6 +3,8 @@ import { Button } from '@/shared/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/shared/ui/tooltip";
 import {
   FolderTree,
+  GitBranch,
+  Network,
   Settings2,
 } from "lucide-react";
 
@@ -11,53 +13,12 @@ export type RibbonTool = "files" | "settings";
 interface IconRibbonProps {
   activeTool: RibbonTool | null;
   onToolSelect: (tool: RibbonTool) => void;
+  onOpenGraph?: () => void;
+  onOpenMindmap?: () => void;
   className?: string;
 }
 
-interface RibbonItem {
-  id: RibbonTool;
-  icon: React.ComponentType<{ className?: string }>;
-  label: string;
-  shortcut?: string;
-}
-
-const ribbonItems: RibbonItem[] = [
-  { id: "files", icon: FolderTree, label: "File Explorer", shortcut: "⌘1" },
-  { id: "settings", icon: Settings2, label: "Settings", shortcut: "⌘," },
-];
-
-export function IconRibbon({ activeTool, onToolSelect, className }: IconRibbonProps) {
-  const renderItem = (item: RibbonItem, isActive: boolean) => (
-    <Tooltip key={item.id} delayDuration={300}>
-      <TooltipTrigger asChild>
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          onClick={() => onToolSelect(item.id)}
-className={cn(
-  "w-10 h-10 flex items-center justify-center rounded-lg transition-all duration-200",
-  // Ganti hover background jika ingin benar-benar transparan:
-  "hover:bg-accent/50 hover:text-foreground",
-  "focus:outline-none focus:ring-1 focus:ring-ring",
-  // Sesuaikan state aktif:
-  isActive && "text-primary" // tanpa bg-sidebar-accent
-)}
-          aria-label={item.label}
-          aria-pressed={isActive}
-        >
-          <item.icon className="w-4 h-4" />
-        </Button>
-      </TooltipTrigger>
-      <TooltipContent side="right" className="flex items-center gap-2">
-        <span>{item.label}</span>
-        {item.shortcut && (
-          <span className="text-muted-foreground text-xs">{item.shortcut}</span>
-        )}
-      </TooltipContent>
-    </Tooltip>
-  );
-
+export function IconRibbon({ activeTool, onToolSelect, onOpenGraph, onOpenMindmap, className }: IconRibbonProps) {
   return (
     <div
       className={cn(
@@ -67,10 +28,107 @@ className={cn(
     >
       {/* Top tools */}
       <div className="flex flex-col items-center gap-1">
-        {ribbonItems.map((item) => renderItem(item, activeTool === item.id))}
+        {/* File Explorer */}
+        <Tooltip delayDuration={300}>
+          <TooltipTrigger asChild>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              onClick={() => onToolSelect("files")}
+              className={cn(
+                "w-10 h-10 flex items-center justify-center rounded-lg transition-all duration-200",
+                "hover:bg-accent/50 hover:text-foreground",
+                "focus:outline-none focus:ring-1 focus:ring-ring",
+                activeTool === "files" && "text-primary"
+              )}
+              aria-label="File Explorer"
+              aria-pressed={activeTool === "files"}
+            >
+              <FolderTree className="w-4 h-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="right" className="flex items-center gap-2">
+            <span>File Explorer</span>
+            <span className="text-muted-foreground text-xs">⌘1</span>
+          </TooltipContent>
+        </Tooltip>
+
+        {/* Open Graph Tab (Action Button) */}
+        <Tooltip delayDuration={300}>
+          <TooltipTrigger asChild>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              onClick={onOpenGraph}
+              className={cn(
+                "w-10 h-10 flex items-center justify-center rounded-lg transition-all duration-200",
+                "hover:bg-accent/50 hover:text-foreground",
+                "focus:outline-none focus:ring-1 focus:ring-ring"
+              )}
+              aria-label="Open Graph View"
+            >
+              <Network className="w-4 h-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="right" className="flex items-center gap-2">
+            <span>Open Graph View</span>
+            <span className="text-muted-foreground text-xs">⌘⇧G</span>
+          </TooltipContent>
+        </Tooltip>
+
+        <Tooltip delayDuration={300}>
+          <TooltipTrigger asChild>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              onClick={onOpenMindmap}
+              className={cn(
+                "w-10 h-10 flex items-center justify-center rounded-lg transition-all duration-200",
+                "hover:bg-accent/50 hover:text-foreground",
+                "focus:outline-none focus:ring-1 focus:ring-ring"
+              )}
+              aria-label="Open Mindmap View"
+            >
+              <GitBranch className="w-4 h-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="right" className="flex items-center gap-2">
+            <span>Open Mindmap View</span>
+            <span className="text-muted-foreground text-xs">⌘⇧M</span>
+          </TooltipContent>
+        </Tooltip>
       </div>
 
       <div className="flex-1" />
+
+      {/* Settings at the bottom */}
+      <Tooltip delayDuration={300}>
+        <TooltipTrigger asChild>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            onClick={() => onToolSelect("settings")}
+            className={cn(
+              "w-10 h-10 flex items-center justify-center rounded-lg transition-all duration-200",
+              "hover:bg-accent/50 hover:text-foreground",
+              "focus:outline-none focus:ring-1 focus:ring-ring",
+              activeTool === "settings" && "text-primary"
+            )}
+            aria-label="Settings"
+            aria-pressed={activeTool === "settings"}
+          >
+            <Settings2 className="w-4 h-4" />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent side="right" className="flex items-center gap-2">
+          <span>Settings</span>
+          <span className="text-muted-foreground text-xs">⌘,</span>
+        </TooltipContent>
+      </Tooltip>
     </div>
   );
 }

@@ -19,6 +19,9 @@ export interface DrawNodeState {
   config: NodeConfig;
   /** 0..1 pulse phase for animated glow; static halo when omitted. */
   glowPhase?: number;
+  isDragged?: boolean;
+  isDropTarget?: boolean;
+  dropTargetValid?: boolean;
 }
 
 /** Soft radial halo around a node marker, drawn beneath the node itself. */
@@ -139,7 +142,16 @@ export function drawNode(
   ctx.save();
   ctx.translate(x, y);
   ctx.scale(detailScale, detailScale);
-  ctx.translate(-x, -y);
+  ctx.translate(-x, -y)
+
+  if (state.isDragged) {
+    ctx.scale(1.05, 1.05);
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.45)';
+    ctx.shadowBlur = 12;
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = 6;
+  }
+
 
   const label = labelForNode(node, state.config);
   const fontSize = state.config.labelSize + (state.isRoot ? 2 : 0);
@@ -161,21 +173,50 @@ export function drawNode(
   ctx.save();
   ctx.globalAlpha = alpha;
 
-  if (state.selected || state.hovered) {
-    ctx.shadowBlur = 14;
-    ctx.shadowColor = dim(accent, 0.75);
+  // ============= NODE DEPTH & ELEVATION (SOFT GLOW & GLASSMORPHISM) =============
+  const isElevated = state.selected || state.hovered;
+
+  if (isElevated) {
+    // Micro scale-lift for tactile feedback
+    ctx.scale(1.03, 1.03);
+
+    // Multi-layer ambient drop shadow (Physical depth)
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.55)';
+    ctx.shadowBlur = 22;
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = 8;
   }
 
   if (boxed) {
     roundedRect(ctx, x - w / 2, y - h / 2, w, h, 8);
+    
+    // Background fill dengan glassmorphism transparency
     ctx.fillStyle = state.config.labelBackground
-      ? dim(theme.labelBackground, Math.max(0.72, state.config.opacity))
-      : dim(accent, state.selected ? 0.32 : 0.16);
+      ? dim(theme.labelBackground, isElevated ? 0.92 : Math.max(0.72, state.config.opacity))
+      : dim(accent, isElevated ? 0.38 : 0.16);
     ctx.fill();
+
+    // Reset shadow blur sebelum menggambar stroke
     ctx.shadowBlur = 0;
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = 0;
+
+    // Outer border stroke
     ctx.lineWidth = state.selected ? 2 : 1;
-    ctx.strokeStyle = state.selected ? accent : dim(accent, 0.6);
+    ctx.strokeStyle = state.selected ? accent : isElevated ? dim(accent, 0.85) : dim(accent, 0.5);
     ctx.stroke();
+
+    // Specular highlight line di sisi atas (Frosted glass look)
+    if (isElevated) {
+      ctx.save();
+      ctx.beginPath();
+      ctx.moveTo(x - w / 2 + 8, y - h / 2 + 1);
+      ctx.lineTo(x + w / 2 - 8, y - h / 2 + 1);
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.28)';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+      ctx.restore();
+    }
   }
 
   // Configurable node marker.
@@ -201,6 +242,107 @@ export function drawNode(
     ctx.stroke();
   }
   ctx.shadowBlur = 0;
+
+    // Indikator target folder reparenting
+  if (state.isDropTarget && state.dropTargetValid) {
+    ctx.save();
+    // Glow ring warna aksen
+    ctx.strokeStyle = accent;
+    ctx.lineWidth = 2.5;
+    ctx.setLineDash([4, 4]);
+    ctx.beginPath();
+    ctx.arc(x, y, Math.max(w, h) / 2 + 10, 0, Math.PI * 2);
+    ctx.stroke();
+
+    // Badge kecil "masuk ke folder" di atas kartu
+    const badgeText = "masuk ke folder";
+    ctx.font = cardFont(9, '600');
+    const badgeW = ctx.measureText(badgeText).width + 12;
+    const badgeY = y - h / 2 - 14;
+
+    ctx.fillStyle = accent;
+    roundedRect(ctx, x - badgeW / 2, badgeY - 8, badgeW, 16, 4);
+    ctx.fill();
+
+    ctx.fillStyle = theme.card;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(badgeText, x, badgeY);
+    ctx.restore();
+  }
+
+    // ============= COLLAPSE BADGE (TAHAP 6) =============
+  // — saat terbuka, pill +N saat tertutup
+  if (node.childCount > 0) {
+    ctx.save();
+    ctx.globalAlpha = state.dimmed ? 0.25 : 1;
+
+    if (state.collapsed) {
+      // 1. TAMPILAN PILL "+N" SAAT TERTUTUP
+      const pillText = `+${node.childCount}`;
+      ctx.font = cardFont(9, '700');
+      const textMetrics = ctx.measureText(pillText);
+      const pillW = Math.max(22, textMetrics.width + 10);
+      const pillH = 15;
+      const tx = x + (boxed ? w / 2 : markerRadius) + pillW / 2 + 3;
+      const ty = y;
+
+      // Gambar kapsul pill
+      ctx.fillStyle = theme.card;
+      roundedRect(ctx, tx - pillW / 2, ty - pillH / 2, pillW, pillH, pillH / 2);
+      ctx.fill();
+
+      ctx.lineWidth = 1.2;
+      ctx.strokeStyle = accent;
+      ctx.stroke();
+
+      // Tulisan teks +N
+      ctx.fillStyle = accent;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(pillText, tx, ty);
+
+      // Hit-area collapse toggle
+      node.toggle = {
+        x: x + (tx - x) * detailScale,
+        y: y + (ty - y) * detailScale,
+        r: Math.max(pillW / 2, 10) * detailScale,
+      };
+    } else {
+      // 2. TAMPILAN CIRCLE MINUS "—" SAAT TERBUKA
+      const r = 6;
+      const tx = x + (boxed ? w / 2 : markerRadius) + r + 2;
+      const ty = y;
+
+      ctx.beginPath();
+      ctx.arc(tx, ty, r, 0, Math.PI * 2);
+      ctx.fillStyle = theme.card;
+      ctx.fill();
+      ctx.lineWidth = 1;
+      ctx.strokeStyle = dim(accent, 0.7);
+      ctx.stroke();
+
+      // Garis minus —
+      ctx.strokeStyle = accent;
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(tx - 3, ty);
+      ctx.lineTo(tx + 3, ty);
+      ctx.stroke();
+
+      // Hit-area collapse toggle
+      node.toggle = {
+        x: x + (tx - x) * detailScale,
+        y: y + (ty - y) * detailScale,
+        r: (r + 4) * detailScale,
+      };
+    }
+
+    ctx.restore();
+  } else {
+    node.toggle = null;
+  }
+
 
   if (state.showLabels && (state.preserveDetail || zoom >= state.labelThreshold * 0.6)) {
     const italic = state.config.labelFontStyle.includes('italic') ? 'italic ' : '';
@@ -233,42 +375,9 @@ export function drawNode(
   }
 
   ctx.restore();
-
-  // Collapse toggle on the outward edge of branch nodes.
-  if (node.childCount > 0) {
-    const r = 6;
-    const tx = x + (boxed ? w / 2 : markerRadius) + r + 2;
-    const ty = y;
-    ctx.save();
-    ctx.globalAlpha = state.dimmed ? 0.25 : 1;
-    ctx.beginPath();
-    ctx.arc(tx, ty, r, 0, Math.PI * 2);
-    ctx.fillStyle = theme.card;
-    ctx.fill();
-    ctx.lineWidth = 1;
-    ctx.strokeStyle = dim(accent, 0.8);
-    ctx.stroke();
-    ctx.strokeStyle = accent;
-    ctx.lineWidth = 1.4;
-    ctx.beginPath();
-    ctx.moveTo(tx - 3, ty);
-    ctx.lineTo(tx + 3, ty);
-    if (state.collapsed) {
-      ctx.moveTo(tx, ty - 3);
-      ctx.lineTo(tx, ty + 3);
-    }
-    ctx.stroke();
-    ctx.restore();
-    node.toggle = {
-      x: x + (tx - x) * detailScale,
-      y: y + (ty - y) * detailScale,
-      r: (r + 3) * detailScale,
-    };
-  } else {
-    node.toggle = null;
-  }
-  ctx.restore();
 }
+
+
 
 /** Pointer area covers the card plus its toggle. */
 export function paintNodePointerArea(
@@ -289,7 +398,7 @@ export function paintNodePointerArea(
   });
   const x = node.x ?? 0;
   const y = node.y ?? 0;
-  const extra = node.childCount > 0 ? 18 : 0;
+  const extra = node.childCount > 0 ? 32 : 0;
   const boxed = config ? config.labelBox : true;
   const markerRadius = Math.max(3, config?.relSize ?? 6);
   const width = boxed ? layout.width : markerRadius * 2;

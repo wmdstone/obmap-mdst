@@ -11,11 +11,15 @@ import type {
   LayoutMode,
   MindmapOrientation,
   NodeMetric,
+  SubtreeLayoutMap,
 } from '../model/graphTypes';
 import { mindmapLayout } from './mindmap';
 import { timelineLayout } from './timeline';
 import { fishboneLayout } from './fishbone';
 import { freeForceLayout } from './freeForce';
+import { fruchtermanReingoldLayout, gridLayout, kamadaKawaiLayout } from './networkLayouts';
+import { braceMapLayout, orgChartLayout } from './treeLayouts';
+import { composeSubtreeLayouts } from './subtreeCompose';
 
 export interface LayoutEngineOptions {
   mode: LayoutMode;
@@ -29,6 +33,7 @@ export interface LayoutEngineOptions {
   rootId?: string;
   visibleIds: string[];
   nodeMetrics: Map<string, NodeMetric>;
+  subtreeOverrides?: SubtreeLayoutMap;
 }
 
 export function computeLayout(
@@ -55,24 +60,75 @@ export function computeLayout(
     return !parent || !visible.has(parent);
   });
 
+  const endpoint = (end: unknown) =>
+    typeof end === 'string' ? end : (end as { id?: string } | null)?.id ?? '';
+  const network = () => ({
+    ids: options.visibleIds,
+    edges: projection.links
+      .map((link) => [endpoint(link.source), endpoint(link.target)] as [string, string])
+      .filter(([a, b]) => visible.has(a) && visible.has(b)),
+    context,
+  });
+  const tree = { ids: options.visibleIds, roots, childrenOf, context };
+
+  let baseGeometry: LayoutGeometry;
+
   switch (options.mode) {
+    case 'fr-standard':
+      baseGeometry = fruchtermanReingoldLayout(network(), false);
+      break;
+    case 'fr-radial':
+      baseGeometry = fruchtermanReingoldLayout(network(), true);
+      break;
+    case 'kamada-kawai':
+      baseGeometry = kamadaKawaiLayout(network());
+      break;
+    case 'grid':
+      baseGeometry = gridLayout(network(), (id) => projection.byId.get(id)?.name ?? id);
+      break;
+    case 'org-chart':
+      baseGeometry = orgChartLayout(tree);
+      break;
+    case 'brace-map':
+      baseGeometry = braceMapLayout(tree);
+      break;
     case 'timeline':
-      return timelineLayout({
-        nodes: options.visibleIds.map((id) => ({
-          id,
-          time: projection.byId.get(id)?.time,
-        })),
+      baseGeometry = timelineLayout({
+        ids: options.visibleIds,
+        roots,
+        childrenOf,
         parentOf: (id) => projection.parentByChild.get(id) ?? null,
         context,
       });
+      break;
     case 'fishbone':
-      return fishboneLayout({ ids: options.visibleIds, roots, childrenOf, context });
+      baseGeometry = fishboneLayout({ ids: options.visibleIds, roots, childrenOf, context });
+      break;
     case 'free-force':
-      return freeForceLayout();
+      baseGeometry = freeForceLayout();
+      break;
     case 'mindmap':
     default:
-      return mindmapLayout({ ids: options.visibleIds, roots, childrenOf, context });
+      baseGeometry = mindmapLayout({ ids: options.visibleIds, roots, childrenOf, context });
+      break;
   }
+
+  // Jika ada subtree overrides, gabungkan komposisinya
+  if (options.subtreeOverrides && Object.keys(options.subtreeOverrides).length > 0) {
+    return composeSubtreeLayouts(
+      baseGeometry,
+      {
+        ...tree,
+        projection: {
+          byId: projection.byId,
+          parentByChild: projection.parentByChild,
+        },
+      },
+      options.subtreeOverrides
+    );
+  }
+
+  return baseGeometry;
 }
 
 export function useLayoutEngine(
@@ -91,6 +147,7 @@ export function useLayoutEngine(
     options.ribAngle.toFixed(3),
     options.visibleIds.join(','),
     projection.links.length,
+    JSON.stringify(options.subtreeOverrides ?? {}),
   ].join('|');
 
   // eslint-disable-next-line react-hooks/exhaustive-deps

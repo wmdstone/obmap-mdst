@@ -1,8 +1,4 @@
-/**
- * Workspace shell: ribbon + split tree of leaves + status bar.
- * On mobile only the active group is shown.
- */
-
+import { useState } from "react";
 import { Ribbon } from "@/core/shell/workspace/Ribbon";
 import { StatusBar } from "@/core/shell/workspace/StatusBar";
 import { WorkspaceTree } from "@/core/shell/workspace/WorkspaceTree";
@@ -12,6 +8,7 @@ import { useWorkspaceStore } from "@/core/shell/workspace/store/useWorkspaceStor
 import { useIsMobile } from "@/shared/hooks/useMobile";
 import { PWAInstallPrompt } from "@/core/system/sync/PWAInstallPrompt";
 import { useConfigSync } from "@/core/system/config";
+import { AppPreloaderScreen } from "@/core/system/preloader/AppPreloaderScreen";
 
 function WorkspaceShell() {
   const { hydrated } = useConfigSync();
@@ -45,13 +42,19 @@ function WorkspaceShell() {
 }
 
 export function WorkspaceRoot() {
+  // Flag preloaded untuk sesi aktif
+  const [isPreloaded, setIsPreloaded] = useState(false);
+
   return (
     <VaultSessionProvider>
-      {/* <div className="fixed top-16 left-1/2 -translate-x-1/2 z-50 w-[90%] max-w-md">
-        <OfflineIndicator />
-      </div> */}
-      <WorkspaceShell />
-      <PWAInstallPrompt variant="banner" showOfflineStatus />
+      {!isPreloaded ? (
+        <AppPreloaderScreen onLoaded={() => setIsPreloaded(true)} />
+      ) : (
+        <>
+          <WorkspaceShell />
+          <PWAInstallPrompt variant="banner" showOfflineStatus />
+        </>
+      )}
     </VaultSessionProvider>
   );
 }

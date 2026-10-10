@@ -19,31 +19,7 @@ export function drawDecorations(
   if (!decorations.length) return;
   ctx.save();
   for (const decoration of decorations) {
-    if (decoration.kind === 'timeline-axis') {
-      ctx.strokeStyle = dim(theme.decoration, 0.5);
-      ctx.lineWidth = preserveDetail ? 1.5 / Math.max(0.05, zoom) : 1.5;
-      ctx.setLineDash([]);
-      ctx.beginPath();
-      ctx.moveTo(decoration.x1, decoration.y);
-      ctx.lineTo(decoration.x2, decoration.y);
-      ctx.stroke();
-
-      ctx.font = cardFont(10, '500');
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'top';
-      for (const tick of decoration.ticks) {
-        ctx.strokeStyle = dim(theme.decoration, 0.25);
-        ctx.lineWidth = preserveDetail ? 1 / Math.max(0.05, zoom) : 1;
-        ctx.beginPath();
-        ctx.moveTo(tick.x, decoration.y - 6);
-        ctx.lineTo(tick.x, decoration.y + 6);
-        ctx.stroke();
-        if (zoom > 0.4) {
-          ctx.fillStyle = dim(theme.label, 0.75);
-          ctx.fillText(tick.label, tick.x, decoration.y + 10);
-        }
-      }
-    } else if (decoration.kind === 'fishbone-spine') {
+    if (decoration.kind === 'fishbone-spine') {
       const paint = hierarchyPaint?.(decoration) ?? null;
       ctx.strokeStyle = dim(
         paint?.color ?? fishboneStyle?.color ?? theme.decoration,
@@ -56,7 +32,7 @@ export function drawDecorations(
       ctx.moveTo(decoration.x1, decoration.y1);
       ctx.lineTo(decoration.x2, decoration.y2);
       ctx.stroke();
-    } else {
+    } else if (decoration.kind === 'fishbone-rib') {
       const paint = hierarchyPaint?.(decoration) ?? null;
       const opacity = paint?.opacity ?? fishboneStyle?.opacity ?? 0.8;
       const width = fishboneStyle?.width ?? 2;

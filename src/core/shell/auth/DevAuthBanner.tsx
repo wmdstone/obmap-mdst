@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { Button } from "@/shared/ui/button";
 import { LogIn, LogOut, Loader2 } from "lucide-react";
 import { useAuth } from "@/core/shell/auth/hooks/useAuth";
-import { devQuickLogin, isDevAuthEnabled, DEV_CREDENTIALS } from "./devAuth";
+import { devQuickLogin, isDevAuthEnabled, markDevManualLogout, DEV_CREDENTIALS } from "./devAuth";
 
 export function DevAuthBanner() {
   const { user, signOut } = useAuth();
@@ -24,6 +24,11 @@ export function DevAuthBanner() {
     else toast.success(`Signed in as ${DEV_CREDENTIALS.email}`);
   };
 
+  const handleSignOut = async () => {
+    markDevManualLogout();
+    await signOut();
+  };
+
   return (
     <div className="fixed bottom-2 left-2 z-[100] pointer-events-auto">
       {user ? (
@@ -31,7 +36,7 @@ export function DevAuthBanner() {
           size="sm"
           variant="outline"
           className="h-7 gap-1.5 bg-background/80 px-2 text-[11px] backdrop-blur"
-          onClick={() => void signOut()}
+          onClick={() => void handleSignOut()}
         >
           <LogOut className="h-3 w-3" />
           <span className="max-w-[9rem] truncate">Dev: {user.email}</span>

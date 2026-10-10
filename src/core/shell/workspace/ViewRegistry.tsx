@@ -6,7 +6,7 @@
 import { lazy, Suspense, type ComponentType } from 'react';
 import type { ViewType, WorkspaceLeaf } from './store/types';
 
-export type LeafViewProps = { leaf: WorkspaceLeaf };
+export type LeafViewProps = { leaf: WorkspaceLeaf; isActive?: boolean };
 
 const registry: Record<ViewType, ComponentType<LeafViewProps>> = {
   markdown: lazy(() => import('./views/MarkdownLeaf')),
@@ -16,13 +16,13 @@ const registry: Record<ViewType, ComponentType<LeafViewProps>> = {
   empty: lazy(() => import('./views/EmptyLeaf')),
 };
 
-export function LeafView({ leaf }: LeafViewProps) {
+export function LeafView({ leaf, isActive = true }: LeafViewProps) {
   const Component = registry[leaf.view.type] ?? registry.empty;
   return (
     <Suspense
       fallback={<div className="h-full flex items-center justify-center text-sm text-muted-foreground">Loading…</div>}
     >
-      <Component leaf={leaf} />
+      <Component leaf={leaf} isActive={isActive} />
     </Suspense>
   );
 }

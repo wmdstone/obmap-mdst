@@ -14,11 +14,24 @@ export const DEV_CREDENTIALS = {
   password: 'jankimdst@gmail.com',
 };
 
+export function clearDevManualLogout() {
+  if (typeof window !== 'undefined') {
+    sessionStorage.removeItem('dev_manual_logout');
+  }
+}
+
+export function markDevManualLogout() {
+  if (typeof window !== 'undefined') {
+    sessionStorage.setItem('dev_manual_logout', 'true');
+  }
+}
+
 export async function devQuickLogin(): Promise<{ error: Error | null }> {
   if (!isDevAuthEnabled) {
     return { error: new Error('Dev login is only available in development') };
   }
 
+  clearDevManualLogout();
   const { error } = await supabase.auth.signInWithPassword(DEV_CREDENTIALS);
   return { error: (error as Error) ?? null };
 }

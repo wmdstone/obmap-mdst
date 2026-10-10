@@ -8,7 +8,6 @@ import { EditorSettingsContent } from "@/core/editor/settings/EditorSettingsPane
 import { FeatureTogglesPanel } from "@/core/shell/settings/FeatureTogglesPanel";
 import { SyncPanel } from "@/core/shell/settings/SyncPanel";
 import { SchemaSettings } from "@/core/shell/settings/sections/SchemaSettings";
-import { GraphEngineSettings } from "@/core/shell/settings/sections/GraphEngineSettings";
 import { RolesSettings } from "@/core/shell/settings/sections/RolesSettings";
 import { AccountSettings } from "@/core/shell/settings/sections/AccountSettings";
 import { VaultSettings } from "@/core/shell/settings/sections/VaultSettings";
@@ -53,7 +52,6 @@ export function SettingsHub({
 
               {active === "features" && <FeatureTogglesPanel />}
               {active === "schema" && <SchemaSettings />}
-              {active === "graph" && <GraphEngineSettings />}
               {active === "configuration" && <ConfigurationSettings />}
               {active === "roles" && <RolesSettings />}
             </div>

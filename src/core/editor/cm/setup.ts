@@ -28,6 +28,7 @@ import {
   bracketMatching,
   indentOnInput,
   indentUnit,
+  foldNodeProp,
 } from "@codemirror/language";
 
 import { editorTheme, markdownHighlight } from "./theme";
@@ -125,6 +126,12 @@ export function createEditorExtensions(
       base: markdownLanguage,
       codeLanguages: languages,
       addKeymap: true,
+       extensions: {
+        props: [
+          // Menonaktifkan folding otomatis untuk paragraph & blok non-heading
+          foldNodeProp.add(() => () => null),
+        ],
+      },
     }),
     markdownHighlight,
     headingFolding(),

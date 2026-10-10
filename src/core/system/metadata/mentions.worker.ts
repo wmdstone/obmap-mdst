@@ -59,11 +59,11 @@ const snippetAt = (text: string, start: number, end: number): string => {
 };
 
 export function scanMentions(
-  docs: MentionDoc[],
-  patterns: MentionPattern[]
+  docs: MentionDoc[] = [],
+  patterns: MentionPattern[] = []
 ): Record<string, MentionHit[]> {
   const mentions: Record<string, MentionHit[]> = {};
-  if (!patterns.length || !docs.length) return mentions;
+  if (!patterns?.length || !docs?.length) return mentions;
 
   const automaton = new AhoCorasick(patterns.map((p) => p.text));
 
@@ -94,10 +94,7 @@ export function scanMentions(
 }
 
 self.onmessage = (event: MessageEvent<MentionsRequest>) => {
-  const { requestId, docs, patterns } = event.data;
-  const response: MentionsResponse = {
-    requestId,
-    mentions: scanMentions(docs, patterns),
-  };
-  (self as unknown as Worker).postMessage(response);
+  const { requestId, docs = [], patterns = [] } = event.data || {};
+  const mentions = scanMentions(docs || [], patterns || []);
+  self.postMessage({ requestId, mentions });
 };

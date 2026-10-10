@@ -191,7 +191,19 @@ export function WorkspaceGroup({
           );
         }}
       >
-        {activeLeaf ? <LeafView leaf={activeLeaf} /> : null}
+        {group.leaves.map((leaf) => {
+          const isTabActive = leaf.id === activeLeaf?.id;
+          return (
+            <div
+              key={leaf.id}
+              className={cn("w-full h-full", !isTabActive && "hidden")}
+              aria-hidden={!isTabActive}
+            >
+              <LeafView leaf={leaf} isActive={isTabActive} />
+            </div>
+          );
+        })}
+
 
         {edge && (
           <div

@@ -46,18 +46,36 @@ export function buildTheme(config: GraphConfigState): GraphTheme {
   };
 }
 
-export function accentFor(node: RenderNode, theme: GraphTheme, selected: boolean): string {
-  if (selected) return theme.selected;
-  // Hierarchy colouring wins over autoColorBy, but keeps the selected accent.
-  if (theme.hierarchy?.enabled) return resolveLevelColor(node.depth, theme.hierarchy);
-  if (theme.autoColorBy === 'depth') return `hsl(${(node.depth * 40) % 360}, 70%, 55%)`;
-  if (theme.autoColorBy === 'tags' && node.tags.length) {
-    const hash = node.tags[0]
+export function accentFor(
+  node: RenderNode,
+  theme: GraphTheme,
+  selected: boolean,
+  overrideColor?: string
+): string {
+   if (selected) return theme.selected;
+  if (overrideColor) return overrideColor;
+
+  // Branch Color Inheritance: Turunan mewarisi warna cabang dari preset hierarchy
+  if (theme.autoColorBy === 'branch' && theme.hierarchy?.levelColors?.length) {
+    const branchId = node.branchId ?? node.id;
+    // Hash deterministik branchId ke indeks warna preset
+    const hash = branchId
       .split('')
-      .reduce((sum, char) => sum + char.charCodeAt(0), 0);
-    return `hsl(${hash % 360}, 70%, 55%)`;
+      .reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    const colorIndex = hash % theme.hierarchy.levelColors.length;
+    return theme.hierarchy.levelColors[colorIndex];
   }
-  return node.type === 'folder' ? theme.folder : theme.file;
-}
+
+     // Hierarchy colouring wins over autoColorBy, but keeps the selected accent.
+   if (theme.hierarchy?.enabled) return resolveLevelColor(node.depth, theme.hierarchy);
+   if (theme.autoColorBy === 'depth') return `hsl(${(node.depth * 40) % 360}, 70%, 55%)`;
+   if (theme.autoColorBy === 'tags' && node.tags.length) {
+     const hash = node.tags[0]
+       .split('')
+       .reduce((sum, char) => sum + char.charCodeAt(0), 0);
+     return `hsl(${hash % 360}, 70%, 55%)`;
+   }
+   return node.type === 'folder' ? theme.folder : theme.file;
+ }
 
 export const dim = (color: string, amount: number) => colorWithOpacity(color, amount);
