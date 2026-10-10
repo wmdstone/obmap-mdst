@@ -124,8 +124,12 @@ export function GraphMiniMap({
   return (
     <div className="min-w-0 p-2">
       <div className="relative">
-        <canvas ref={canvasRef} className="block aspect-[3/2] w-full cursor-crosshair touch-manipulation"
-          aria-label="Graph overview" onClick={navigate} />
+        <canvas
+          ref={canvasRef}
+          width={204}
+          height={120}
+          className="w-full h-[120px] rounded bg-muted/20 border border-border/30 cursor-crosshair"
+        />
         {nodes.length === 0 && <span className="pointer-events-none absolute inset-0 flex items-center justify-center text-xs text-muted-foreground">No nodes</span>}
       </div>
       <div className="flex min-w-0 justify-between gap-2 pt-2 text-[10px] text-muted-foreground">

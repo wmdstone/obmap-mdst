@@ -378,7 +378,7 @@ export function GraphWorkspaceControls({
         <div className="pointer-events-auto flex items-center rounded-lg border border-border/60 bg-card/90 p-1 shadow-md shadow-black/25 backdrop-blur-md transition-all">
           {/* Horizontal Expanding Options ke arah Kiri (Width 280px max, smooth scroll) */}
           {isGearOpen && (
-            <div className="mr-1 flex max-w-[calc(100vw-80px)] sm:w-[280px] items-center gap-1 overflow-x-auto overscroll-contain pr-1 border-r border-border/50 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden animate-in fade-in-0 slide-in-from-right-2 duration-150">
+            <div className="mr-1 flex max-w-[calc(100vw-70px)] sm:w-[280px] items-center gap-1 overflow-x-auto overscroll-contain pr-1 border-r border-border/50 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden animate-in fade-in-0 slide-in-from-right-2 duration-150">
               {/* 1. Search & Filters */}
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -550,7 +550,7 @@ export function GraphWorkspaceControls({
                       value={search}
                       onChange={(e) => onSearchChange(e.target.value)}
                       placeholder="Type title..."
-                      className="h-8 text-xs"
+                      className="h-7 text-xs"
                     />
                   </div>
 
@@ -577,7 +577,7 @@ export function GraphWorkspaceControls({
                       value={contentFilter}
                       onChange={(e) => onContentFilterChange(e.target.value)}
                       placeholder="Match content..."
-                      className="h-8 text-xs"
+                      className="h-7 text-xs"
                     />
                   </div>
 
@@ -587,7 +587,7 @@ export function GraphWorkspaceControls({
                       value={tagFilter}
                       onChange={(e) => onTagFilterChange(e.target.value)}
                       placeholder="#tag..."
-                      className="h-8 text-xs"
+                      className="h-7 text-xs"
                     />
                   </div>
                 </div>
@@ -605,7 +605,7 @@ export function GraphWorkspaceControls({
                         variant={canvasMode === 'mindmap' ? 'secondary' : 'ghost'}
                         size="sm"
                         className={cn(
-                          "h-8 gap-1.5 text-xs font-medium transition-all",
+                          "h-7 gap-1.5 text-xs font-medium transition-all",
                           canvasMode === 'mindmap' && "bg-background text-foreground shadow-sm"
                         )}
                         onClick={() => handleModeSwitch('mindmap')}
@@ -618,7 +618,7 @@ export function GraphWorkspaceControls({
                         variant={canvasMode === 'graph' ? 'secondary' : 'ghost'}
                         size="sm"
                         className={cn(
-                          "h-8 gap-1.5 text-xs font-medium transition-all",
+                          "h-7 gap-1.5 text-xs font-medium transition-all",
                           canvasMode === 'graph' && "bg-background text-foreground shadow-sm"
                         )}
                         onClick={() => handleModeSwitch('graph')}
@@ -643,7 +643,7 @@ export function GraphWorkspaceControls({
                         variant={layoutArrangement === 'auto' ? 'secondary' : 'ghost'}
                         size="sm"
                         className={cn(
-                          "h-8 gap-1.5 text-xs font-medium transition-all",
+                          "h-7 gap-1.5 text-xs font-medium transition-all",
                           layoutArrangement === 'auto' && "bg-background text-foreground shadow-sm"
                         )}
                         onClick={() => setLayoutArrangement('auto')}
@@ -657,7 +657,7 @@ export function GraphWorkspaceControls({
                         variant={layoutArrangement === 'custom' ? 'secondary' : 'ghost'}
                         size="sm"
                         className={cn(
-                          "h-8 gap-1.5 text-xs font-medium transition-all",
+                          "h-7 gap-1.5 text-xs font-medium transition-all",
                           layoutArrangement === 'custom' && "bg-background text-foreground shadow-sm"
                         )}
                         onClick={() => setLayoutArrangement('custom')}
@@ -682,7 +682,7 @@ export function GraphWorkspaceControls({
                             key={item.value}
                             type="button"
                             variant={layout === item.value ? 'secondary' : 'outline'}
-                            className="h-9 justify-start px-2 text-xs"
+                            className="h-7 justify-start px-2 text-xs"
                             onClick={() => onLayoutChange(item.value)}
                           >
                             <Icon className="mr-1.5 h-3.5 w-3.5" />
@@ -703,7 +703,7 @@ export function GraphWorkspaceControls({
                             key={val}
                             type="button"
                             variant={orientation === val ? 'secondary' : 'outline'}
-                            className="h-8 text-xs capitalize"
+                            className="h-7 text-xs capitalize"
                             onClick={() => onOrientationChange(val)}
                           >
                             {val}
@@ -722,7 +722,7 @@ export function GraphWorkspaceControls({
                         patchEngine({ zoomOutRendering: val as 'optimized' | 'full-detail' })
                       }
                     >
-                      <SelectTrigger className="h-8 text-xs">
+                      <SelectTrigger className="h-7 text-xs">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -821,7 +821,7 @@ export function GraphWorkspaceControls({
                           updateNodeConfig({ shape: val as NodeConfig['shape'] })
                         }
                       >
-                        <SelectTrigger className="h-8 text-xs">
+                        <SelectTrigger className="h-7 text-xs">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -907,7 +907,7 @@ export function GraphWorkspaceControls({
                           updateNodeConfig({ labelField: val as NodeConfig['labelField'] })
                         }
                       >
-                        <SelectTrigger className="h-8 text-xs">
+                        <SelectTrigger className="h-7 text-xs">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -942,7 +942,7 @@ export function GraphWorkspaceControls({
                           updateNodeConfig({ labelFontStyle: val as NodeConfig['labelFontStyle'] })
                         }
                       >
-                        <SelectTrigger className="h-8 text-xs">
+                        <SelectTrigger className="h-7 text-xs">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -1073,7 +1073,7 @@ export function GraphWorkspaceControls({
                           })
                         }
                       >
-                        <SelectTrigger className="h-8 text-xs">
+                        <SelectTrigger className="h-7 text-xs">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -1186,12 +1186,12 @@ export function GraphWorkspaceControls({
                         value={templateName}
                         onChange={(e) => setTemplateName(e.target.value)}
                         placeholder="Template name (e.g. Focus Dark)..."
-                        className="h-8 text-xs bg-background/50"
+                        className="h-7 text-xs bg-background/50"
                       />
                       <Button
                         type="submit"
                         size="sm"
-                        className="h-8 shrink-0 px-2.5 text-xs gap-1"
+                        className="h-7 shrink-0 px-2.5 text-xs gap-1"
                         disabled={!templateName.trim()}
                       >
                         <Plus className="h-3.5 w-3.5" />
