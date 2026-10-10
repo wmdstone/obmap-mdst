@@ -240,6 +240,12 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, GraphCanvasProps>(funct
     graphConfig.nodes.showFileNodes,
   ]);
 
+  const customPositions = useRef<Map<string, { x: number; y: number }>>(new Map());
+
+    useEffect(() => {
+    customPositions.current.clear();
+  }, [layoutMode]);
+
   const geometry = useLayoutEngine(projection, {
     mode: layoutMode,
     width: size.width,
@@ -295,17 +301,70 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, GraphCanvasProps>(funct
     const controller = transition.current;
     if (layoutMode === 'free-force') {
       controller.release(data.nodes);
-      graphRef.current?.d3ReheatSimulation?.();
+      // Reheat simulasi fisika secara halus dengan alpha target
+      const fg = graphRef.current;
+      if (fg?.d3ReheatSimulation) {
+        fg.d3ReheatSimulation();
+      }
       setTransitionStatus('idle');
       return;
     }
+
     setTransitionStatus('animating');
     controller.run(data.nodes, geometry.targets, {
+      duration: 480,
       reducedMotion: prefersReducedMotion(),
+      onTick: () => graphRef.current?.refresh?.(),
       onDone: () => setTransitionStatus('idle'),
     });
+
     return () => controller.cancel();
   }, [geometry, data.nodes, layoutMode, setTransitionStatus]);
+
+
+  // Helper: Transisi animasi halus saat Expand / Collapse
+  const handleSmoothToggleCollapse = useCallback(
+    (nodeId: string) => {
+      const isCurrentlyCollapsed = collapsedIds.includes(nodeId);
+
+      // JIKA EXPAND (+): Buka langsung dan biarkan seeding (A) menganimasikan anak keluar
+      if (isCurrentlyCollapsed) {
+        toggleCollapsed(nodeId);
+        return;
+      }
+
+      // JIKA COLLAPSE (-): Animasikan semua anak meluncur masuk ke tubuh induk sebelum disembunyikan
+      const parentNode = nodeCache.current.get(nodeId);
+      const targetX = parentNode?.x ?? parentNode?.fx ?? 0;
+      const targetY = parentNode?.y ?? parentNode?.fy ?? 0;
+
+      // Cari semua anak dan keturunan yang akan dilipat
+      const descendants = subtreeOf(projection, nodeId);
+      descendants.delete(nodeId); // Simpan induknya tetap di tempat
+
+      if (descendants.size === 0 || layoutMode === 'free-force') {
+        toggleCollapsed(nodeId);
+        return;
+      }
+
+      const collapseTargets = new Map(geometry.targets);
+      for (const childId of descendants) {
+        collapseTargets.set(childId, { x: targetX, y: targetY });
+      }
+
+      setTransitionStatus('animating');
+      transition.current.run(data.nodes, collapseTargets, {
+        duration: 320,
+        reducedMotion: prefersReducedMotion(),
+        onTick: () => graphRef.current?.refresh?.(),
+        onDone: () => {
+          setTransitionStatus('idle');
+          toggleCollapsed(nodeId);
+        },
+      });
+    },
+    [collapsedIds, projection, geometry.targets, data.nodes, layoutMode, toggleCollapsed, setTransitionStatus]
+  );
 
   useEffect(() => () => transition.current.cancel(), []);
 
@@ -637,9 +696,8 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, GraphCanvasProps>(funct
 
       if (coords && toggle) {
         const distance = Math.hypot(coords.x - toggle.x, coords.y - toggle.y);
-        // Toleransi area klik (+4px) agar mudah diklik di desktop & layar sentuh
         if (distance <= toggle.r + 4) {
-          toggleCollapsed(node.id);
+          handleSmoothToggleCollapse(node.id);
           setIsToolbarVisible(false);
           return;
         }
@@ -764,55 +822,67 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, GraphCanvasProps>(funct
         };
       }
 
-      // Deteksi folder/node target di bawah kursor (jarak toleransi 60px)
-      if (canvasMode === 'mindmap') {
-        const hoveredTarget = findHoveredDropTarget(node, data.nodes, 60);
-        if (!hoveredTarget) {
-          dragRef.current.hoveredTargetId = null;
-          dragRef.current.isValidDrop = false;
-          return;
-        }
-
-        const validation = validateReparent(
-          node,
-          hoveredTarget,
-          projection.parentByChild,
-          projection.childrenByParent
-        );
-
-        dragRef.current.hoveredTargetId = hoveredTarget.id;
-        dragRef.current.isValidDrop = validation.valid;
-        dragRef.current.dropReason = validation.reason;
+      // Deteksi folder target di bawah kursor (toleransi 60px) di SEMUA mode & algoritma
+      const hoveredTarget = findHoveredDropTarget(node, data.nodes, 60);
+      if (!hoveredTarget) {
+        dragRef.current.hoveredTargetId = null;
+        dragRef.current.isValidDrop = false;
+        return;
       }
+
+      const validation = validateReparent(
+        node,
+        hoveredTarget,
+        projection.parentByChild,
+        projection.childrenByParent
+      );
+
+      dragRef.current.hoveredTargetId = hoveredTarget.id;
+      dragRef.current.isValidDrop = validation.valid;
+      dragRef.current.dropReason = validation.reason;
     },
-    [canvasMode, data.nodes, projection]
+    [data.nodes, projection]
   );
 
   const handleNodeDragEnd = useCallback(
     (node: RenderNode) => {
       const { hoveredTargetId, isValidDrop, draggedNodeOriginalPos } = dragRef.current;
 
-      // KASUS 1: REPARENTING VALID DIJALANKAN (BERLAKU DI AUTO MAUPUN CUSTOM)
-      if (isValidDrop && hoveredTargetId && canvasMode === 'mindmap') {
+      // KASUS 1: REPARENTING VALID DIJALANKAN (BERFUNGSI DI GRAPH & MINDMAP)
+      if (isValidDrop && hoveredTargetId) {
         onNodeMove?.(node.id, hoveredTargetId);
+        customPositions.current.delete(node.id);
         delete node.fx;
         delete node.fy;
       } else {
-        // KASUS 2: DROP TIDAK VALID ATAU DILEPAS DI RUANG KOSONG
+        // KASUS 2: DROP DI RUANG KOSONG
         if (layoutArrangement === 'auto') {
-          // MODE AUTO (XMind Style): Snap-back seketika ke posisi kalkulasi automated layout
-          const target = geometry.targets.get(node.id);
-          const returnX = target?.x ?? draggedNodeOriginalPos?.x ?? node.x ?? 0;
-          const returnY = target?.y ?? draggedNodeOriginalPos?.y ?? node.y ?? 0;
+          // MODE AUTO: Snap-back ke kalkulasi algoritma (anti-overlap)
+          customPositions.current.delete(node.id);
 
-          node.x = returnX;
-          node.y = returnY;
-          node.fx = returnX;
-          node.fy = returnY;
+          if (layoutMode === 'free-force') {
+            // Pada free-force auto, bebaskan pin dan biarkan fisika mengalir
+            delete node.fx;
+            delete node.fy;
+            graphRef.current?.d3ReheatSimulation?.();
+          } else {
+            // Pada algoritma deterministik, kembalikan ke target koordinat algoritma
+            const target = geometry.targets.get(node.id);
+            const returnX = target?.x ?? draggedNodeOriginalPos?.x ?? node.x ?? 0;
+            const returnY = target?.y ?? draggedNodeOriginalPos?.y ?? node.y ?? 0;
+
+            node.x = returnX;
+            node.y = returnY;
+            node.fx = returnX;
+            node.fy = returnY;
+          }
         } else {
           // MODE CUSTOM: Kunci posisi baru node di tempat user melepaskannya
           node.fx = node.x;
           node.fy = node.y;
+          if (node.x !== undefined && node.y !== undefined) {
+            customPositions.current.set(node.id, { x: node.x, y: node.y });
+          }
         }
       }
 
@@ -828,10 +898,8 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, GraphCanvasProps>(funct
       // Segarkan tampilan kanvas
       graphRef.current?.refresh?.();
     },
-    [canvasMode, layoutArrangement, geometry.targets, onNodeMove]
+    [layoutMode, layoutArrangement, geometry.targets, onNodeMove]
   );
-
-
 
   useImperativeHandle(
     ref,
@@ -899,7 +967,8 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, GraphCanvasProps>(funct
         onBackgroundRightClick={() => {
           setIsToolbarVisible(false);
         }}
-        enableNodeDrag={layoutMode === 'free-force' || canvasMode === 'mindmap'}
+        enableNodeDrag={true}
+        enablePanInteraction={true}
         onNodeDrag={handleNodeDrag}
         onNodeDragEnd={handleNodeDragEnd}
         dagMode={layoutMode === 'free-force' && graphConfig.forces.dagMode !== 'null' ? graphConfig.forces.dagMode : null}

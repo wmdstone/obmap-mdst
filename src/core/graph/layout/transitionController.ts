@@ -1,6 +1,5 @@
 /**
- * Interpolates node fx/fy from their current position to the deterministic
- * layout target. One rAF loop, one cancellation token, no React state per frame.
+ * src/core/graph/layout/transitionController.ts
  */
 
 import type { NodeTarget, RenderNode } from '../model/graphTypes';
@@ -27,8 +26,8 @@ export class LayoutTransitionController {
   release(nodes: RenderNode[]) {
     this.cancel();
     for (const node of nodes) {
-      node.fx = undefined;
-      node.fy = undefined;
+      delete node.fx;
+      delete node.fy;
       node.vx = 0;
       node.vy = 0;
     }
@@ -37,14 +36,14 @@ export class LayoutTransitionController {
   run(nodes: RenderNode[], targets: Map<string, NodeTarget>, options: TransitionOptions = {}) {
     this.cancel();
     const token = this.token;
-    const duration = Math.max(0, options.duration ?? 550);
+    const duration = Math.max(0, options.duration ?? 450);
 
     const plan = nodes
       .map((node) => {
         const target = targets.get(node.id);
         if (!target) return null;
-        const fromX = node.fx ?? node.x ?? target.x;
-        const fromY = node.fy ?? node.y ?? target.y;
+        const fromX = Number.isFinite(node.fx) ? node.fx! : Number.isFinite(node.x) ? node.x! : target.x;
+        const fromY = Number.isFinite(node.fy) ? node.fy! : Number.isFinite(node.y) ? node.y! : target.y;
         return { node, fromX, fromY, toX: target.x, toY: target.y };
       })
       .filter(Boolean) as {
