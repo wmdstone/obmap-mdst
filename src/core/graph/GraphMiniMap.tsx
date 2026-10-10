@@ -29,26 +29,26 @@ function resolveColor(color: string): string {
   if (!color.includes('var(')) {
     return color;
   }
-  
+
   // Extract the CSS variable name
   const varMatch = color.match(/var\(--([^)]+)\)/);
   if (!varMatch) return color;
-  
+
   const varName = varMatch[1];
-  
+
   // Get the computed value from CSS
   const computedValue = getComputedStyle(document.documentElement)
     .getPropertyValue(`--${varName}`)
     .trim();
-  
+
   if (!computedValue) return color;
-  
+
   // Check if the computed value is HSL values (e.g., "270 70% 65%")
   const hslMatch = computedValue.match(/^([\d.]+)\s+([\d.]+)%?\s+([\d.]+)%?$/);
   if (hslMatch) {
     return `hsl(${hslMatch[1]}, ${hslMatch[2]}%, ${hslMatch[3]}%)`;
   }
-  
+
   // Replace the var() with the actual value
   return color.replace(`var(--${varName})`, computedValue);
 }
@@ -56,17 +56,17 @@ function resolveColor(color: string): string {
 // Convert color to HSLA with opacity for canvas
 function colorWithOpacity(color: string, opacity: number): string {
   const resolved = resolveColor(color);
-  
+
   // If already hsla, adjust opacity
   if (resolved.startsWith('hsla(')) {
     return resolved.replace(/,\s*[\d.]+\)$/, `, ${opacity})`);
   }
-  
+
   // If hsl, convert to hsla
   if (resolved.startsWith('hsl(')) {
     return resolved.replace('hsl(', 'hsla(').replace(')', `, ${opacity})`);
   }
-  
+
   return resolved;
 }
 
@@ -94,14 +94,14 @@ export function GraphMiniMap({
   // Calculate bounds of all nodes
   const getBounds = useCallback(() => {
     if (nodes.length === 0) return { minX: -100, maxX: 100, minY: -100, maxY: 100 };
-    
+
     const validNodes = nodes.filter(n => n.x !== undefined && n.y !== undefined);
     if (validNodes.length === 0) return { minX: -100, maxX: 100, minY: -100, maxY: 100 };
 
     const padding = 50;
     const xs = validNodes.map(n => n.x!);
     const ys = validNodes.map(n => n.y!);
-    
+
     return {
       minX: Math.min(...xs) - padding,
       maxX: Math.max(...xs) + padding,
@@ -120,7 +120,7 @@ export function GraphMiniMap({
 
     const { width, height } = size;
     const dpr = window.devicePixelRatio || 1;
-    
+
     canvas.width = width * dpr;
     canvas.height = height * dpr;
     ctx.scale(dpr, dpr);
@@ -148,7 +148,7 @@ export function GraphMiniMap({
     ctx.strokeStyle = colorWithOpacity(resolveColor('hsl(var(--muted-foreground))'), 0.3);
     ctx.lineWidth = 0.5;
     links.forEach(link => {
-      const sourceNode = typeof link.source === 'string' 
+      const sourceNode = typeof link.source === 'string'
         ? nodes.find(n => n.id === link.source)
         : link.source;
       const targetNode = typeof link.target === 'string'
@@ -173,7 +173,7 @@ export function GraphMiniMap({
 
       ctx.beginPath();
       ctx.arc(x, y, nodeSize, 0, 2 * Math.PI);
-      
+
       if (selectedNodeId === node.id) {
         ctx.fillStyle = resolveColor('hsl(var(--accent))');
         ctx.shadowBlur = 6;
@@ -182,7 +182,7 @@ export function GraphMiniMap({
         ctx.fillStyle = resolveColor(node.type === 'folder' ? folderColor : fileColor);
         ctx.shadowBlur = 0;
       }
-      
+
       ctx.fill();
       ctx.shadowBlur = 0;
     });
@@ -227,15 +227,15 @@ export function GraphMiniMap({
   // Periodic render with throttling (not in render callback to avoid infinite loop)
   useEffect(() => {
     if (!isExpanded) return;
-    
+
     // Initial render
     render();
-    
+
     // Periodic updates for viewport tracking
     const intervalId = setInterval(() => {
       render();
     }, 100);
-    
+
     return () => {
       clearInterval(intervalId);
     };
@@ -278,7 +278,7 @@ export function GraphMiniMap({
               variant="secondary"
               size="icon"
               onClick={() => setIsExpanded(true)}
-              className="absolute bottom-3 right-3 z-30 h-9 w-9 border border-border/80 bg-card/95 shadow-lg backdrop-blur-md sm:bottom-4 sm:right-4"
+              className="h-9 w-9 border border-border/80 bg-card/95 shadow-lg backdrop-blur-md"
               aria-label="Open mini-map"
             >
               <Map className="w-4 h-4" />
@@ -293,7 +293,7 @@ export function GraphMiniMap({
   return (
     <div
       className={cn(
-        "absolute bottom-3 right-3 z-30 origin-bottom-right rounded-md border border-border/80 bg-card/95 backdrop-blur-md shadow-xl overflow-hidden transition-all duration-200 sm:bottom-4 sm:right-4",
+        "rounded-md border border-border/80 bg-card/95 backdrop-blur-md shadow-xl overflow-hidden transition-all duration-200",
         isLarge ? "w-[280px]" : "w-[180px]"
       )}
     >

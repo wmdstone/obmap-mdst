@@ -912,19 +912,24 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, GraphCanvasProps>(funct
         d3VelocityDecay={graphConfig.forces.velocityDecay}
       />
 
-      <GraphLevelLegend depths={visibleDepths} hierarchy={graphConfig.hierarchy} />
+      {/* Bottom-Right Controls Group: Dynamic Levels Legend + Mini-Map (Horizontal) */}
+      <div className="pointer-events-none absolute bottom-3 right-3 z-30 flex items-end gap-2 sm:bottom-4 sm:right-4">
+        {/* Dynamic Levels button: otomatis muncul bila hierarchy color aktif */}
+        <GraphLevelLegend depths={visibleDepths} hierarchy={graphConfig.hierarchy} />
 
-      <GraphMiniMap
-        nodes={data.nodes}
-        links={data.links}
-        graphRef={graphRef}
-        viewportWidth={size.width}
-        viewportHeight={size.height}
-        folderColor={theme.folder}
-        fileColor={theme.file}
-        linkColor={theme.link}
-        selectedNodeId={selectedNode?.id ?? null}
-      />
+        {/* MiniMap Overview */}
+        <GraphMiniMap
+          nodes={data.nodes}
+          links={data.links}
+          graphRef={graphRef}
+          viewportWidth={size.width}
+          viewportHeight={size.height}
+          folderColor={theme.folder}
+          fileColor={theme.file}
+          linkColor={theme.link}
+          selectedNodeId={selectedNode?.id ?? null}
+        />
+      </div>
 
       {/* Tampilkan Toolbar saat isToolbarVisible aktif (baik di mode Mindmap maupun Graph) */}
       {isToolbarVisible && selectedNode && toolbarCoords && (

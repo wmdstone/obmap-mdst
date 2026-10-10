@@ -1,8 +1,3 @@
-/**
- * Left ribbon plus the expandable side panel. Reads everything it needs from
- * the vault session, so no props are drilled through the workspace.
- */
-
 import { IconRibbon, type RibbonTool } from "./IconRibbon";
 import { SidebarPanel } from "./SidebarPanel";
 import { useUIStore } from "@/shared/stores";
@@ -44,40 +39,52 @@ export function Ribbon() {
 
   return (
     <>
-      <IconRibbon
-        activeTool={activeTool}
-        onToolSelect={handleToolSelect}
-        onOpenGraph={handleOpenGraph}
-        onOpenMindmap={handleOpenMindmap}
-      />
-      {activeTool && (
-        <SidebarPanel
+      {/* Sembunyikan ribbon icon di layar mobile/tablet, hanya tampil di md ke atas */}
+      <div className="hidden md:flex h-full shrink-0">
+        <IconRibbon
           activeTool={activeTool}
-          onClose={() => setActiveTool(null)}
-          nodes={nodes}
-          selectedNode={selectedNode}
-          onNodeSelect={(node) => {
-            setSelectedNode(node);
-          }}
-          onNodeOpen={(node) => {
-            setSelectedNode(node);
-            if (node.type !== "folder")
-              openView({ type: "markdown", nodeId: node.id, title: node.name });
-          }}
-          onNodeMove={onNodeMove}
-          onNodeDelete={onNodeDelete}
-          onNodeUpdate={onNodeUpdate}
-          onAddNode={onAddNode}
-          isVaultMode={!!currentVaultId}
-          vaultName={vaultName}
-          vaultLocation={vaultLocation}
-          currentVaultId={currentVaultId}
-          availableVaults={availableVaults}
-          onSwitchVault={onSwitchVault}
-          onCloseVault={onCloseVault}
-          onImportComplete={onImportComplete}
+          onToolSelect={handleToolSelect}
+          onOpenGraph={handleOpenGraph}
+          onOpenMindmap={handleOpenMindmap}
         />
+      </div>
+
+      {activeTool && (
+        <div className="relative md:static z-40">
+          <SidebarPanel
+            activeTool={activeTool}
+            onClose={() => setActiveTool(null)}
+            nodes={nodes}
+            selectedNode={selectedNode}
+            onNodeSelect={(node) => {
+              setSelectedNode(node);
+            }}
+            onNodeOpen={(node) => {
+              setSelectedNode(node);
+              if (node.type !== "folder") {
+                openView({ type: "markdown", nodeId: node.id, title: node.name });
+                // Tutup sidebar di layar HP saat file dipilih agar workspace lega
+                if (window.innerWidth < 768) {
+                  setActiveTool(null);
+                }
+              }
+            }}
+            onNodeMove={onNodeMove}
+            onNodeDelete={onNodeDelete}
+            onNodeUpdate={onNodeUpdate}
+            onAddNode={onAddNode}
+            isVaultMode={!!currentVaultId}
+            vaultName={vaultName}
+            vaultLocation={vaultLocation}
+            currentVaultId={currentVaultId}
+            availableVaults={availableVaults}
+            onSwitchVault={onSwitchVault}
+            onCloseVault={onCloseVault}
+            onImportComplete={onImportComplete}
+          />
+        </div>
       )}
     </>
   );
+
 }

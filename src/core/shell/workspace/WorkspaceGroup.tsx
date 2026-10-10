@@ -12,7 +12,9 @@ import {
   SplitSquareHorizontal,
   SplitSquareVertical,
   Plus,
+  PanelLeft, // <-- TAMBAHKAN INI
 } from "lucide-react";
+import { useUIStore } from "@/shared/stores"; // <-- PASTIKAN DI-IMPORT
 import { Button } from "@/shared/ui/button";
 import { LeafView } from "./ViewRegistry";
 import { useWorkspaceStore } from "./store/useWorkspaceStore";
@@ -72,6 +74,26 @@ export function WorkspaceGroup({
     >
       {/* Tab strip */}
       <div className="h-8 flex items-stretch border-b border-border bg-muted/30 overflow-x-auto no-scrollbar">
+
+        {/* Tombol Sidebar Toggle di pojok paling kiri Window Tabs */}
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          onClick={() => {
+            const current = useUIStore.getState().activeTool;
+            useUIStore.getState().setActiveTool(current ? null : "files");
+          }}
+          className={cn(
+            "h-8 w-8 rounded-none border-r border-border shrink-0 text-muted-foreground hover:text-foreground hover:bg-accent/50",
+            // Di desktop bisa tetap tampil sebagai toggle explorer praktis, atau tambahkan 'md:hidden' jika hanya ingin tampil di mobile/tablet
+          )}
+          title="Toggle Sidebar (Files)"
+          aria-label="Toggle Sidebar"
+        >
+          <PanelLeft className="w-3.5 h-3.5" />
+        </Button>
+
         {group.leaves.map((leaf, index) => (
           <div
             key={leaf.id}

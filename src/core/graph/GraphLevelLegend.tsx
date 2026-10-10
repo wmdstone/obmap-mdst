@@ -18,26 +18,26 @@ interface GraphLevelLegendProps {
 }
 
 export function GraphLevelLegend({ depths, hierarchy }: GraphLevelLegendProps) {
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(false); // default collapsed agar hemat ruang
   if (!hierarchy.enabled || depths.length === 0) return null;
 
   return (
-    <div className="pointer-events-auto absolute left-2 top-2 z-10 max-w-[45vw] rounded-lg border border-border bg-card/90 shadow-lg backdrop-blur supports-[backdrop-filter]:bg-card/70">
+    <div className="pointer-events-auto relative rounded-lg border border-border/80 bg-card/95 shadow-lg backdrop-blur-md">
       <Button
-        variant="ghost"
+        variant="secondary"
         size="sm"
         onClick={() => setOpen((value) => !value)}
-        className="h-8 w-full justify-start gap-1.5 px-2 text-xs font-medium"
+        className="h-9 gap-1.5 px-2.5 text-xs font-medium"
       >
-        <Layers className="h-3.5 w-3.5 text-primary" />
+        <Layers className="h-4 w-4 text-primary" />
         <span>Levels</span>
         <ChevronDown
-          className={`ml-auto h-3.5 w-3.5 transition-transform ${open ? '' : '-rotate-90'}`}
+          className={`h-3.5 w-3.5 transition-transform ${open ? 'rotate-180' : ''}`}
         />
       </Button>
 
       {open && (
-        <div className="max-h-[40vh] space-y-1 overflow-y-auto px-2 pb-2">
+        <div className="absolute bottom-11 right-0 max-h-[220px] w-40 space-y-1 overflow-y-auto rounded-lg border border-border/80 bg-card/95 p-2 shadow-2xl backdrop-blur-md">
           {depths.map((depth) => (
             <div key={depth} className="flex items-center gap-2 text-xs">
               <span

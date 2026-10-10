@@ -22,12 +22,13 @@ export function IconRibbon({ activeTool, onToolSelect, onOpenGraph, onOpenMindma
   return (
     <div
       className={cn(
-        "w-12 h-full bg-sidebar border-r border-sidebar-border flex flex-col items-center py-3",
+        // Modern minimal width w-9 (36px), border tipis, py-2
+        "w-9 h-full bg-sidebar/80 backdrop-blur-sm border-r border-sidebar-border flex flex-col items-center py-2 shrink-0 select-none",
         className
       )}
     >
       {/* Top tools */}
-      <div className="flex flex-col items-center gap-1">
+      <div className="flex flex-col items-center gap-1.5 w-full px-1">
         {/* File Explorer */}
         <Tooltip delayDuration={300}>
           <TooltipTrigger asChild>
@@ -37,15 +38,15 @@ export function IconRibbon({ activeTool, onToolSelect, onOpenGraph, onOpenMindma
               size="icon"
               onClick={() => onToolSelect("files")}
               className={cn(
-                "w-10 h-10 flex items-center justify-center rounded-lg transition-all duration-200",
-                "hover:bg-accent/50 hover:text-foreground",
-                "focus:outline-none focus:ring-1 focus:ring-ring",
-                activeTool === "files" && "text-primary"
+                "w-7 h-7 flex items-center justify-center rounded-md transition-all duration-150",
+                "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground text-muted-foreground",
+                "focus-visible:ring-1 focus-visible:ring-ring",
+                activeTool === "files" && "bg-sidebar-accent text-primary font-medium shadow-xs"
               )}
               aria-label="File Explorer"
               aria-pressed={activeTool === "files"}
             >
-              <FolderTree className="w-4 h-4" />
+              <FolderTree className="w-3.5 h-3.5" />
             </Button>
           </TooltipTrigger>
           <TooltipContent side="right" className="flex items-center gap-2">
@@ -54,7 +55,7 @@ export function IconRibbon({ activeTool, onToolSelect, onOpenGraph, onOpenMindma
           </TooltipContent>
         </Tooltip>
 
-        {/* Open Graph Tab (Action Button) */}
+        {/* Open Graph Tab */}
         <Tooltip delayDuration={300}>
           <TooltipTrigger asChild>
             <Button
@@ -63,13 +64,13 @@ export function IconRibbon({ activeTool, onToolSelect, onOpenGraph, onOpenMindma
               size="icon"
               onClick={onOpenGraph}
               className={cn(
-                "w-10 h-10 flex items-center justify-center rounded-lg transition-all duration-200",
-                "hover:bg-accent/50 hover:text-foreground",
-                "focus:outline-none focus:ring-1 focus:ring-ring"
+                "w-7 h-7 flex items-center justify-center rounded-md transition-all duration-150",
+                "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground text-muted-foreground",
+                "focus-visible:ring-1 focus-visible:ring-ring"
               )}
               aria-label="Open Graph View"
             >
-              <Network className="w-4 h-4" />
+              <Network className="w-3.5 h-3.5" />
             </Button>
           </TooltipTrigger>
           <TooltipContent side="right" className="flex items-center gap-2">
@@ -78,6 +79,7 @@ export function IconRibbon({ activeTool, onToolSelect, onOpenGraph, onOpenMindma
           </TooltipContent>
         </Tooltip>
 
+        {/* Open Mindmap Tab */}
         <Tooltip delayDuration={300}>
           <TooltipTrigger asChild>
             <Button
@@ -86,13 +88,13 @@ export function IconRibbon({ activeTool, onToolSelect, onOpenGraph, onOpenMindma
               size="icon"
               onClick={onOpenMindmap}
               className={cn(
-                "w-10 h-10 flex items-center justify-center rounded-lg transition-all duration-200",
-                "hover:bg-accent/50 hover:text-foreground",
-                "focus:outline-none focus:ring-1 focus:ring-ring"
+                "w-7 h-7 flex items-center justify-center rounded-md transition-all duration-150",
+                "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground text-muted-foreground",
+                "focus-visible:ring-1 focus-visible:ring-ring"
               )}
               aria-label="Open Mindmap View"
             >
-              <GitBranch className="w-4 h-4" />
+              <GitBranch className="w-3.5 h-3.5" />
             </Button>
           </TooltipTrigger>
           <TooltipContent side="right" className="flex items-center gap-2">
@@ -105,30 +107,31 @@ export function IconRibbon({ activeTool, onToolSelect, onOpenGraph, onOpenMindma
       <div className="flex-1" />
 
       {/* Settings at the bottom */}
-      <Tooltip delayDuration={300}>
-        <TooltipTrigger asChild>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            onClick={() => onToolSelect("settings")}
-            className={cn(
-              "w-10 h-10 flex items-center justify-center rounded-lg transition-all duration-200",
-              "hover:bg-accent/50 hover:text-foreground",
-              "focus:outline-none focus:ring-1 focus:ring-ring",
-              activeTool === "settings" && "text-primary"
-            )}
-            aria-label="Settings"
-            aria-pressed={activeTool === "settings"}
-          >
-            <Settings2 className="w-4 h-4" />
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent side="right" className="flex items-center gap-2">
-          <span>Settings</span>
-          <span className="text-muted-foreground text-xs">⌘,</span>
-        </TooltipContent>
-      </Tooltip>
+      <div className="flex flex-col items-center gap-1.5 w-full px-1">
+        <Tooltip delayDuration={300}>
+          <TooltipTrigger asChild>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              onClick={() => onToolSelect("settings")}
+              className={cn(
+                "w-7 h-7 flex items-center justify-center rounded-md transition-all duration-150",
+                "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground text-muted-foreground",
+                "focus-visible:ring-1 focus-visible:ring-ring",
+                activeTool === "settings" && "bg-sidebar-accent text-primary font-medium shadow-xs"
+              )}
+              aria-label="Settings"
+              aria-pressed={activeTool === "settings"}
+            >
+              <Settings2 className="w-3.5 h-3.5" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="right">
+            <span>Settings</span>
+          </TooltipContent>
+        </Tooltip>
+      </div>
     </div>
   );
 }

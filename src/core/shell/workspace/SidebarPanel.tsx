@@ -660,9 +660,10 @@ export function SidebarPanel({
       ref={panelRef}
       className={cn(
         "h-full bg-sidebar border-r border-sidebar-border flex flex-col relative",
+        "max-md:fixed max-md:inset-y-0 max-md:left-0 max-md:z-50 max-md:shadow-2xl max-md:w-[280px] max-md:max-w-[85vw]",
         "animate-in slide-in-from-left-2 duration-200 ease-out",
       )}
-      style={{ width: `${width}px` }}
+      style={{ width: window.innerWidth < 768 ? undefined : `${width}px` }}
     >
       {/* Panel Header */}
       <div className="h-12 px-3 flex items-center justify-between border-b border-sidebar-border shrink-0">
@@ -856,7 +857,7 @@ export function SidebarPanel({
                           className={cn(
                             "h-8 w-full justify-start gap-2 px-2 text-xs font-normal",
                             activeSettingsSection === section.id &&
-                              "bg-sidebar-accent text-sidebar-accent-foreground",
+                            "bg-sidebar-accent text-sidebar-accent-foreground",
                           )}
                         >
                           <section.icon className="h-3.5 w-3.5 shrink-0" />
@@ -885,6 +886,10 @@ export function SidebarPanel({
           <GripVertical className="w-3 h-3 text-muted-foreground" />
         </div>
       </div>
+      <div
+        className="fixed inset-0 bg-background/60 backdrop-blur-xs z-[-1] md:hidden"
+        onClick={onClose}
+      />
     </div>
   );
 }
