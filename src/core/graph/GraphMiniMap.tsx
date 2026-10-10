@@ -1,17 +1,10 @@
-/**
- * GraphMiniMap - Mini-map overview of the network graph
- * Shows a bird's eye view with viewport indicator and click-to-navigate
- */
-
-import { useRef, useEffect, useState, useCallback, useMemo } from 'react';
+/** Mini-map panel content. Overlay state and controls live in GraphBottomOverlays. */
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { ForceGraphMethods } from 'react-force-graph-2d';
-import { Button } from "@/shared/ui/button";
-import { Map, Maximize2, Minimize2, X } from 'lucide-react';
-import { cn } from "@/shared/lib";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/shared/ui/tooltip';
+import { colorWithOpacity, resolveColor } from '@/shared/lib/color-utils';
 import type { RenderLink, RenderNode } from './model/graphTypes';
 
-interface GraphMiniMapProps {
+export interface GraphMiniMapProps {
   nodes: RenderNode[];
   links: RenderLink[];
   graphRef: React.MutableRefObject<ForceGraphMethods<RenderNode, RenderLink> | undefined>;
@@ -23,325 +16,121 @@ interface GraphMiniMapProps {
   selectedNodeId?: string | null;
 }
 
-// Resolve CSS variable colors to actual HSL values for canvas rendering
-function resolveColor(color: string): string {
-  // If it's already a resolved HSL/HSLA value (no CSS variables), return as-is
-  if (!color.includes('var(')) {
-    return color;
-  }
-
-  // Extract the CSS variable name
-  const varMatch = color.match(/var\(--([^)]+)\)/);
-  if (!varMatch) return color;
-
-  const varName = varMatch[1];
-
-  // Get the computed value from CSS
-  const computedValue = getComputedStyle(document.documentElement)
-    .getPropertyValue(`--${varName}`)
-    .trim();
-
-  if (!computedValue) return color;
-
-  // Check if the computed value is HSL values (e.g., "270 70% 65%")
-  const hslMatch = computedValue.match(/^([\d.]+)\s+([\d.]+)%?\s+([\d.]+)%?$/);
-  if (hslMatch) {
-    return `hsl(${hslMatch[1]}, ${hslMatch[2]}%, ${hslMatch[3]}%)`;
-  }
-
-  // Replace the var() with the actual value
-  return color.replace(`var(--${varName})`, computedValue);
-}
-
-// Convert color to HSLA with opacity for canvas
-function colorWithOpacity(color: string, opacity: number): string {
-  const resolved = resolveColor(color);
-
-  // If already hsla, adjust opacity
-  if (resolved.startsWith('hsla(')) {
-    return resolved.replace(/,\s*[\d.]+\)$/, `, ${opacity})`);
-  }
-
-  // If hsl, convert to hsla
-  if (resolved.startsWith('hsl(')) {
-    return resolved.replace('hsl(', 'hsla(').replace(')', `, ${opacity})`);
-  }
-
-  return resolved;
-}
-
 export function GraphMiniMap({
-  nodes,
-  links,
-  graphRef,
-  viewportWidth,
-  viewportHeight,
-  folderColor = 'hsl(48, 100%, 60%)',
-  fileColor = 'hsl(270, 70%, 65%)',
-  linkColor = 'hsl(var(--primary))',
-  selectedNodeId,
+  nodes, links, graphRef, viewportWidth, viewportHeight,
+  folderColor = 'hsl(var(--primary))',
+  fileColor = 'hsl(var(--muted-foreground))',
+  linkColor = 'hsl(var(--muted-foreground))', selectedNodeId,
 }: GraphMiniMapProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [isExpanded, setIsExpanded] = useState(false);
-  const [isLarge, setIsLarge] = useState(false);
-  const viewportRef = useRef({ x: 0, y: 0, width: 0, height: 0 });
+  const [size, setSize] = useState({ width: 216, height: 144 });
+  const transformRef = useRef({ scale: 1, offsetX: 0, offsetY: 0 });
 
-  const size = useMemo(
-    () => (isLarge ? { width: 280, height: 200 } : { width: 180, height: 130 }),
-    [isLarge],
-  );
-
-  // Calculate bounds of all nodes
-  const getBounds = useCallback(() => {
-    if (nodes.length === 0) return { minX: -100, maxX: 100, minY: -100, maxY: 100 };
-
-    const validNodes = nodes.filter(n => n.x !== undefined && n.y !== undefined);
-    if (validNodes.length === 0) return { minX: -100, maxX: 100, minY: -100, maxY: 100 };
-
-    const padding = 50;
-    const xs = validNodes.map(n => n.x!);
-    const ys = validNodes.map(n => n.y!);
-
-    return {
-      minX: Math.min(...xs) - padding,
-      maxX: Math.max(...xs) + padding,
-      minY: Math.min(...ys) - padding,
-      maxY: Math.max(...ys) + padding,
-    };
-  }, [nodes]);
-
-  // Render mini-map
-  const render = useCallback(() => {
+  useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
+    const observer = new ResizeObserver(([entry]) => {
+      if (!entry || entry.contentRect.width <= 0 || entry.contentRect.height <= 0) return;
+      setSize({ width: entry.contentRect.width, height: entry.contentRect.height });
+    });
+    observer.observe(canvas);
+    return () => observer.disconnect();
+  }, []);
 
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
+  const render = useCallback(() => {
+    const canvas = canvasRef.current;
+    const ctx = canvas?.getContext('2d');
+    if (!canvas || !ctx) return;
     const { width, height } = size;
     const dpr = window.devicePixelRatio || 1;
-
-    canvas.width = width * dpr;
-    canvas.height = height * dpr;
-    ctx.scale(dpr, dpr);
-
-    // Clear
+    const pixelWidth = Math.round(width * dpr);
+    const pixelHeight = Math.round(height * dpr);
+    if (canvas.width !== pixelWidth || canvas.height !== pixelHeight) {
+      canvas.width = pixelWidth;
+      canvas.height = pixelHeight;
+    }
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, width, height);
 
-    // Background
-    ctx.fillStyle = colorWithOpacity(resolveColor('hsl(var(--card))'), 0.95);
-    ctx.fillRect(0, 0, width, height);
-
-    const bounds = getBounds();
-    const graphWidth = bounds.maxX - bounds.minX;
-    const graphHeight = bounds.maxY - bounds.minY;
-
-    // Scale to fit
-    const scaleX = width / graphWidth;
-    const scaleY = height / graphHeight;
-    const scale = Math.min(scaleX, scaleY) * 0.9;
-
-    const offsetX = (width - graphWidth * scale) / 2 - bounds.minX * scale;
-    const offsetY = (height - graphHeight * scale) / 2 - bounds.minY * scale;
-
-    // Draw links
-    ctx.strokeStyle = colorWithOpacity(resolveColor('hsl(var(--muted-foreground))'), 0.3);
-    ctx.lineWidth = 0.5;
-    links.forEach(link => {
-      const sourceNode = typeof link.source === 'string'
-        ? nodes.find(n => n.id === link.source)
-        : link.source;
-      const targetNode = typeof link.target === 'string'
-        ? nodes.find(n => n.id === link.target)
-        : link.target;
-
-      if (sourceNode?.x !== undefined && targetNode?.x !== undefined) {
-        ctx.beginPath();
-        ctx.moveTo(sourceNode.x * scale + offsetX, sourceNode.y! * scale + offsetY);
-        ctx.lineTo(targetNode.x * scale + offsetX, targetNode.y! * scale + offsetY);
-        ctx.stroke();
-      }
+    const positioned = nodes.flatMap((node) => {
+      const { x, y } = node;
+      return typeof x === 'number' && typeof y === 'number' && Number.isFinite(x) && Number.isFinite(y)
+        ? [{ node, x, y }] : [];
     });
-
-    // Draw nodes
-    nodes.forEach(node => {
-      if (node.x === undefined || node.y === undefined) return;
-
-      const x = node.x * scale + offsetX;
-      const y = node.y * scale + offsetY;
-      const nodeSize = node.type === 'folder' ? 3 : 2;
-
-      ctx.beginPath();
-      ctx.arc(x, y, nodeSize, 0, 2 * Math.PI);
-
-      if (selectedNodeId === node.id) {
-        ctx.fillStyle = resolveColor('hsl(var(--accent))');
-        ctx.shadowBlur = 6;
-        ctx.shadowColor = resolveColor('hsl(var(--accent))');
-      } else {
-        ctx.fillStyle = resolveColor(node.type === 'folder' ? folderColor : fileColor);
-        ctx.shadowBlur = 0;
-      }
-
-      ctx.fill();
-      ctx.shadowBlur = 0;
-    });
-
-    // Draw viewport rectangle
-    if (graphRef.current) {
-      try {
-        const fg = graphRef.current;
-        const k = fg.zoom() || 1;
-        const { x, y } = fg.centerAt();
-
-        const vpWidth = viewportWidth / k;
-        const vpHeight = viewportHeight / k;
-        const vpX = x - vpWidth / 2;
-        const vpY = y - vpHeight / 2;
-
-        // Transform viewport coords to mini-map coords
-        const mapVpX = vpX * scale + offsetX;
-        const mapVpY = vpY * scale + offsetY;
-        const mapVpWidth = vpWidth * scale;
-        const mapVpHeight = vpHeight * scale;
-
-        // Draw viewport rectangle
-        ctx.strokeStyle = resolveColor('hsl(var(--primary))');
-        ctx.lineWidth = 2;
-        ctx.setLineDash([4, 2]);
-        ctx.strokeRect(mapVpX, mapVpY, mapVpWidth, mapVpHeight);
-        ctx.setLineDash([]);
-
-        // Fill with semi-transparent
-        ctx.fillStyle = colorWithOpacity(resolveColor('hsl(var(--primary))'), 0.1);
-        ctx.fillRect(mapVpX, mapVpY, mapVpWidth, mapVpHeight);
-
-        // Store viewport in ref (not state to avoid re-renders)
-        viewportRef.current = { x: vpX, y: vpY, width: vpWidth, height: vpHeight };
-      } catch (e) {
-        // Ignore zoom errors
-      }
+    if (!positioned.length) return;
+    let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+    for (const { x, y } of positioned) {
+      minX = Math.min(minX, x); maxX = Math.max(maxX, x);
+      minY = Math.min(minY, y); maxY = Math.max(maxY, y);
     }
-  }, [nodes, links, size, getBounds, folderColor, fileColor, selectedNodeId, graphRef, viewportWidth, viewportHeight]);
+    minX -= 30; maxX += 30; minY -= 30; maxY += 30;
+    const scale = Math.min(width / (maxX - minX), height / (maxY - minY)) * 0.9;
+    const offsetX = (width - (maxX - minX) * scale) / 2 - minX * scale;
+    const offsetY = (height - (maxY - minY) * scale) / 2 - minY * scale;
+    transformRef.current = { scale, offsetX, offsetY };
+    const byId = new Map(positioned.map((point) => [point.node.id, point]));
+    ctx.strokeStyle = colorWithOpacity(linkColor, 0.35);
+    ctx.lineWidth = 0.75;
+    ctx.beginPath();
+    for (const link of links) {
+      const source = byId.get(typeof link.source === 'string' ? link.source : link.source.id);
+      const target = byId.get(typeof link.target === 'string' ? link.target : link.target.id);
+      if (!source || !target) continue;
+      ctx.moveTo(source.x * scale + offsetX, source.y * scale + offsetY);
+      ctx.lineTo(target.x * scale + offsetX, target.y * scale + offsetY);
+    }
+    ctx.stroke();
+    for (const { node, x, y } of positioned) {
+      ctx.fillStyle = resolveColor(node.id === selectedNodeId ? 'hsl(var(--primary))'
+        : node.type === 'folder' ? folderColor : fileColor);
+      ctx.beginPath();
+      ctx.arc(x * scale + offsetX, y * scale + offsetY, node.type === 'folder' ? 2.5 : 1.75, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    const graph = graphRef.current;
+    if (!graph) return;
+    const zoom = graph.zoom();
+    const center = graph.centerAt();
+    if (!Number.isFinite(zoom) || zoom <= 0 || !Number.isFinite(center.x) || !Number.isFinite(center.y)) return;
+    const x = (center.x - viewportWidth / zoom / 2) * scale + offsetX;
+    const y = (center.y - viewportHeight / zoom / 2) * scale + offsetY;
+    const w = viewportWidth / zoom * scale;
+    const h = viewportHeight / zoom * scale;
+    ctx.fillStyle = colorWithOpacity('hsl(var(--primary))', 0.08);
+    ctx.fillRect(x, y, w, h);
+    ctx.strokeStyle = resolveColor('hsl(var(--primary))');
+    ctx.lineWidth = 1;
+    ctx.setLineDash([3, 3]);
+    ctx.strokeRect(x, y, w, h);
+    ctx.setLineDash([]);
+  }, [nodes, links, graphRef, viewportWidth, viewportHeight, folderColor, fileColor, linkColor, selectedNodeId, size]);
 
-  // Periodic render with throttling (not in render callback to avoid infinite loop)
   useEffect(() => {
-    if (!isExpanded) return;
-
-    // Initial render
     render();
+    const interval = window.setInterval(render, 100);
+    return () => window.clearInterval(interval);
+  }, [render]);
 
-    // Periodic updates for viewport tracking
-    const intervalId = setInterval(() => {
-      render();
-    }, 100);
-
-    return () => {
-      clearInterval(intervalId);
-    };
-  }, [isExpanded, render]);
-
-  // Handle click to navigate
-  const handleCanvasClick = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
-    const canvas = canvasRef.current;
-    if (!canvas || !graphRef.current) return;
-
-    const rect = canvas.getBoundingClientRect();
-    const clickX = e.clientX - rect.left;
-    const clickY = e.clientY - rect.top;
-
-    const bounds = getBounds();
-    const graphWidth = bounds.maxX - bounds.minX;
-    const graphHeight = bounds.maxY - bounds.minY;
-
-    const scaleX = size.width / graphWidth;
-    const scaleY = size.height / graphHeight;
-    const scale = Math.min(scaleX, scaleY) * 0.9;
-
-    const offsetX = (size.width - graphWidth * scale) / 2 - bounds.minX * scale;
-    const offsetY = (size.height - graphHeight * scale) / 2 - bounds.minY * scale;
-
-    // Convert click to graph coordinates
-    const graphX = (clickX - offsetX) / scale;
-    const graphY = (clickY - offsetY) / scale;
-
-    // Center the view on clicked position
-    graphRef.current.centerAt(graphX, graphY, 500);
-  }, [getBounds, size, graphRef]);
-
-  if (!isExpanded) {
-    return (
-      <TooltipProvider delayDuration={200}>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              onClick={() => setIsExpanded(true)}
-              className="h-8 w-8 shrink-0 rounded-md transition-colors hover:text-foreground"
-              aria-label="Open mini-map"
-            >
-              <Map className="h-4 w-4 text-muted-foreground hover:text-foreground" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent side="top">Open mini-map</TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
-    );
-  }
+  const navigate = (event: React.MouseEvent<HTMLCanvasElement>) => {
+    if (!nodes.length) return;
+    const rect = event.currentTarget.getBoundingClientRect();
+    const { scale, offsetX, offsetY } = transformRef.current;
+    if (!rect.width || !rect.height || scale <= 0) return;
+    const x = (event.clientX - rect.left) * size.width / rect.width;
+    const y = (event.clientY - rect.top) * size.height / rect.height;
+    graphRef.current?.centerAt((x - offsetX) / scale, (y - offsetY) / scale, 350);
+  };
 
   return (
-    <div
-      className={cn(
-        "rounded-md border border-border/80 bg-card/95 backdrop-blur-md shadow-xl overflow-hidden transition-all duration-200",
-        isLarge ? "w-[280px]" : "w-[180px]"
-      )}
-    >
-      {/* Header */}
-      <div className="flex items-center justify-between px-2 py-1.5 border-b border-border bg-muted/50">
-        <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
-          <Map className="w-3 h-3" />
-          <span>Mini-Map</span>
-        </div>
-        <div className="flex items-center gap-0.5">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-5 w-5"
-            onClick={() => setIsLarge(!isLarge)}
-          >
-            {isLarge ? (
-              <Minimize2 className="w-3 h-3" />
-            ) : (
-              <Maximize2 className="w-3 h-3" />
-            )}
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-5 w-5"
-            onClick={() => setIsExpanded(false)}
-          >
-            <X className="w-3 h-3" />
-          </Button>
-        </div>
+    <div className="min-w-0 p-2">
+      <div className="relative">
+        <canvas ref={canvasRef} className="block aspect-[3/2] w-full cursor-crosshair touch-manipulation"
+          aria-label="Graph overview" onClick={navigate} />
+        {nodes.length === 0 && <span className="pointer-events-none absolute inset-0 flex items-center justify-center text-xs text-muted-foreground">No nodes</span>}
       </div>
-
-      {/* Canvas */}
-      <canvas
-        ref={canvasRef}
-        width={size.width}
-        height={size.height}
-        style={{ width: size.width, height: size.height }}
-        className="cursor-crosshair"
-        onClick={handleCanvasClick}
-      />
-
-      {/* Stats footer */}
-      <div className="flex items-center justify-between px-2 py-1 border-t border-border bg-muted/30 text-[10px] text-muted-foreground">
-        <span>{nodes.length} nodes</span>
-        <span>{links.length} links</span>
+      <div className="flex min-w-0 justify-between gap-2 pt-2 text-[10px] text-muted-foreground">
+        <span className="truncate">{nodes.length} nodes</span>
+        <span className="truncate">{links.length} links</span>
       </div>
     </div>
   );
