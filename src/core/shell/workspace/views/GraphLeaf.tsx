@@ -64,8 +64,6 @@ function GraphLeafBody({ leafId, canvasMode: requestedMode, view }: { leafId: st
     setLayoutMode,
     orientation,
     setOrientation,
-    highlightMode,
-    setHighlightMode,
     collapsedIds,
     expandAll,
     focusedRootId,
@@ -144,10 +142,6 @@ function GraphLeafBody({ leafId, canvasMode: requestedMode, view }: { leafId: st
         onLayoutChange={setLayoutMode}
         orientation={orientation}
         onOrientationChange={setOrientation}
-        highlightPathway={highlightMode === "pathway"}
-        onHighlightPathwayChange={(value) =>
-          setHighlightMode(value ? "pathway" : "off")
-        }
         collapsedCount={collapsedIds.length}
         onExpandAll={expandAll}
         focused={Boolean(focusedRootId)}
