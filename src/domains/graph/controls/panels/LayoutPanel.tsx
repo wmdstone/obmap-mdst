@@ -14,7 +14,6 @@ import {
   Layers,
 } from 'lucide-react';
 import type { CanvasMode, LayoutMode, MindmapOrientation } from '../../model/graphTypes';
-import { FreeForceControls } from './FreeForceControls';
 import { useLeafGraphConfig, useLeafGraphConfigApi } from '../../model/useLeafGraphConfigStore';
 import { useGraphStore, type ForceConfig } from '@/domains/graph/stores/useGraphStore';
 import { useGraphInteractionStore } from '../../model/useGraphInteractionStore';
@@ -35,7 +34,7 @@ export const MINDMAP_LAYOUTS: { value: LayoutMode; label: string; icon: typeof N
 ];
 
 interface LayoutPanelProps {
-    compact?: boolean;
+  compact?: boolean;
   canvasMode: CanvasMode;
   layout: LayoutMode;
   orientation: MindmapOrientation;
@@ -45,7 +44,7 @@ interface LayoutPanelProps {
 }
 
 export function LayoutPanel({
-   compact = true,
+  compact = true,
   canvasMode,
   layout,
   orientation,
@@ -226,7 +225,5 @@ export function LayoutPanel({
         </div>
       </div>
     </div>
-  );
-}
   );
 }

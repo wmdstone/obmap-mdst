@@ -30,7 +30,7 @@ export function AnalyticsTab({ stats, onNodeSelect }: AnalyticsTabProps) {
         defaultOpen={true}
       >
         <div className="p-3 rounded-lg bg-card border border-border">
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3">
             <div className="flex items-center justify-between p-2 rounded bg-secondary/50">
               <div className="flex items-center gap-2">
                 <GitBranch className="w-3 h-3 text-primary" />

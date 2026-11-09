@@ -70,7 +70,7 @@ export function AtmosphereControls({
   )?.description;
 
   return (
-    <div className="grid grid-cols-1 gap-3.5 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4">
+    <div className="grid grid-cols-1 gap-3.5">
       {/* BENTO CARD 1: SINKRONISASI & INTERAKSI */}
       <div className="flex flex-col justify-between rounded-xl border border-border/60 bg-card/60 p-3.5 shadow-xs backdrop-blur-xs">
         <div className="space-y-3">

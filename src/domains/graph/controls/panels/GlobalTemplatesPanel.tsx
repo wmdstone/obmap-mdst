@@ -94,7 +94,7 @@ export function GlobalTemplatesPanel({
   const templateCount = Object.keys(templates).length;
 
   return (
-    <div className="grid grid-cols-1 gap-3.5 md:grid-cols-2 lg:grid-cols-3">
+    <div className="grid grid-cols-1 gap-3.5">
       {/* BENTO CARD 1: SIMPAN & AKSI TEMPLATE */}
       <div className="flex flex-col justify-between rounded-xl border border-border/60 bg-card/60 p-3.5 shadow-xs backdrop-blur-xs space-y-3">
         <div className="space-y-3">

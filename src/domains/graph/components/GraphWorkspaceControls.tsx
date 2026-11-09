@@ -174,11 +174,10 @@ function GraphSettingContent(props: GraphSettingContentProps) {
     resetConfig,
   } = props;
 
-  return (
+    return (
     <>
- {activePanel === "search" && (
+      {activePanel === "search" && (
         <SearchPanel
-          compact={compact}
           search={search}
           onSearchChange={onSearchChange}
           minDepth={minDepth}
@@ -218,7 +217,6 @@ function GraphSettingContent(props: GraphSettingContentProps) {
 
       {activePanel === "atmosphere" && (
         <AtmosphereControls
-          compact={compact}
           atmosphere={mergeAtmosphereConfig(config.atmosphere)}
           linkConfig={config.links}
           nodeConfig={config.nodes}
@@ -230,7 +228,6 @@ function GraphSettingContent(props: GraphSettingContentProps) {
 
       {activePanel === "appearance" && (
         <AppearancePanel
-          compact={compact}
           config={config}
           updateNodeConfig={updateNodeConfig}
           updateTopologyConfig={updateTopologyConfig}
@@ -242,7 +239,6 @@ function GraphSettingContent(props: GraphSettingContentProps) {
 
       {activePanel === "global" && (
         <GlobalTemplatesPanel
-          compact={compact}
           config={config}
           layout={layout}
           orientation={orientation}
@@ -255,6 +251,7 @@ function GraphSettingContent(props: GraphSettingContentProps) {
     </>
   );
 }
+
 
 // =============================================================================
 // 3. SUB-COMPONENT: HORIZONTAL EXPANDABLE OFFICE TOOLBAR (RESIZABLE & SMOOTH TABS)
