@@ -48,7 +48,7 @@ export function GraphCanvasUtilityDock({
     <TooltipProvider delayDuration={250}>
       <div
         className={cn(
-          "pointer-events-auto absolute top-3 right-3 z-30 rounded-lg border border-border/70 bg-card/90 p-1 shadow-lg shadow-black/15 backdrop-blur-md sm:top-4 sm:right-4",
+          "pointer-events-auto absolute top-16 right-3 z-30 rounded-lg border border-border/70 bg-card/90 p-1 shadow-lg shadow-black/15 backdrop-blur-md sm:top-16 sm:right-4",
           isVertical ? "flex flex-col items-center gap-1" : "flex items-center gap-1",
           className,
         )}

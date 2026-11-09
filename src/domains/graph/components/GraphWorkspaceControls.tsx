@@ -1,8 +1,8 @@
-import { useState, useRef, useEffect, useCallback  } from 'react';
-import { cn } from '@/shared/lib/cn';
-import { Button } from '@/shared/ui/button';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/shared/ui/tooltip';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/shared/ui/tabs';
+import { useState, useRef, useEffect, useCallback } from "react";
+import { cn } from "@/shared/lib/cn";
+import { Button } from "@/shared/ui/button";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/shared/ui/tooltip";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/shared/ui/tabs";
 import {
   ChevronDown,
   ChevronUp,
@@ -17,16 +17,16 @@ import {
   Sparkles,
   X,
   type LucideIcon,
-} from 'lucide-react';
+} from "lucide-react";
 
-import type { CanvasMode, LayoutMode, MindmapOrientation } from '@/domains/graph/model/graphTypes';
-import { useGraphStore } from '@/shared/stores';
-import { useGraphInteractionStore } from '@/domains/graph/model/useGraphInteractionStore';
+import type { CanvasMode, LayoutMode, MindmapOrientation } from "@/domains/graph/model/graphTypes";
+import { useGraphStore } from "@/shared/stores";
+import { useGraphInteractionStore } from "@/domains/graph/model/useGraphInteractionStore";
 import {
   useLeafGraphConfig,
   useLeafGraphConfigApi,
   type LeafGraphConfigState,
-} from '@/domains/graph/model/useLeafGraphConfigStore';
+} from "@/domains/graph/model/useLeafGraphConfigStore";
 import type {
   GraphConfigState,
   NodeConfig,
@@ -34,33 +34,33 @@ import type {
   TopologyConfig,
   LinkStyle,
   HierarchyColorConfig,
-} from '@/domains/graph/stores/useGraphStore';
+} from "@/domains/graph/stores/useGraphStore";
 
-import { FloatingZoomControls } from '@/domains/graph/controls/FloatingZoomControls';
-import { SearchPanel } from '@/domains/graph/controls/panels/SearchPanel';
-import { LayoutPanel } from '@/domains/graph/controls/panels/LayoutPanel';
-import { AppearancePanel } from '@/domains/graph/controls/panels/AppearancePanel';
-import { GlobalTemplatesPanel } from '@/domains/graph/controls/panels/GlobalTemplatesPanel';
-import { ColorEngineControls } from '@/domains/graph/config-panel/ColorEngineControls';
-import { AtmosphereControls } from '@/domains/graph/config-panel/AtmosphereControls';
-import { mergeAtmosphereConfig } from '@/domains/graph/model/atmosphereConfig';
-import { useGraphToolbarStore } from '@/domains/graph/stores/useGraphToolbarStore';
+import { FloatingZoomControls } from "@/domains/graph/controls/FloatingZoomControls";
+import { SearchPanel } from "@/domains/graph/controls/panels/SearchPanel";
+import { LayoutPanel } from "@/domains/graph/controls/panels/LayoutPanel";
+import { AppearancePanel } from "@/domains/graph/controls/panels/AppearancePanel";
+import { GlobalTemplatesPanel } from "@/domains/graph/controls/panels/GlobalTemplatesPanel";
+import { ColorEngineControls } from "@/domains/graph/config-panel/ColorEngineControls";
+import { AtmosphereControls } from "@/domains/graph/config-panel/AtmosphereControls";
+import { mergeAtmosphereConfig } from "@/domains/graph/model/atmosphereConfig";
+import { useGraphToolbarStore } from "@/domains/graph/stores/useGraphToolbarStore";
 
 // =============================================================================
 // 1. TYPES & NAVIGATION DEFINITIONS
 // =============================================================================
 
-export type SettingGroup = 'search' | 'layout' | 'colors' | 'atmosphere' | 'appearance' | 'global';
-export type SmartZoomAction = 'fit' | 'selection' | 'reset';
-type LinkStyleType = keyof TopologyConfig['styles'];
+export type SettingGroup = "search" | "layout" | "colors" | "atmosphere" | "appearance" | "global";
+export type SmartZoomAction = "fit" | "selection" | "reset";
+type LinkStyleType = keyof TopologyConfig["styles"];
 
 const PANEL_TITLES: Record<SettingGroup, string> = {
-  search: 'Search & Filters',
-  layout: 'Layout & Hierarchy',
-  colors: 'Color Engine',
-  atmosphere: 'Atmosphere & Living Canvas',
-  appearance: 'Nodes & Links',
-  global: 'Graph Global & Templates',
+  search: "Search & Filters",
+  layout: "Layout & Hierarchy",
+  colors: "Color Engine",
+  atmosphere: "Atmosphere & Living Canvas",
+  appearance: "Nodes & Links",
+  global: "Graph Global & Templates",
 };
 
 interface NavItemConfig {
@@ -72,12 +72,17 @@ interface NavItemConfig {
 }
 
 const NAV_ITEMS: NavItemConfig[] = [
-  { id: 'search', label: 'Search & Filters', icon: Search, badgeFilter: true },
-  { id: 'layout', label: 'Layout & Hierarchy', icon: Network },
-  { id: 'colors', label: 'Color Engine', icon: Palette, iconClassName: 'text-primary' },
-  { id: 'atmosphere', label: 'Atmosphere & Living Canvas', icon: Sparkles, iconClassName: 'text-primary' },
-  { id: 'appearance', label: 'Nodes & Links', icon: Link2 },
-  { id: 'global', label: 'Graph Global & Templates', icon: Globe },
+  { id: "search", label: "Search & Filters", icon: Search, badgeFilter: true },
+  { id: "layout", label: "Layout & Hierarchy", icon: Network },
+  { id: "colors", label: "Color Engine", icon: Palette, iconClassName: "text-primary" },
+  {
+    id: "atmosphere",
+    label: "Atmosphere & Living Canvas",
+    icon: Sparkles,
+    iconClassName: "text-primary",
+  },
+  { id: "appearance", label: "Nodes & Links", icon: Link2 },
+  { id: "global", label: "Graph Global & Templates", icon: Globe },
 ];
 
 export interface GraphWorkspaceControlsProps {
@@ -132,7 +137,7 @@ interface GraphSettingContentProps {
   updateTopologyConfig: (upd: Partial<TopologyConfig>) => void;
   updateTopologyStyle: (type: LinkStyleType, upd: Partial<LinkStyle>) => void;
   updateHierarchyConfig: (upd: Partial<HierarchyColorConfig>) => void;
-  updateAtmosphereConfig: (upd: Partial<GraphConfigState['atmosphere']>) => void;
+  updateAtmosphereConfig: (upd: Partial<GraphConfigState["atmosphere"]>) => void;
   setConfig: (cfg: GraphConfigState) => void;
   resetConfig: () => void;
 }
@@ -169,7 +174,7 @@ function GraphSettingContent(props: GraphSettingContentProps) {
 
   return (
     <>
-      {activePanel === 'search' && (
+      {activePanel === "search" && (
         <SearchPanel
           search={search}
           onSearchChange={onSearchChange}
@@ -184,7 +189,7 @@ function GraphSettingContent(props: GraphSettingContentProps) {
         />
       )}
 
-      {activePanel === 'layout' && (
+      {activePanel === "layout" && (
         <LayoutPanel
           canvasMode={canvasMode}
           layout={layout}
@@ -195,7 +200,7 @@ function GraphSettingContent(props: GraphSettingContentProps) {
         />
       )}
 
-      {activePanel === 'colors' && (
+      {activePanel === "colors" && (
         <div className="space-y-3.5">
           <ColorEngineControls
             hierarchy={config.hierarchy}
@@ -206,7 +211,7 @@ function GraphSettingContent(props: GraphSettingContentProps) {
         </div>
       )}
 
-      {activePanel === 'atmosphere' && (
+      {activePanel === "atmosphere" && (
         <AtmosphereControls
           atmosphere={mergeAtmosphereConfig(config.atmosphere)}
           linkConfig={config.links}
@@ -217,7 +222,7 @@ function GraphSettingContent(props: GraphSettingContentProps) {
         />
       )}
 
-      {activePanel === 'appearance' && (
+      {activePanel === "appearance" && (
         <AppearancePanel
           config={config}
           updateNodeConfig={updateNodeConfig}
@@ -228,7 +233,7 @@ function GraphSettingContent(props: GraphSettingContentProps) {
         />
       )}
 
-      {activePanel === 'global' && (
+      {activePanel === "global" && (
         <GlobalTemplatesPanel
           config={config}
           layout={layout}
@@ -247,7 +252,7 @@ function GraphSettingContent(props: GraphSettingContentProps) {
 // 3. SUB-COMPONENT: HORIZONTAL EXPANDABLE OFFICE TOOLBAR (RESIZABLE & SMOOTH TABS)
 // =============================================================================
 
-interface HorizontalOfficeToolbarProps extends Omit<GraphSettingContentProps, 'activePanel'> {
+interface HorizontalOfficeToolbarProps extends Omit<GraphSettingContentProps, "activePanel"> {
   isExpanded: boolean;
   onToggleExpanded: () => void;
   activeTab: SettingGroup;
@@ -272,7 +277,6 @@ function HorizontalOfficeToolbar({
   // 2. REF & HANDLER HORIZONTAL SCROLL UNTUK TABS
   const tabsListRef = useRef<HTMLDivElement>(null);
 
-
   // Periksa apakah tab bar membutuhkan tombol panah scroll kiri/kanan
   const checkTabsScroll = useCallback(() => {
     const el = tabsListRef.current;
@@ -281,8 +285,8 @@ function HorizontalOfficeToolbar({
 
   useEffect(() => {
     checkTabsScroll();
-    window.addEventListener('resize', checkTabsScroll);
-    return () => window.removeEventListener('resize', checkTabsScroll);
+    window.addEventListener("resize", checkTabsScroll);
+    return () => window.removeEventListener("resize", checkTabsScroll);
   }, [checkTabsScroll, isExpanded]);
 
   // Otomatis geser ke tab aktif saat dipilih
@@ -290,7 +294,7 @@ function HorizontalOfficeToolbar({
     if (!tabsListRef.current) return;
     const activeEl = tabsListRef.current.querySelector('[data-state="active"]');
     if (activeEl) {
-      activeEl.scrollIntoView({ behavior: 'smooth', inline: 'nearest', block: 'nearest' });
+      activeEl.scrollIntoView({ behavior: "smooth", inline: "nearest", block: "nearest" });
     }
     setTimeout(checkTabsScroll, 200);
   }, [activeTab, checkTabsScroll]);
@@ -304,10 +308,10 @@ function HorizontalOfficeToolbar({
     }
   };
 
-  const scrollTabs = (direction: 'left' | 'right') => {
+  const scrollTabs = (direction: "left" | "right") => {
     if (!tabsListRef.current) return;
-    const offset = direction === 'left' ? -180 : 180;
-    tabsListRef.current.scrollBy({ left: offset, behavior: 'smooth' });
+    const offset = direction === "left" ? -180 : 180;
+    tabsListRef.current.scrollBy({ left: offset, behavior: "smooth" });
     setTimeout(checkTabsScroll, 250);
   };
 
@@ -316,8 +320,8 @@ function HorizontalOfficeToolbar({
     isDraggingRef.current = true;
     startYRef.current = clientY;
     startHeightRef.current = toolbarHeight;
-    document.body.style.userSelect = 'none';
-    document.body.style.cursor = 'ns-resize';
+    document.body.style.userSelect = "none";
+    document.body.style.cursor = "ns-resize";
 
     const onMove = (moveY: number) => {
       if (!isDraggingRef.current) return;
@@ -333,18 +337,18 @@ function HorizontalOfficeToolbar({
 
     const handleEnd = () => {
       isDraggingRef.current = false;
-      document.body.style.userSelect = '';
-      document.body.style.cursor = '';
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseup', handleEnd);
-      window.removeEventListener('touchmove', handleTouchMove);
-      window.removeEventListener('touchend', handleEnd);
+      document.body.style.userSelect = "";
+      document.body.style.cursor = "";
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleEnd);
+      window.removeEventListener("touchmove", handleTouchMove);
+      window.removeEventListener("touchend", handleEnd);
     };
 
-    window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('mouseup', handleEnd);
-    window.addEventListener('touchmove', handleTouchMove, { passive: true });
-    window.addEventListener('touchend', handleEnd);
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mouseup", handleEnd);
+    window.addEventListener("touchmove", handleTouchMove, { passive: true });
+    window.addEventListener("touchend", handleEnd);
   };
 
   return (
@@ -371,17 +375,16 @@ function HorizontalOfficeToolbar({
           {/* B. HEADER DENGAN TABS (BISA DIGESER DENGAN MOUSE/ARROW) */}
           <div className="h-10 shrink-0 border-b border-border/60 bg-muted/40 px-3">
             <div className="mx-auto flex h-full max-w-6xl items-center justify-between gap-2">
-              
               {/* Container Tabs dengan Scroll Controls */}
               <div className="flex-1 min-w-0 flex items-center gap-1">
-                  <button
-                    type="button"
-                    onClick={() => scrollTabs('left')}
-                    className="h-6 w-6 shrink-0 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
-                    aria-label="Geser tab ke kiri"
-                  >
-                    <ChevronLeft className="h-3.5 w-3.5" />
-                  </button>
+                <button
+                  type="button"
+                  onClick={() => scrollTabs("left")}
+                  className="h-6 w-6 shrink-0 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
+                  aria-label="Geser tab ke kiri"
+                >
+                  <ChevronLeft className="h-3.5 w-3.5" />
+                </button>
 
                 <Tabs
                   value={activeTab}
@@ -403,7 +406,7 @@ function HorizontalOfficeToolbar({
                           value={item.id}
                           className="h-6 px-2.5 text-[11px] font-medium data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-xs flex items-center gap-1.5 shrink-0 transition-colors"
                         >
-                          <Icon className={cn('h-3 w-3', item.iconClassName)} />
+                          <Icon className={cn("h-3 w-3", item.iconClassName)} />
                           <span>{item.label}</span>
                           {hasFilterBadge && (
                             <span className="h-1.5 w-1.5 rounded-full bg-primary" />
@@ -414,14 +417,14 @@ function HorizontalOfficeToolbar({
                   </TabsList>
                 </Tabs>
 
-                  <button
-                    type="button"
-                    onClick={() => scrollTabs('right')}
-                    className="h-6 w-6 shrink-0 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
-                    aria-label="Geser tab ke kanan"
-                  >
-                    <ChevronRight className="h-3.5 w-3.5" />
-                  </button>
+                <button
+                  type="button"
+                  onClick={() => scrollTabs("right")}
+                  className="h-6 w-6 shrink-0 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
+                  aria-label="Geser tab ke kanan"
+                >
+                  <ChevronRight className="h-3.5 w-3.5" />
+                </button>
               </div>
 
               {/* C. TOMBOL COLLAPSE ATAS: SIMPLE, ELEGANT, TANPA FILL BOX HOVER */}
@@ -452,7 +455,7 @@ function HorizontalOfficeToolbar({
           type="button"
           onClick={onToggleExpanded}
           className="group flex items-center gap-1.5 text-[11px] font-medium text-foreground hover:text-primary transition-colors focus:outline-none focus-visible:ring-1 focus-visible:ring-ring rounded px-1.5 py-0.5 bg-transparent"
-          aria-label={isExpanded ? 'Tutup toolbar' : 'Buka toolbar graph'}
+          aria-label={isExpanded ? "Tutup toolbar" : "Buka toolbar graph"}
         >
           {isExpanded ? (
             <ChevronDown className="h-3.5 w-3.5 text-muted-foreground group-hover:text-primary transition-colors" />
@@ -468,7 +471,7 @@ function HorizontalOfficeToolbar({
         </button>
 
         <span className="text-[10px] text-muted-foreground/70 hidden sm:inline">
-          {isExpanded ? PANEL_TITLES[activeTab] : 'Klik toolbar untuk konfigurasi graph'}
+          {isExpanded ? PANEL_TITLES[activeTab] : "Klik toolbar untuk konfigurasi graph"}
         </span>
       </div>
     </div>
@@ -476,7 +479,7 @@ function HorizontalOfficeToolbar({
 }
 
 // =============================================================================
-// 4. SUB-COMPONENT: GEAR OPTION BUTTON (KLASIK FLOATING BUTTON)
+// 4. SUB-COMPONENT: GEAR OPTION BUTTON (FLOATING KANAN ATAS)
 // =============================================================================
 
 function ClassicGearControls({
@@ -494,20 +497,60 @@ function ClassicGearControls({
   isGearOpen: boolean;
   onSelectPanel: (panel: SettingGroup) => void;
   onClosePanel: () => void;
-} & Omit<GraphSettingContentProps, 'activePanel'>) {
+} & Omit<GraphSettingContentProps, "activePanel">) {
   return (
-    <div className="pointer-events-none absolute bottom-2 left-2 z-30 flex flex-col-reverse items-start gap-1.5 sm:bottom-4 sm:left-4">
-      {/* Floating Gear Button */}
+    // UBAH: Posisi di kanan atas (top-2 right-2 sm:top-4 sm:right-4)
+    // UBAH: Gunakan flex-col items-end (BUKAN flex-col-reverse) agar panel muncul ke bawah
+    <div className="pointer-events-none absolute top-2 right-2 z-40 flex flex-col items-end gap-1.5 sm:top-4 sm:right-4">
+      {/* Baris Tombol Gear & Opsi Horizontal */}
       <div className="pointer-events-auto flex items-center rounded-lg border border-border/60 bg-card/90 p-1 shadow-md shadow-black/25 backdrop-blur-md transition-all">
+        {/* Tombol-tombol Opsi mekar ke arah KIRI dari tombol Gear */}
+        {isGearOpen && (
+          <div className="mr-1 flex max-w-[calc(100vw-80px)] sm:max-w-[280px] items-center gap-1 overflow-x-auto overscroll-contain pr-1 border-r border-border/50 no-scrollbar animate-in fade-in-0 slide-in-from-right-2 duration-150">
+            {NAV_ITEMS.map((item) => {
+              const Icon = item.icon;
+              const isActive = activePanel === item.id;
+              const hasActiveFilterBadge = item.badgeFilter && filterCount > 0;
+
+              return (
+                <Tooltip key={item.id}>
+                  <TooltipTrigger asChild>
+                    <Button
+                      type="button"
+                      variant={isActive ? "secondary" : "ghost"}
+                      size="icon"
+                      className={cn(
+                        "relative h-7 w-7 rounded-md shrink-0 transition-colors",
+                        hasActiveFilterBadge && "text-primary",
+                      )}
+                      onClick={() => onSelectPanel(item.id)}
+                      aria-label={item.label}
+                    >
+                      <Icon className={cn("h-3.5 w-3.5", item.iconClassName)} />
+                      {hasActiveFilterBadge && (
+                        <span className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-primary ring-1 ring-background" />
+                      )}
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" className="text-xs">
+                    {item.label}
+                  </TooltipContent>
+                </Tooltip>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Tombol Utama Gear (Ikon Settings2) di Ujung Kanan */}
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
               type="button"
-              variant={isGearOpen ? 'secondary' : 'ghost'}
+              variant={isGearOpen ? "secondary" : "ghost"}
               size="icon"
               className={cn(
-                'relative h-7 w-7 rounded-md shrink-0 transition-transform duration-200',
-                isGearOpen && 'rotate-45'
+                "relative h-7 w-7 rounded-md shrink-0 transition-transform duration-200",
+                isGearOpen && "rotate-45",
               )}
               aria-label="Toggle Graph Settings Menu"
               onClick={onToggleGear}
@@ -518,45 +561,15 @@ function ClassicGearControls({
               )}
             </Button>
           </TooltipTrigger>
-          <TooltipContent side="top" className="text-xs">
-            {isGearOpen ? 'Collapse Settings' : 'Expand Graph Settings'}
+          <TooltipContent side="bottom" className="text-xs">
+            {isGearOpen ? "Sembunyikan Pengaturan" : "Buka Pengaturan Graph"}
           </TooltipContent>
         </Tooltip>
-
-        {isGearOpen && (
-          <div className="ml-1 flex max-w-[calc(100vw-80px)] items-center gap-1 overflow-x-auto overscroll-contain pl-1 border-l border-border/50 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden animate-in fade-in-0 slide-in-from-left-2 duration-150">
-            {NAV_ITEMS.map((item) => {
-              const Icon = item.icon;
-              const isActive = activePanel === item.id;
-              const hasActiveFilterBadge = item.badgeFilter && filterCount > 0;
-
-              return (
-                <Button
-                  key={item.id}
-                  type="button"
-                  variant={isActive ? 'secondary' : 'ghost'}
-                  size="icon"
-                  className={cn(
-                    'relative h-7 w-7 rounded-md shrink-0 transition-colors',
-                    hasActiveFilterBadge && 'text-primary'
-                  )}
-                  onClick={() => onSelectPanel(item.id)}
-                  aria-label={item.label}
-                >
-                  <Icon className={cn('h-3.5 w-3.5', item.iconClassName)} />
-                  {hasActiveFilterBadge && (
-                    <span className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-primary ring-1 ring-background" />
-                  )}
-                </Button>
-              );
-            })}
-          </div>
-        )}
       </div>
 
-      {/* Flyout Panel */}
+      {/* Flyout Panel Pengaturan: Turun Vertikal ke Bawah & Scrollbar Modern */}
       {activePanel && (
-        <section className="pointer-events-auto flex h-[min(320px,calc(100vh-140px))] w-[min(324px,calc(100vw-32px))] flex-col overflow-hidden rounded-lg border border-border/60 bg-card/95 shadow-lg shadow-black/30 backdrop-blur-md animate-in fade-in-0 slide-in-from-bottom-2 duration-150">
+        <section className="pointer-events-auto flex h-[min(340px,calc(100vh-140px))] w-[min(324px,calc(100vw-32px))] flex-col overflow-hidden rounded-lg border border-border/60 bg-card/95 shadow-lg shadow-black/30 backdrop-blur-md animate-in fade-in-0 slide-in-from-top-2 duration-150">
           <header className="flex h-7 shrink-0 items-center justify-between border-b border-border/50 px-2.5 bg-muted/20">
             <span className="truncate text-[11px] font-medium text-foreground tracking-tight">
               {PANEL_TITLES[activePanel]}
@@ -566,13 +579,15 @@ function ClassicGearControls({
               variant="ghost"
               size="icon"
               className="h-5 w-5 rounded shrink-0 text-muted-foreground hover:text-foreground"
-              aria-label="Close settings panel"
+              aria-label="Tutup panel pengaturan"
               onClick={onClosePanel}
             >
               <X className="h-3 w-3" />
             </Button>
           </header>
-          <div className="min-h-0 flex-1 overflow-y-auto p-2.5 [scrollbar-width:thin]">
+
+          {/* Area Konten: scrollbar-thin, bebas scrollbar horizontal */}
+          <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden p-2.5 scrollbar-thin scrollbar-thumb-muted-foreground/20 hover:scrollbar-thumb-muted-foreground/30 scrollbar-track-transparent">
             <GraphSettingContent activePanel={activePanel} {...contentProps} />
           </div>
         </section>
@@ -587,7 +602,7 @@ function ClassicGearControls({
 
 export function GraphWorkspaceControls({
   layout,
-  canvasMode = 'graph',
+  canvasMode = "graph",
   onCanvasModeChange,
   onLayoutChange,
   orientation,
@@ -608,7 +623,7 @@ export function GraphWorkspaceControls({
   onTagFilterChange,
   onSmartZoom,
 }: GraphWorkspaceControlsProps) {
-    // Mode dari Zustand store (Default: 'gear_button')
+  // Mode dari Zustand store (Default: 'gear_button')
   const displayMode = useGraphToolbarStore((s) => s.mode);
   const isRibbonExpanded = useGraphToolbarStore((s) => s.isExpanded);
   const toggleRibbonExpanded = useGraphToolbarStore((s) => s.toggleExpanded);
@@ -633,15 +648,18 @@ export function GraphWorkspaceControls({
     : (cfg: GraphConfigState) => useGraphStore.getState().setConfig(cfg);
 
   const updateNodeConfig = leafApi
-    ? (upd: Parameters<LeafGraphConfigState['setNodeConfig']>[0]) => leafApi.getState().setNodeConfig(upd)
+    ? (upd: Parameters<LeafGraphConfigState["setNodeConfig"]>[0]) =>
+        leafApi.getState().setNodeConfig(upd)
     : (upd: Partial<NodeConfig>) => useGraphStore.getState().updateNodeConfig(upd);
 
   const updateLinkConfig = leafApi
-    ? (upd: Parameters<LeafGraphConfigState['setLinkConfig']>[0]) => leafApi.getState().setLinkConfig(upd)
+    ? (upd: Parameters<LeafGraphConfigState["setLinkConfig"]>[0]) =>
+        leafApi.getState().setLinkConfig(upd)
     : (upd: Partial<LinkConfig>) => useGraphStore.getState().updateLinkConfig(upd);
 
   const updateTopologyConfig = leafApi
-    ? (upd: Parameters<LeafGraphConfigState['setTopologyConfig']>[0]) => leafApi.getState().setTopologyConfig(upd)
+    ? (upd: Parameters<LeafGraphConfigState["setTopologyConfig"]>[0]) =>
+        leafApi.getState().setTopologyConfig(upd)
     : (upd: Partial<TopologyConfig>) => useGraphStore.getState().updateTopologyConfig(upd);
 
   const updateTopologyStyle = (type: LinkStyleType, upd: Partial<LinkStyle>) => {
@@ -663,7 +681,7 @@ export function GraphWorkspaceControls({
     useGraphStore.getState().updateHierarchyConfig(upd);
   };
 
-  const updateAtmosphereConfig = (updates: Partial<GraphConfigState['atmosphere']>) => {
+  const updateAtmosphereConfig = (updates: Partial<GraphConfigState["atmosphere"]>) => {
     if (leafApi) leafApi.getState().setAtmosphereConfig(updates);
     else useGraphStore.getState().updateAtmosphereConfig(updates);
   };
@@ -718,7 +736,7 @@ export function GraphWorkspaceControls({
   return (
     <TooltipProvider delayDuration={200}>
       {/* 1. KONTROL UTAMA: BERDASARKAN MODE (HORIZONTAL TOOLBAR ATAU GEAR) */}
-      {displayMode === 'horizontal_toolbar' ? (
+      {displayMode === "horizontal_toolbar" ? (
         <HorizontalOfficeToolbar
           isExpanded={isRibbonExpanded}
           onToggleExpanded={toggleRibbonExpanded}
@@ -736,9 +754,7 @@ export function GraphWorkspaceControls({
             if (isGearOpen) setGearActivePanel(null);
           }}
           isGearOpen={isGearOpen}
-          onSelectPanel={(panel) =>
-            setGearActivePanel((c) => (c === panel ? null : panel))
-          }
+          onSelectPanel={(panel) => setGearActivePanel((c) => (c === panel ? null : panel))}
           onClosePanel={() => setGearActivePanel(null)}
           {...contentProps}
         />
