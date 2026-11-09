@@ -7,23 +7,23 @@
 
 import { container, ServiceIds } from "@/shared/di/container";
 import { eventBus } from "@/shared/events/events";
-import { pluginRegistry } from "@/core/system/plugins/plugin-registry";
-import { getVaultManager } from "@/core/system/vault/VaultManagerSingleton";
-import { VaultStorage } from "@/core/system/vault/VaultStorage";
-import { vaultSyncService } from "@/core/system/vault/VaultSyncService";
-import { VaultBackupService } from "@/core/system/vault/VaultBackupService";
-import { GraphService } from "@/core/graph/GraphService";
-import { RelationshipMapper } from "@/core/graph/RelationshipMapper";
-import { ContentParser } from "@/core/system/metadata/content-parser";
-import { getFileSystemService } from "@/core/system/persistence/FileSystemServiceSingleton";
-import { importExportService } from "@/core/system/import-export/services/ImportExportService";
-import { apiKeyService } from "@/core/shell/profile/services/ApiKeyService";
+import { pluginRegistry } from "@/domains/settings/plugins/plugin-registry";
+import { getVaultManager } from "@/domains/vault/services/VaultManagerSingleton";
+import { VaultStorage } from "@/domains/vault/services/VaultStorage";
+import { vaultSyncService } from "@/domains/vault/services/VaultSyncService";
+import { VaultBackupService } from "@/domains/vault/services/VaultBackupService";
+import { GraphService } from "@/domains/graph/services/GraphService";
+import { RelationshipMapper } from "@/domains/graph/services/RelationshipMapper";
+import { ContentParser } from "@/domains/metadata/content-parser";
+import { getFileSystemService } from "@/domains/vault/persistence/FileSystemServiceSingleton";
+import { importExportService } from "@/domains/vault/import-export/services/ImportExportService";
+import { apiKeyService } from "@/domains/settings/profile/services/ApiKeyService";
 import { supabase } from "@/integrations/supabase/client";
-import { commandRegistry } from "@/core/system/commands/CommandRegistry";
-import { registerEditorCommands } from "@/core/editor/commands/editorCommands";
-import { syncEngine } from "@/core/system/sync/SyncEngine";
-import { syncCoordinator } from "@/core/system/sync/SyncCoordinator";
-import { registerToggleableFeatures } from "@/core/system/plugins/feature-toggles";
+import { commandRegistry } from "@/domains/workspace/commands/CommandRegistry";
+import { registerEditorCommands } from "@/domains/editor/commands/editorCommands";
+import { syncEngine } from "@/domains/sync/SyncEngine";
+import { syncCoordinator } from "@/domains/sync/SyncCoordinator";
+import { registerToggleableFeatures } from "@/domains/settings/plugins/feature-toggles";
 
 let bootstrapped = false;
 

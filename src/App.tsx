@@ -4,11 +4,11 @@ import { TooltipProvider } from "@/shared/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ErrorBoundary } from "@/shared/components/ErrorBoundary";
-import { AuthProvider } from "@/core/shell/auth/hooks/useAuth";
-import { ProtectedRoute } from "@/core/shell/auth/ProtectedRoute";
-import { DevAuthBanner } from "@/core/shell/auth/DevAuthBanner";
-import { EventDebugPanel } from "@/core/system/vault/debug/EventDebugPanel";
-import { CommandPalette } from "@/core/shell/command-palette/CommandPalette";
+import { AuthProvider } from "@/domains/auth/hooks/useAuth";
+import { ProtectedRoute } from "@/domains/auth/components/ProtectedRoute";
+import { DevAuthBanner } from "@/domains/auth/components/DevAuthBanner";
+import { EventDebugPanel } from "@/domains/vault/debug/EventDebugPanel";
+import { CommandPalette } from "@/domains/settings/command-palette/CommandPalette";
 import { Suspense, lazy } from "react";
 
 const queryClient = new QueryClient();
@@ -19,9 +19,7 @@ const Landing = lazy(() =>
     console.error("Failed to load Landing:", err);
     return {
       default: () => (
-        <div className="p-8 text-destructive">
-          Failed to load Landing: {err.message}
-        </div>
+        <div className="p-8 text-destructive">Failed to load Landing: {err.message}</div>
       ),
     };
   }),
@@ -32,9 +30,7 @@ const Index = lazy(() =>
     console.error("Failed to load Index:", err);
     return {
       default: () => (
-        <div className="p-8 text-destructive">
-          Failed to load Index: {err.message}
-        </div>
+        <div className="p-8 text-destructive">Failed to load Index: {err.message}</div>
       ),
     };
   }),
@@ -45,23 +41,17 @@ const Install = lazy(() =>
     console.error("Failed to load Install:", err);
     return {
       default: () => (
-        <div className="p-8 text-destructive">
-          Failed to load Install: {err.message}
-        </div>
+        <div className="p-8 text-destructive">Failed to load Install: {err.message}</div>
       ),
     };
   }),
 );
 
 const Auth = lazy(() =>
-  import("./pages/Auth").catch((err) => {
+  import("./domains/auth/components/Auth").catch((err) => {
     console.error("Failed to load Auth:", err);
     return {
-      default: () => (
-        <div className="p-8 text-destructive">
-          Failed to load Auth: {err.message}
-        </div>
-      ),
+      default: () => <div className="p-8 text-destructive">Failed to load Auth: {err.message}</div>,
     };
   }),
 );
@@ -71,9 +61,7 @@ const NotFound = lazy(() =>
     console.error("Failed to load NotFound:", err);
     return {
       default: () => (
-        <div className="p-8 text-destructive">
-          Failed to load NotFound: {err.message}
-        </div>
+        <div className="p-8 text-destructive">Failed to load NotFound: {err.message}</div>
       ),
     };
   }),
@@ -88,6 +76,28 @@ const LoadingFallback = () => (
   </div>
 );
 
+const PublicReader = lazy(() =>
+  import("./pages/PublicReader").catch((err) => {
+    console.error("Failed to load PublicReader:", err);
+    return {
+      default: () => (
+        <div className="p-8 text-destructive">Failed to load PublicReader: {err.message}</div>
+      ),
+    };
+  }),
+);
+
+const Admin = lazy(() =>
+  import("./pages/Admin").catch((err) => {
+    console.error("Failed to load Admin:", err);
+    return {
+      default: () => (
+        <div className="p-8 text-destructive">Failed to load Admin: {err.message}</div>
+      ),
+    };
+  }),
+);
+
 const App = () => (
   <ErrorBoundary>
     <QueryClientProvider client={queryClient}>
@@ -98,13 +108,17 @@ const App = () => (
         <CommandPalette />
         <BrowserRouter>
           <AuthProvider>
-            <DevAuthBanner />
+            {/* <DevAuthBanner /> */}
             <Suspense fallback={<LoadingFallback />}>
               <Routes>
                 {/* Public landing page */}
                 <Route path="/" element={<Landing />} />
                 <Route path="/auth" element={<Auth />} />
                 <Route path="/install" element={<Install />} />
+                <Route path="/p/:username/:vaultSlug/:noteSlug" element={<PublicReader />} />
+                <Route path="/p/:username/:vaultSlug" element={<PublicReader />} />
+                <Route path="/p/:vaultSlug" element={<PublicReader />} />
+                <Route path="/admin" element={<Admin />} />
 
                 {/* Protected routes */}
                 <Route

@@ -7,6 +7,8 @@
 /**
  * Resolve CSS variable colors to actual HSL values for canvas rendering
  */
+
+export * from './color-engine'
 export function resolveColor(color: string): string {
 	// If it's already a resolved HSL/HSLA value (no CSS variables), return as-is
 	if (!color.includes('var(')) {

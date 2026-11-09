@@ -2,19 +2,22 @@
  * Shared types for Zustand stores
  */
 
+// src/shared/stores/types.ts
+
 export interface Node {
   id: string;
   name: string;
   content: string;
-  type: 'folder' | 'file' | 'media';
+  type: 'folder' | 'file' | 'media'| 'pdf';
   parentId: string | null;
   depth: number;
   tags: string[];
   wikilinks?: string[];
-  mediaType?: 'image' | 'audio' | 'video';
+  mediaType?: 'image' | 'audio' | 'video' | 'pdf'; // <-- Ditambahkan 'pdf'
   mimeType?: string;
   dataUrl?: string;
 }
+
 
 export interface Link {
   source: string | Node;

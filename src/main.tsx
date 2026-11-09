@@ -2,7 +2,7 @@ import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
 import { bootstrapApp } from "@/app/bootstrap";
-import { logCacheStatus } from "@/core/system/persistence/offline-storage.ts";
+import { logCacheStatus } from "@/domains/vault/persistence/offline-storage.ts";
 
 bootstrapApp();
 

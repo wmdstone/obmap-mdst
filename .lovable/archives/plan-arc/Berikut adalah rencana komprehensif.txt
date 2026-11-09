@@ -1,0 +1,147 @@
+Berikut adalah rencana komprehensif, bertahap (gradual), dan terstruktur untuk menata ulang serta melengkapi panel kontrol graph, mengelompokkan pengaturan secara modular, dan memastikan tidak ada konfigurasi visual penting yang tertinggal.
+
+---
+
+Gambaran Arsitektur & Organisasi
+
+```text
++-------------------------------------------------------------------------+
+| Toolbar Samping (Floating Gear Button Menu)                             |
++-------------------------------------------------------------------------+
+  [⚙ Gear Menu Toggle]
+    |-- [🔍 Search & Depth]   -> Judul, slider rentang depth (min/max), teks, tag
+    |-- [🌐 Layout & Zoom]    -> Mode algoritma, orientasi, Zoom-Out Rendering, threshold
+    |-- [⚪ Node Appearance]  -> Filter Folder/File, Ukuran & Hierarki, Warna, Label, Glow
+    |-- [🔗 Link & Particles] -> Jenis Link (Topology), Gaya per tipe, Warna Parent, Partikel
+    |-- [⚡ Physics & Forces] -> Reheat/Freeze, DAG mode, Gaya tolak, Jarak link
+    |-- [📊 Global & Stats]   -> Ringkasan statistik (Backlinks/Tags) & Kelola Template
+  [⤢ Zoom to Fit]
+  [🎯 Zoom to Selection]
+  [↕ Show Everything] (Otomatis muncul bila ada node collapsed / terisolasi)
+```
+
+---
+
+Tahapan Pengerjaan Bertahap (Gradual Roadmap)
+
+Tahap 1: Ekstensi Tipe & State Model
+Tujuan: Menambahkan field data yang belum ada pada store konfigurasi graph tanpa mengubah kestabilan data yang ada.
+1. Node Visibility by Type:
+   - Menambahkan opsi `showFolderNodes: boolean` (default: `true`) dan `showFileNodes: boolean` (default: `true`) ke dalam `NodeConfig` di `src/shared/stores/useGraphStore.ts`.
+   - Memastikan fungsi `mergeGraphConfig` mengisi nilai default secara aman jika file template lama belum memilikinya.
+2. Koneksi Filter Rendering di Canvas:
+   - Pada `src/core/graph/GraphCanvas.tsx` di dalam `visibleIds`, tambahkan filter:
+     - Jika `!config.nodes.showFolderNodes && node.type === 'folder'`, sembunyikan node.
+     - Jika `!config.nodes.showFileNodes && node.type !== 'folder'`, sembunyikan node.
+3. Verifikasi Partikel & Tipe Link:
+   - Pastikan `particleWidth` pada `LinkConfig` (sudah ada di model) siap dikontrol lewat UI dan tersambung ke `drawLink.ts`.
+
+---
+
+Tahap 2: Pengelompokan Layout & Zoom-Out Rendering
+Tujuan: Memindahkan pengaturan kamera & level-of-detail yang sebelumnya hanya ada di Universal Visual Graph Settings ke dalam flyout Layout toolbar.
+1. Pengaturan yang dimasukkan ke panel `layout`:
+   - Layout Algorithm: Free-force, Mindmap, Timeline, Fishbone.
+   - Mindmap Orientation: Balanced vs Radial (aktif ketika layout mindmap).
+   - Zoom-Out Rendering Mode: 
+     - Opsi: `Optimized` vs `Keep full detail`.
+     - Keterangan: "Keep full detail preserves node cards, labels, and link weight while zooming out."
+     - Mengubah state `engine.patch({ zoomOutRendering })`.
+   - Label Zoom Threshold: Slider batas zoom kamera kapan teks label mulai terlihat atau disederhanakan.
+
+---
+
+Tahap 3: Pengelompokan Link Types, Styles, dan Partikel
+Tujuan: Menyediakan konfigurasi lengkap topologi link, penyesuaian gaya per jenis link, pewarnaan parent-child hierarki, dan efek partikel.
+1. Sub-grup A — Link Types (Topology Toggles):
+   - Switch Hierarchical Links (Parent-child folder structure).
+   - Switch Backlink Connections (Wikilinks between notes).
+   - Switch Tag-Based Edges (Connect notes sharing tags).
+   - Slider Tag Threshold (Minimal kesamaan tag untuk membentuk relasi: 1 - 5 tags).
+2. Sub-grup B — Per-Type Link Styling:
+   - Tab / selector mini untuk tipe link (`Hierarchy`, `Backlinks`, `Tags`, `Semantic`).
+   - Masing-masing memiliki kontrol:
+     - Link Color: Color picker interaktif.
+     - Line Style: Solid, Dashed, Dotted.
+     - Opacity: Slider transparansi (10% - 100%).
+     - Width: Slider ketebalan garis (0.5px - 5px).
+3. Sub-grup C — Hierarchy Link Color Mode:
+   - Selector mode:
+     - `Parent Match` — warna garis mengikuti level kedalaman folder parent.
+     - `Child Match` — warna garis mengikuti level kedalaman child.
+     - `Level Specific` — warna child dengan transparansi spesifik tiap kedalaman.
+   - Catatan panduan: "Backlinks, tags and semantic links keep their own styles."
+4. Sub-grup D — Particle Animations:
+   - Switch aktifkan partikel animasi.
+   - Slider Count per link (1 - 6 partikel).
+   - Slider Flow Speed (kecepatan aliran).
+   - Slider Particle Width (ketebalan/diameter partikel).
+   - Color picker Particle Color.
+
+---
+
+Tahap 4: Pengelompokan Node Types, Hierarki Sizing, Warna, & Label
+Tujuan: Membawa semua fitur styling node dan label dari universal settings ke dalam sub-panel Nodes dengan pengelompokan collapsible agar rapi.
+1. Sub-grup A — Node Types Filter:
+   - Switch Folder Nodes: Tampilkan / sembunyikan semua folder.
+   - Switch File Nodes: Tampilkan / sembunyikan semua berkas catatan.
+2. Sub-grup B — Ukuran & Geometri (Node Style):
+   - Pilihan Shape: Circle, Square, Diamond, Triangle, Hexagon.
+   - Slider Relative Size: Base size node marker (1 - 20).
+   - Switch Size by hierarchy level: Node yang lebih dalam mengecil secara bertingkat (Make deeper nodes progressively smaller).
+   - Slider Level size interval: (0.25px - 4px per tingkat kedalaman).
+3. Sub-grup C — Pewarnaan Hierarki (Color by hierarchy level):
+   - Switch aktifkan pewarnaan tingkat hierarki (One colour per folder depth, applied to nodes and hierarchy links).
+   - Dropdown Palette Preset: Classic Categorical, Monochromatic Blue, Dark Mode Friendly, Warm Tones, Cool Tones, Custom.
+   - Dropdown Levels beyond the palette: Loop vs Gradient.
+   - List palet warna per-level (Level 0 Root, Level 1, Level 2, dst.) lengkap dengan tombol tambah/kurang level.
+4. Sub-grup D — Warna Statis & Glow Animation:
+   - Color picker: Folder Color, File Color, Selected Color.
+   - Switch Glowing Nodes (animasi pendaran halus).
+   - Slider Glow Intensity & Pulse Speed.
+5. Sub-grup E — Pengaturan Label (Label Styles):
+   - Switch Show Labels.
+   - Dropdown Label Source Field: `Node Name`, `Node ID`, `Custom`.
+   - Slider Label Size (8px - 32px).
+   - Dropdown Font Style: Normal, Bold, Italic, Bold Italic.
+   - Color picker Label Text Color.
+   - Switch Label Box (kotak pembungkus kartu label).
+   - Switch & Color picker Box Color (latar belakang kartu label).
+
+---
+
+Tahap 5: Pengelompokan Global & Stats Panel
+Tujuan: Menggabungkan analitik data grafis nyata dengan sistem penyimpanan template.
+1. Statistik Jaringan Nyata (Stats):
+   - Ringkasan kartu mini yang membaca `useGraphStore.getState().stats`:
+     - Total Connections: Jumlah semua tautan aktif.
+     - Hierarchy Links: Jumlah koneksi folder-file.
+     - Backlinks: Total wikilink antar catatan.
+     - Tags: Total koneksi berbasis kesamaan tag.
+2. Kelola Template:
+   - Input nama untuk menyimpan kombinasi setting aktif sebagai template baru.
+   - Daftar template tersimpan dengan tombol Apply, Set as Default, dan Delete.
+
+---
+
+Tahap 6: Desain UI Flyout & Scrollbar Optimization
+Tujuan: Menjaga ukuran panel tetap nyaman, tidak menutupi seluruh layar grafis, dan mudah di-scroll.
+1. Menggunakan accordion/collapsible section di dalam panel `Nodes` dan `Links` agar pengguna bisa membuka hanya bagian yang sedang ingin diatur.
+2. Menetapkan `max-h-[420px]` dengan styling `thin scrollbar` halus.
+3. Memastikan semua perubahan langsung bereaksi di kanvas secara real-time (live preview) dan disimpan per tab leaf graph.
+
+---
+
+Detail Teknis Komponen yang Terlibat
+
+| Modul / File | Tanggung Jawab Perubahan |
+| :--- | :--- |
+| `src/shared/stores/useGraphStore.ts` | Tambahkan `showFolderNodes`, `showFileNodes`, verifikasi default values & migrasi merge. |
+| `src/core/graph/GraphCanvas.tsx` | Hubungkan filter `showFolderNodes`/`showFileNodes` ke visibilitas, sinkronkan `zoomOutRendering` & `particleWidth`. |
+| `src/core/graph/GraphWorkspaceControls.tsx` | Penataan ulang icon menu gear, struktur popover flyout dengan 6 tab yang terkelompok rapi. |
+| `src/core/graph/config-panel/HierarchyColorControls.tsx` | Digunakan ulang / diintegrasikan langsung ke dalam panel nodes & links. |
+| `src/core/graph/model/useLeafGraphConfigStore.ts` | Memastikan state leaf store menampung semua konfigurasi baru per-tab secara terisolasi. |
+
+---
+
+Apakah struktur rencana bertahap di atas sudah sesuai dengan alur yang Anda inginkan, atau ada bagian dari pengelompokan tombol yang ingin disesuaikan terlebih dahulu sebelum kita mulai pengerjaannya?

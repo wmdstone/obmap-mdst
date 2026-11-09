@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "@/core/shell/auth/hooks/useAuth";
-import { usePWA } from "@/core/system/sync/hooks/usePWA";
+import { useAuth } from "@/domains/auth/hooks/useAuth";
+import { usePWA } from "@/domains/sync/hooks/usePWA";
 import { Button } from "@/shared/ui/button";
 import { Badge } from "@/shared/ui/badge";
 import {

@@ -1,0 +1,41 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1791675935668,
+      "tag": "0000_apply_profiles_schema",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1791675949371,
+      "tag": "0001_apply_vault_schema",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1791675960292,
+      "tag": "0002_apply_user_settings_schema",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1791675972223,
+      "tag": "0003_grant_data_api_access",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1793425202529,
+      "tag": "0004_v4_collaboration_and_publishing",
+      "breakpoints": true
+    }
+  ]
+}

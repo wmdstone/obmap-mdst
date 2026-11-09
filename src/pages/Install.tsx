@@ -1,4 +1,4 @@
-import { usePWA } from "@/core/system/sync/hooks/usePWA";
+import { usePWA } from "@/domains/sync/hooks/usePWA";
 import { Button } from "@/shared/ui/button";
 import {
   Card,

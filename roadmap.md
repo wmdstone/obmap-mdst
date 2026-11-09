@@ -1,7 +1,6 @@
 # Roadmap
 
-- [ ] Consolidate MiniMap and Levels into a stable icon-only toolbar with bounded, mutually exclusive panels.
-- [ ] Verify graph overlay interactions and responsive sizing; resolve the existing graph controls prop error.
+- [x] Repair graph preview compilation errors and verify the affected graph tests.
 
 - [x] Make the Settings Hub responsive across mobile, tablet, and desktop.
 - [x] Consolidate graph layout, search, and filters into one compact tool rail.
@@ -22,3 +21,18 @@
 - [x] Phase 3–4: UUID vault identity, cloud-matched vault dedup, vault-scoped config sections in ConfigService.
 - [x] Phase 6: logout no longer destroys local vaults; sync queue scoped per user; consolidated duplicate auth listener.
 - [x] Phase 5: folder vaults survive refresh via remembered directory handles (with permission re-prompt); one shared FileSystemService; shared folder-capability detection in the UI.
+- [x] Connect Lovable Cloud and recreate the app schema from supabase/migrations (profiles, user_vaults, user_api_keys, vault_history, vault_backups, user_settings) with RLS and data-API grants.
+- [x] Enable email/password and Google sign-in on the new backend; confirm the sign-in screen reaches it.
+- [ ] Make the avatars bucket public — waiting on a workspace admin to allow public buckets in Settings → Privacy & Security.
+- [ ] Verify the signed-in workspace end to end — waiting on a first account (sign up in the preview, or ask for the developer quick-login account to be created).
+
+
+## Refactoring & Architecture Audit (Completed)
+- [x] Phase 0: Test baseline established (64 unit tests green, Playwright screenshots preserved).
+- [x] Phase 1: Modularized `GraphWorkspaceControls` into compact tool rails and isolated panel components.
+- [x] Phase 2: Extracted `NodePanel` subviews (`NodeBreadcrumbBar`, `NodeMediaPreview`, `NodeBacklinksSection`).
+- [x] Phase 3: Decoupled `SidebarPanel` into `FileExplorerTree`, `ExplorerContextMenu`, and folder hooks.
+- [x] Phase 4: Isolated `GraphCanvas` gesture bridging, drag reparenting, and atmosphere rendering loops.
+- [x] Phase 5: Centralized pure hierarchy traversal (`hierarchyTraversal.ts`) and unified color engine (`color-engine.ts`).
+- [x] Phase 6: Added comprehensive characterization test suites for `VaultManager` and `ImportExportService` (98 tests green).
+- [x] Phase 8: Eliminated monolithic `VaultSessionContext` (~700 LOC), migrated all leaves to Zustand selectors, and established `useVaultLifecycle`.

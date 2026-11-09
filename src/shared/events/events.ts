@@ -91,7 +91,7 @@ export interface VaultSavedPayload {
 export interface NodePayload {
   id: string;
   name: string;
-  type: 'folder' | 'file' | 'media';
+  type: 'folder' | 'file' | 'media' | 'pdf';
   parentId: string | null;
   vaultId: string;
 }
