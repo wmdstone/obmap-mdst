@@ -35,6 +35,7 @@ export const MINDMAP_LAYOUTS: { value: LayoutMode; label: string; icon: typeof N
 ];
 
 interface LayoutPanelProps {
+    compact?: boolean;
   canvasMode: CanvasMode;
   layout: LayoutMode;
   orientation: MindmapOrientation;
@@ -44,6 +45,7 @@ interface LayoutPanelProps {
 }
 
 export function LayoutPanel({
+   compact = true,
   canvasMode,
   layout,
   orientation,
@@ -72,7 +74,7 @@ export function LayoutPanel({
   const layouts = isMindmap ? MINDMAP_LAYOUTS : GRAPH_LAYOUTS;
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5 items-start">
+    <div className={cn("grid gap-3 items-start w-full", compact ? "grid-cols-1" : "grid-cols-1 md:grid-cols-2 lg:grid-cols-3")}>
       {/* ================= BENTO 1: MODE & SOLVER ALGORITHM ================= */}
       <div className="space-y-3 rounded-xl border border-border/70 bg-card/60 p-3 shadow-xs">
         <SectionHeaderWithReset
@@ -88,26 +90,26 @@ export function LayoutPanel({
             variant="ghost"
             size="sm"
             className={cn(
-              'h-7 gap-1.5 text-xs font-medium transition-all rounded-md',
+              'h-7 gap-1.5 text-xs font-medium transition-all rounded-md min-w-0',
               !isMindmap ? 'bg-background text-foreground shadow-xs font-semibold' : 'text-muted-foreground'
             )}
             onClick={() => onModeSwitch('graph')}
           >
-            <Network className="h-3.5 w-3.5 text-primary" />
-            Graph View
+            <Network className="h-3.5 w-3.5 text-primary shrink-0" />
+            <span className="truncate">Graph View</span>
           </Button>
           <Button
             type="button"
             variant="ghost"
             size="sm"
             className={cn(
-              'h-7 gap-1.5 text-xs font-medium transition-all rounded-md',
+              'h-7 gap-1.5 text-xs font-medium transition-all rounded-md min-w-0',
               isMindmap ? 'bg-background text-foreground shadow-xs font-semibold' : 'text-muted-foreground'
             )}
             onClick={() => onModeSwitch('mindmap')}
           >
-            <GitBranch className="h-3.5 w-3.5 text-primary" />
-            Mindmap View
+            <GitBranch className="h-3.5 w-3.5 text-primary shrink-0" />
+            <span className="truncate">Mindmap View</span>
           </Button>
         </div>
 
@@ -122,45 +124,24 @@ export function LayoutPanel({
                 type="button"
                 onClick={() => onLayoutChange(item.value)}
                 className={cn(
-                  'flex flex-col items-start p-2 rounded-lg border text-left transition-all',
+                  'flex flex-col items-start p-2 rounded-lg border text-left transition-all min-w-0 overflow-hidden',
                   isActive
                     ? 'border-primary bg-primary/10 text-foreground ring-1 ring-primary/40'
                     : 'border-border/60 bg-muted/20 text-muted-foreground hover:bg-muted/50 hover:text-foreground'
                 )}
               >
-                <div className="flex items-center gap-1.5 mb-0.5">
-                  <Icon className={cn('h-3.5 w-3.5', isActive ? 'text-primary' : 'text-muted-foreground')} />
-                  <span className="text-xs font-semibold">{item.label}</span>
+                <div className="flex items-center gap-1.5 mb-0.5 w-full min-w-0">
+                  <Icon className={cn('h-3.5 w-3.5 shrink-0', isActive ? 'text-primary' : 'text-muted-foreground')} />
+                  <span className="text-xs font-semibold truncate">{item.label}</span>
                 </div>
-                <span className="text-[10px] text-muted-foreground/80 line-clamp-1">{item.desc}</span>
+                <span className="text-[10px] text-muted-foreground/80 truncate w-full">{item.desc}</span>
               </button>
             );
           })}
         </div>
-
-        {/* Khusus Mindmap: Orientation */}
-        {isMindmap && layout === 'mindmap' && (
-          <div className="pt-2 border-t border-border/40 space-y-1.5">
-            <span className="text-[11px] font-medium text-muted-foreground">Orientasi Cabang</span>
-            <div className="grid grid-cols-2 gap-1.5">
-              {(['balanced', 'radial'] as MindmapOrientation[]).map((val) => (
-                <Button
-                  key={val}
-                  type="button"
-                  variant={orientation === val ? 'secondary' : 'outline'}
-                  size="sm"
-                  className="h-7 text-xs capitalize"
-                  onClick={() => onOrientationChange(val)}
-                >
-                  {val}
-                </Button>
-              ))}
-            </div>
-          </div>
-        )}
       </div>
 
-      {/* ================= BENTO 2: STRUKTUR & ZOOM ENGINE ================= */}
+      {/* ================= BENTO 2: STRUKTUR & ENGINE RENDERING ================= */}
       <div className="space-y-3 rounded-xl border border-border/70 bg-card/60 p-3 shadow-xs">
         <SectionHeaderWithReset
           title="Struktur & Engine Rendering"
@@ -181,19 +162,19 @@ export function LayoutPanel({
               type="button"
               variant={layoutArrangement === 'auto' ? 'secondary' : 'outline'}
               size="sm"
-              className="h-7 text-xs font-medium"
+              className="h-7 text-xs font-medium min-w-0"
               onClick={() => setLayoutArrangement('auto')}
             >
-              Anti-Overlap (Auto)
+              <span className="truncate">Anti-Overlap (Auto)</span>
             </Button>
             <Button
               type="button"
               variant={layoutArrangement === 'custom' ? 'secondary' : 'outline'}
               size="sm"
-              className="h-7 text-xs font-medium"
+              className="h-7 text-xs font-medium min-w-0"
               onClick={() => setLayoutArrangement('custom')}
             >
-              Custom (Manual)
+              <span className="truncate">Custom (Manual)</span>
             </Button>
           </div>
         </div>
@@ -211,19 +192,19 @@ export function LayoutPanel({
               type="button"
               variant={zoomOutRendering === 'optimized' ? 'secondary' : 'outline'}
               size="sm"
-              className="h-7 text-xs font-medium"
+              className="h-7 text-xs font-medium min-w-0"
               onClick={() => patchEngine({ zoomOutRendering: 'optimized' })}
             >
-              Optimized
+              <span className="truncate">Optimized</span>
             </Button>
             <Button
               type="button"
               variant={zoomOutRendering === 'full-detail' ? 'secondary' : 'outline'}
               size="sm"
-              className="h-7 text-xs font-medium"
+              className="h-7 text-xs font-medium min-w-0"
               onClick={() => patchEngine({ zoomOutRendering: 'full-detail' })}
             >
-              Full Detail
+              <span className="truncate">Full Detail</span>
             </Button>
           </div>
         </div>
@@ -232,7 +213,7 @@ export function LayoutPanel({
         <div className="pt-2 border-t border-border/40">
           <ControlSliderRow
             label="Ambang Zoom Label"
-            description="Tingkat zoom minimal agar label node terlihat"
+            description="Tingkat zoom minimal agar label terlihat"
             value={labelZoomThreshold}
             min={0.1}
             max={3.0}
@@ -244,36 +225,8 @@ export function LayoutPanel({
           />
         </div>
       </div>
-
-      {/* ================= BENTO 3: TUNING FISIKA / INFORMASI SOLVER ================= */}
-      {layout === 'free-force' && !isMindmap ? (
-        <FreeForceControls forces={forces} onUpdate={handleForceUpdate} />
-      ) : (
-        <div className="space-y-3 rounded-xl border border-border/70 bg-card/60 p-3 shadow-xs">
-          <SectionHeaderWithReset
-            title="Karakteristik Solver"
-            icon={Sparkles}
-            description="Informasi kalkulasi posisi graf otomatis"
-          />
-          <div className="space-y-2 text-xs text-muted-foreground leading-relaxed">
-            <div className="rounded-lg bg-muted/40 p-2.5 border border-border/40">
-              <p className="font-semibold text-foreground mb-1">
-                Deterministic Solver Aktif
-              </p>
-              <p className="text-[11px]">
-                {layout === 'kamada-kawai' && 'Menyeimbangkan jarak visual antar node berbobot sama tanpa getaran simulasi.'}
-                {layout === 'fr-standard' && 'Mendistribusikan node secara proporsional dengan algoritma pegas terkontrol.'}
-                {layout === 'fr-radial' && 'Mengelompokkan node dari titik pusat ke tepi secara melingkar konsentris.'}
-                {isMindmap && 'Menata struktur pohon informasi secara berurutan dan teratur.'}
-              </p>
-            </div>
-            <div className="flex items-center justify-between text-[11px] pt-1 px-1">
-              <span>Status Simulasi D3:</span>
-              <span className="font-medium text-emerald-500">Pinned & Stabil (0% Jitter)</span>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
+  );
+}
   );
 }

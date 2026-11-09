@@ -119,6 +119,7 @@ interface GraphSettingContentProps {
   layout: LayoutMode;
   canvasMode: CanvasMode;
   orientation: MindmapOrientation;
+  compact?: boolean; 
   onCanvasModeChange: (mode: CanvasMode) => void;
   onLayoutChange: (layout: LayoutMode) => void;
   onOrientationChange: (orientation: MindmapOrientation) => void;
@@ -145,6 +146,7 @@ interface GraphSettingContentProps {
 function GraphSettingContent(props: GraphSettingContentProps) {
   const {
     activePanel,
+    compact = true,
     config,
     layout,
     canvasMode,
@@ -174,8 +176,9 @@ function GraphSettingContent(props: GraphSettingContentProps) {
 
   return (
     <>
-      {activePanel === "search" && (
+ {activePanel === "search" && (
         <SearchPanel
+          compact={compact}
           search={search}
           onSearchChange={onSearchChange}
           minDepth={minDepth}
@@ -191,6 +194,7 @@ function GraphSettingContent(props: GraphSettingContentProps) {
 
       {activePanel === "layout" && (
         <LayoutPanel
+          compact={compact}
           canvasMode={canvasMode}
           layout={layout}
           orientation={orientation}
@@ -203,6 +207,7 @@ function GraphSettingContent(props: GraphSettingContentProps) {
       {activePanel === "colors" && (
         <div className="space-y-3.5">
           <ColorEngineControls
+            compact={compact}
             hierarchy={config.hierarchy}
             nodeConfig={config.nodes}
             onHierarchyUpdate={updateHierarchyConfig}
@@ -213,6 +218,7 @@ function GraphSettingContent(props: GraphSettingContentProps) {
 
       {activePanel === "atmosphere" && (
         <AtmosphereControls
+          compact={compact}
           atmosphere={mergeAtmosphereConfig(config.atmosphere)}
           linkConfig={config.links}
           nodeConfig={config.nodes}
@@ -224,6 +230,7 @@ function GraphSettingContent(props: GraphSettingContentProps) {
 
       {activePanel === "appearance" && (
         <AppearancePanel
+          compact={compact}
           config={config}
           updateNodeConfig={updateNodeConfig}
           updateTopologyConfig={updateTopologyConfig}
@@ -235,6 +242,7 @@ function GraphSettingContent(props: GraphSettingContentProps) {
 
       {activePanel === "global" && (
         <GlobalTemplatesPanel
+          compact={compact}
           config={config}
           layout={layout}
           orientation={orientation}
@@ -588,7 +596,7 @@ function ClassicGearControls({
 
           {/* Area Konten: scrollbar-thin, bebas scrollbar horizontal */}
           <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden p-2.5 scrollbar-thin scrollbar-thumb-muted-foreground/20 hover:scrollbar-thumb-muted-foreground/30 scrollbar-track-transparent">
-            <GraphSettingContent activePanel={activePanel} {...contentProps} />
+            <GraphSettingContent activePanel={activePanel} compact={true} {...contentProps} />
           </div>
         </section>
       )}
