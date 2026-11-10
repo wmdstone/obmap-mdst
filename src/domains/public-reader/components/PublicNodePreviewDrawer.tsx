@@ -2,9 +2,9 @@
 import React, { useMemo } from "react";
 import type { NoteRecord } from "@/types/collaboration";
 import type { Node, Link as GraphLink } from "@/shared/stores/types";
-import { Button } from "@/shared/ui/button";
-import { Badge } from "@/shared/ui/badge";
-import { ScrollArea } from "@/shared/ui/scroll-area";
+import { Button } from "@/global/ui/button";
+import { Badge } from "@/global/ui/badge";
+import { ScrollArea } from "@/global/ui/scroll-area";
 import {
   X,
   BookOpen,

@@ -10,10 +10,10 @@ import {
   useAllVaultEvents,
   useEventHistory,
 } from "@/core/system/vault/hooks/useVaultEvents";
-import { DomainEvent, EventType } from "@/shared/events/events";
-import { Button } from "@/shared/ui/button";
-import { Badge } from "@/shared/ui/badge";
-import { ScrollArea } from "@/shared/ui/scroll-area";
+import { DomainEvent, EventType } from "@/global/stores/events";
+import { Button } from "@/global/ui/button";
+import { Badge } from "@/global/ui/badge";
+import { ScrollArea } from "@/global/ui/scroll-area";
 import {
   Bug,
   X,
@@ -28,8 +28,8 @@ import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from "@/shared/ui/collapsible";
-import { cn } from "@/shared/lib";
+} from "@/global/ui/collapsible";
+import { cn } from "@/global/utils";
 
 interface EventLogEntry {
   id: number;

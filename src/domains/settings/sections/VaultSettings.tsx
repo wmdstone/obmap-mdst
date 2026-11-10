@@ -16,22 +16,22 @@ import {
   Users,
   FolderHeart,
 } from "lucide-react";
-import { Button } from "@/shared/ui/button";
-import { Badge } from "@/shared/ui/badge";
+import { Button } from "@/global/ui/button";
+import { Badge } from "@/global/ui/badge";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from "@/shared/ui/dialog";
+} from "@/global/ui/dialog";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/shared/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/ui/tabs";
+} from "@/global/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/global/ui/tabs";
 import { toast } from "sonner";
 import { VaultCard } from "@/domains/vault/components/VaultCard";
 import { VaultModeSelector } from "@/domains/vault/components/VaultModeSelector";
@@ -41,7 +41,7 @@ import { ExportToFileSystem } from "@/domains/vault/components/ExportToFileSyste
 import { ImportExportPanel } from "@/domains/workspace/components/ImportExportPanel";
 import { useVaultSync } from "@/domains/vault/hooks/useVaultSync";
 import { useAuth } from "@/domains/auth/hooks/useAuth";
-import { supabase } from "@/shared/lib/untypedSupabase";
+import { supabase } from "@/global/api/untypedSupabase";
 import { VaultMemberService } from "@/domains/vault/services/VaultMemberService";
 import { getVaultManager } from "@/domains/vault/services/VaultManagerSingleton";
 import type { VaultLocation, BackupConfig } from "@/domains/vault/types";

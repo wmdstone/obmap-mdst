@@ -4,7 +4,7 @@ import { StatusBar } from "@/domains/workspace/components/StatusBar";
 import { WorkspaceTree } from "@/domains/workspace/components/WorkspaceTree";
 import { WorkspaceGroup } from "@/domains/workspace/components/WorkspaceGroup";
 import { useWorkspaceStore } from "@/domains/workspace/stores/useWorkspaceStore";
-import { useIsMobile } from "@/shared/hooks/useMobile";
+import { useIsMobile } from "@/global/hooks/useMobile";
 import { PWAInstallPrompt } from "@/domains/sync/components/PWAInstallPrompt";
 import { useConfigSync } from "@/domains/settings/config";
 import { AppPreloaderScreen } from "@/app/preloader/AppPreloaderScreen";

@@ -7,12 +7,12 @@ import {
   DialogTitle,
   DialogDescription,
   DialogFooter,
-} from "@/shared/ui/dialog";
-import { Button } from "@/shared/ui/button";
-import { Badge } from "@/shared/ui/badge";
-import { ScrollArea } from "@/shared/ui/scroll-area";
-import { Progress } from "@/shared/ui/progress";
-import { supabase } from "@/integrations/supabase/client"; // <--- TAMBAHKAN IMPORT INI
+} from "@/global/ui/dialog";
+import { Button } from "@/global/ui/button";
+import { Badge } from "@/global/ui/badge";
+import { ScrollArea } from "@/global/ui/scroll-area";
+import { Progress } from "@/global/ui/progress";
+import { supabase } from "@/global/api/supabaseClient"; // <--- TAMBAHKAN IMPORT INI
 import {
   BulkPublishService,
   type BulkPublishItemState,

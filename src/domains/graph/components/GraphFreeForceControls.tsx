@@ -1,6 +1,6 @@
-import { Button } from '@/shared/ui/button';
-import { ControlSliderRow } from '@/shared/ui/ControlSliderRow';
-import { SectionHeaderWithReset } from '@/shared/ui/SectionHeaderWithReset';
+import { Button } from '@/global/ui/button';
+import { ControlSliderRow } from '@/global/ui/ControlSliderRow';
+import { SectionHeaderWithReset } from '@/global/ui/SectionHeaderWithReset';
 import { Flame, Pause, Magnet } from 'lucide-react';
 import { defaultForceConfig, type ForceConfig } from '@/domains/graph/shared/stores/useGraphStore';
 import { useGraphInteractionStore } from '@/domains/graph/shared/stores/useGraphInteractionStore';

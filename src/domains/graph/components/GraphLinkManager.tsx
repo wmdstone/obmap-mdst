@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { Button } from "@/shared/ui/button";
-import { Input } from "@/shared/ui/input";
-import { Badge } from "@/shared/ui/badge";
-import { ScrollArea } from "@/shared/ui/scroll-area";
+import { Button } from "@/global/ui/button";
+import { Input } from "@/global/ui/input";
+import { Badge } from "@/global/ui/badge";
+import { ScrollArea } from "@/global/ui/scroll-area";
 import { Trash2, GitBranch, Link2Off, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -11,8 +11,8 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/shared/ui/card";
-import { Separator } from "@/shared/ui/separator";
+} from "@/global/ui/card";
+import { Separator } from "@/global/ui/separator";
 
 interface Node {
   id: string;

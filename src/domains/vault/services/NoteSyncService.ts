@@ -5,7 +5,7 @@
  * optimistic concurrency conflict checks, and Supabase Realtime channel subscriptions.
  */
 
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/global/api/supabaseClient";
 import { NoteService, UpdateNoteInput } from "@/domains/vault/services/NoteService";
 import type { NoteRecord } from "@/types/collaboration";
 import type { RealtimeChannel } from "@supabase/supabase-js";

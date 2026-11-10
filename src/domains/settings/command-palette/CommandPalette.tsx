@@ -7,7 +7,7 @@ import {
   CommandItem,
   CommandList,
   CommandShortcut,
-} from "@/shared/ui/command";
+} from "@/global/ui/command";
 import {
   commandRegistry,
   formatHotkey,

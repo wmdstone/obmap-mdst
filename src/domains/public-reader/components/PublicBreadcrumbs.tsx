@@ -2,7 +2,7 @@
 import React, { useMemo } from "react";
 import type { NoteRecord } from "@/types/collaboration";
 import { Folder, FileText, ChevronRight, Home } from "lucide-react";
-import { cn } from "@/shared/lib";
+import { cn } from "@/global/utils";
 
 interface BreadcrumbItem {
   id: string;

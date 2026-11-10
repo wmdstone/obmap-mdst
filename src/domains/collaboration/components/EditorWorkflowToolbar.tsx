@@ -1,12 +1,12 @@
 import React, { useState } from "react";
-import { Button } from "@/shared/ui/button";
-import { Badge } from "@/shared/ui/badge";
+import { Button } from "@/global/ui/button";
+import { Badge } from "@/global/ui/badge";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from "@/shared/ui/dialog";
+} from "@/global/ui/dialog";
 import { NoteRecord, NoteStatus } from "@/types/collaboration";
 import { TwoStageLinterModal } from "@/domains/collaboration/components/TwoStageLinterModal";
 import { DiffViewer } from "@/domains/collaboration/components/DiffViewer";

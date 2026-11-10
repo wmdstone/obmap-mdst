@@ -4,8 +4,8 @@
  * Provides secure API key generation, storage, and validation with user isolation
  */
 
-import { supabase } from "@/integrations/supabase/client";
-import type { Json } from "@/integrations/supabase/types";
+import { supabase } from "@/global/api/supabaseClient";
+import type { Json } from "@/global/api/supabaseTypes";
 
 export interface ApiKey {
   id: string;

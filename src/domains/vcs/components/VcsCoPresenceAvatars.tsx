@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/global/api/supabaseClient';
 import { useAuth } from '@/domains/auth/hooks/useAuth';
-import { Avatar, AvatarFallback, AvatarImage } from '@/shared/ui/avatar';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/shared/ui/tooltip';
+import { Avatar, AvatarFallback, AvatarImage } from '@/global/ui/avatar';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/global/ui/tooltip';
 import { DocumentCoPresenceUser } from '@/domains/vcs/types/vcs';
 
 interface VcsCoPresenceAvatarsProps {

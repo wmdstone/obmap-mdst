@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { Frame, Focus, UnfoldVertical, Layers, Map, Play, Pause } from "lucide-react";
-import { Button } from "@/shared/ui/button";
-import { Popover, PopoverContent, PopoverTrigger } from "@/shared/ui/popover";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/shared/ui/tooltip";
-import { cn } from "@/shared/lib/cn";
+import { Button } from "@/global/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@/global/ui/popover";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/global/ui/tooltip";
+import { cn } from "@/global/utils/cn";
 import { GraphMiniMap, type GraphMiniMapProps } from "@/domains/graph/components/GraphMiniMap";
 import { GraphLevelLegend } from "@/domains/graph/components/GraphLevelLegend";
 import type { HierarchyColorConfig } from "@/domains/graph/shared/utils/hierarchyColors";

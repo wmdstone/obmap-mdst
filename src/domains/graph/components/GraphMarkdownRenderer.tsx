@@ -3,7 +3,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import remarkBreaks from "remark-breaks";
 import rehypeRaw from "rehype-raw";
-import { cn } from "@/shared/lib";
+import { cn } from "@/global/utils";
 import { InteractiveTable } from "@/domains/editor/table/InteractiveTable";
 import { extractTableDataFromHastNode } from "@/domains/editor/table/tableParser";
 import { FootnotePopover } from "@/domains/editor/components/FootnotePopover";

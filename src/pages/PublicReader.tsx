@@ -12,10 +12,10 @@ import { PublicBreadcrumbs } from "@/domains/public-reader/components/PublicBrea
 import { PublicFolderOverview } from "@/domains/public-reader/components/PublicFolderOverview";
 import type { NoteRecord } from "@/types/collaboration";
 import type { GraphData } from "@/shared/stores/types";
-import { Button } from "@/shared/ui/button";
-import { Input } from "@/shared/ui/input";
-import { Badge } from "@/shared/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/shared/ui/avatar";
+import { Button } from "@/global/ui/button";
+import { Input } from "@/global/ui/input";
+import { Badge } from "@/global/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/global/ui/avatar";
 import {
   BookOpen,
   Network,

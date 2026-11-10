@@ -7,13 +7,13 @@ import { AdminService } from "@/domains/admin/services/AdminService";
 import { useVaultPermission } from "@/domains/auth/hooks/useVaultPermission";
 import type { VaultMemberRole } from "@/types/collaboration";
 import type { VaultMemberWithProfile } from "@/types/admin";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/ui/card";
-import { Button } from "@/shared/ui/button";
-import { Badge } from "@/shared/ui/badge";
-import { Input } from "@/shared/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/ui/select";
-import { Avatar, AvatarFallback, AvatarImage } from "@/shared/ui/avatar";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/ui/table";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/global/ui/card";
+import { Button } from "@/global/ui/button";
+import { Badge } from "@/global/ui/badge";
+import { Input } from "@/global/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/global/ui/select";
+import { Avatar, AvatarFallback, AvatarImage } from "@/global/ui/avatar";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/global/ui/table";
 import { toast } from "sonner";
 import {
   ShieldCheck,

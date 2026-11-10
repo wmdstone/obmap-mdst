@@ -1,8 +1,8 @@
 // src/domains/editor/components/FootnotePopover.tsx
 import React, { useState, useEffect, useRef } from "react";
 import { CornerDownLeft, ExternalLink } from "lucide-react";
-import { Popover, PopoverContent, PopoverTrigger, PopoverAnchor } from "@/shared/ui/popover";
-import { cn } from "@/shared/lib";
+import { Popover, PopoverContent, PopoverTrigger, PopoverAnchor } from "@/global/ui/popover";
+import { cn } from "@/global/utils";
 
 export interface FootnotePopoverProps {
   label: string;

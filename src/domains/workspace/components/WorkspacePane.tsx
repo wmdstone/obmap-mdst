@@ -1,4 +1,4 @@
-import { cn } from "@/shared/lib";
+import { cn } from "@/global/utils";
 import { FileText, Network, FolderOpen, Sparkles } from "lucide-react";
 
 interface WorkspacePaneProps {

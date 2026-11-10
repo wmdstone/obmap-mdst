@@ -1,10 +1,10 @@
 import React, { useState } from "react";
 import type { SystemMetrics } from "@/types/admin";
 import type { AuditLogRecord } from "@/types/collaboration";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/shared/ui/card";
-import { Badge } from "@/shared/ui/badge";
-import { Input } from "@/shared/ui/input";
-import { ScrollArea } from "@/shared/ui/scroll-area";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/global/ui/card";
+import { Badge } from "@/global/ui/badge";
+import { Input } from "@/global/ui/input";
+import { ScrollArea } from "@/global/ui/scroll-area";
 import {
   Activity,
   Database,

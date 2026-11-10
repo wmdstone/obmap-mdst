@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import { useAuth } from "@/domains/auth/hooks/useAuth";
 import { AdminService } from "@/domains/admin/services/AdminService";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/shared/ui/card";
-import { Button } from "@/shared/ui/button";
-import { Badge } from "@/shared/ui/badge";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/global/ui/card";
+import { Button } from "@/global/ui/button";
+import { Badge } from "@/global/ui/badge";
 import { toast } from "sonner";
 import { ShieldAlert, ShieldCheck, Sparkles, User, Loader2 } from "lucide-react";
 

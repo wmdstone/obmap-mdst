@@ -2,7 +2,7 @@
  * AnalyticsTab - Graph metrics and network analytics with collapsible sections
  */
 
-import { Badge } from "@/shared/ui/badge";
+import { Badge } from "@/global/ui/badge";
 import {
   GitBranch,
   Link2,

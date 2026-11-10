@@ -1,7 +1,7 @@
 import { useState, useRef } from "react";
 import { Music, Play, Pause, Volume2, VolumeX, Maximize2,FileText, Download } from "lucide-react";
-import { Button } from "@/shared/ui/button";
-import { Slider } from "@/shared/ui/slider-number";
+import { Button } from "@/global/ui/button";
+import { Slider } from "@/global/ui/slider-number";
 
 export interface NodeMediaItem {
   name: string;

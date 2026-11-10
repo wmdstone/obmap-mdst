@@ -3,14 +3,14 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuLabel,
-} from "@/shared/ui/dropdown-menu";
+} from "@/global/ui/dropdown-menu";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from "@/shared/ui/dialog";
-import { Badge } from "@/shared/ui/badge";
+} from "@/global/ui/dialog";
+import { Badge } from "@/global/ui/badge";
 import { NoteRecord } from "@/types/collaboration";
 import { NoteService } from "@/domains/vault/services/NoteService";
 import { useVaultStore } from "@/domains/vault/stores/useVaultStore";

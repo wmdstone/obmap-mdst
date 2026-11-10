@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Button } from "@/shared/ui/button";
-import { Input } from "@/shared/ui/input";
-import { Textarea } from "@/shared/ui/textarea";
+import { Button } from "@/global/ui/button";
+import { Input } from "@/global/ui/input";
+import { Textarea } from "@/global/ui/textarea";
 import {
   Trash2,
   Save,
@@ -17,8 +17,8 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { MarkdownView } from "@/domains/editor/components/MarkdownView";
-import { ScrollArea } from "@/shared/ui/scroll-area";
-import { cn } from "@/shared/lib";
+import { ScrollArea } from "@/global/ui/scroll-area";
+import { cn } from "@/global/utils";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -26,7 +26,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
   DropdownMenuLabel,
-} from "@/shared/ui/dropdown-menu";
+} from "@/global/ui/dropdown-menu";
 import { NodeMediaPreview } from "@/domains/graph/components/GraphNodeMediaPreview";
 import { NodeBreadcrumbBar } from "@/domains/graph/components/GraphNodeBreadcrumbBar";
 import { NodeBacklinksSection, type Backlink } from "@/domains/graph/components/GraphNodeBacklinksSection";

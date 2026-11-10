@@ -16,7 +16,7 @@ import {
   NodeMovedPayload,
   GraphUpdatedPayload,
   VaultSavedPayload,
-} from "@/shared/events/events";
+} from "@/global/stores/events";
 
 interface UseVaultEventsOptions {
   /** Only receive events for this vault (optional) */

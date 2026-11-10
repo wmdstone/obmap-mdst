@@ -2,18 +2,18 @@
  * LinkStylingTab - Combined link/edge configuration with topology settings
  */
 
-import { Label } from "@/shared/ui/label";
-import { Slider } from "@/shared/ui/slider-number";
-import { Switch } from "@/shared/ui/switch";
-import { Badge } from "@/shared/ui/badge";
-import { Input } from "@/shared/ui/input";
+import { Label } from "@/global/ui/label";
+import { Slider } from "@/global/ui/slider-number";
+import { Switch } from "@/global/ui/switch";
+import { Badge } from "@/global/ui/badge";
+import { Input } from "@/global/ui/input";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/shared/ui/select";
+} from "@/global/ui/select";
 import {
   Link2,
   MoveRight,

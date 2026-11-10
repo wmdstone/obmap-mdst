@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/ui/tabs";
-import { Button } from "@/shared/ui/button";
-import { Badge } from "@/shared/ui/badge";
-import { ScrollArea } from "@/shared/ui/scroll-area";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/global/ui/tabs";
+import { Button } from "@/global/ui/button";
+import { Badge } from "@/global/ui/badge";
+import { ScrollArea } from "@/global/ui/scroll-area";
 import {
   GitBranch,
   GitCommit,

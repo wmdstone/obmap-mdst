@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { cn } from "@/shared/lib";
-import { Badge } from "@/shared/ui/badge";
+import { cn } from "@/global/utils";
+import { Badge } from "@/global/ui/badge";
 import { ChevronRight, ChevronDown, Folder, FileText, Image, Music, Video } from "lucide-react";
 import { useWorkspaceStore } from "@/domains/workspace/stores/useWorkspaceStore";
 import { useNodeStore } from "@/shared/stores";

@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { Label } from "@/shared/ui/label";
-import { Button } from "@/shared/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/ui/select";
+import { Label } from "@/global/ui/label";
+import { Button } from "@/global/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/global/ui/select";
 import {
   Palette,
   Layers,
@@ -15,10 +15,10 @@ import {
   Sliders,
   PaintBucket,
 } from "lucide-react";
-import { cn } from "@/shared/lib/cn";
+import { cn } from "@/global/utils/cn";
 import { ColorPicker } from "@/domains/graph/components/GraphColorPicker";
-import { ControlSliderRow } from "@/shared/ui/ControlSliderRow";
-import { SectionHeaderWithReset } from "@/shared/ui/SectionHeaderWithReset";
+import { ControlSliderRow } from "@/global/ui/ControlSliderRow";
+import { SectionHeaderWithReset } from "@/global/ui/SectionHeaderWithReset";
 import {
   HIERARCHY_PRESETS,
   presetById,

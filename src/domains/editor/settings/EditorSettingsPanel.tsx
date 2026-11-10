@@ -9,18 +9,18 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-} from '@/shared/ui/sheet';
-import { Button } from '@/shared/ui/button';
-import { Badge } from '@/shared/ui/badge';
-import { Label } from '@/shared/ui/label';
-import { Switch } from '@/shared/ui/switch';
-import { Slider } from '@/shared/ui/slider';
-import { Input } from '@/shared/ui/input';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/tabs';
-import { ScrollArea } from '@/shared/ui/scroll-area';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
+} from '@/global/ui/sheet';
+import { Button } from '@/global/ui/button';
+import { Badge } from '@/global/ui/badge';
+import { Label } from '@/global/ui/label';
+import { Switch } from '@/global/ui/switch';
+import { Slider } from '@/global/ui/slider';
+import { Input } from '@/global/ui/input';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/global/ui/tabs';
+import { ScrollArea } from '@/global/ui/scroll-area';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/global/ui/select';
 import { Pencil, Type, Keyboard, Sparkles, LayoutPanelTop, RotateCcw } from 'lucide-react';
-import { useIsMobile } from '@/shared/hooks/useMobile';
+import { useIsMobile } from '@/global/hooks/useMobile';
 import {
   useEditorSettingsStore,
   type EditorFontFamily,

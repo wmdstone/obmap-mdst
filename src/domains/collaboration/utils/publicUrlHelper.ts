@@ -1,5 +1,5 @@
 import { PublicReaderService } from "@/domains/public-reader/services/PublicReaderService";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/global/api/supabaseClient";
 
 /**
  * Mengambil username pemilik vault untuk membentuk tautan publik kanonikal yang valid:

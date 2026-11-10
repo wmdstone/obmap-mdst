@@ -1,10 +1,10 @@
 /** Stable toolbar and mutually exclusive, collision-aware graph overlays. */
 import { useEffect, useState } from 'react';
 import { Layers, Map, Play, Pause, X } from 'lucide-react';
-import { Button } from '@/shared/ui/button';
-import { Popover, PopoverContent, PopoverAnchor } from '@/shared/ui/popover';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/shared/ui/tooltip';
-import { cn } from '@/shared/lib';
+import { Button } from '@/global/ui/button';
+import { Popover, PopoverContent, PopoverAnchor } from '@/global/ui/popover';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/global/ui/tooltip';
+import { cn } from '@/global/utils';
 import { GraphMiniMap, type GraphMiniMapProps } from '@/domains/graph/components/GraphMiniMap';
 import { GraphLevelLegend } from '@/domains/graph/components/GraphLevelLegend';
 import type { HierarchyColorConfig } from '@/domains/graph/shared/utils/hierarchyColors';

@@ -4,10 +4,10 @@
  * durable offline queue replayed on reconnect.
  */
 
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/global/api/supabaseClient";
 import { cloudVaultService } from "@/domains/vault/services/CloudVaultService";
 import type { VaultManager } from "@/domains/vault/services/VaultManager";
-import { eventBus, EventType } from "@/shared/events/events";
+import { eventBus, EventType } from "@/global/stores/events";
 import { syncQueue, type QueuedVaultPush } from "@/domains/sync/sync-queue";
 
 export type SyncEngineStatus =

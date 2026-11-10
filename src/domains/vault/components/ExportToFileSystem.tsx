@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { Download, FolderOutput, CheckCircle2, AlertCircle } from "lucide-react";
-import { Button } from "@/shared/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from "@/shared/ui/dialog";
-import { Progress } from "@/shared/ui/progress";
+import { Button } from "@/global/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from "@/global/ui/dialog";
+import { Progress } from "@/global/ui/progress";
 import { toast } from "sonner";
 import { supportsFolderPicker } from "@/domains/vault/repository/capabilities";
 

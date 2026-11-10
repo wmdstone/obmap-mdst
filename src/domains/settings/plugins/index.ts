@@ -21,7 +21,7 @@ export {
 } from '@/domains/settings/plugins/plugin-registry';
 
 // Re-export container
-export * from '@/shared/di/container';
+export * from '@/global/utils/container';
 
 // Re-export features
 export * from '@/domains/settings/plugins/features';

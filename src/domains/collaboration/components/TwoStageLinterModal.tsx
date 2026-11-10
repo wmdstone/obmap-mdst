@@ -6,9 +6,9 @@ import {
   DialogTitle,
   DialogDescription,
   DialogFooter,
-} from "@/shared/ui/dialog";
-import { Button } from "@/shared/ui/button";
-import { Badge } from "@/shared/ui/badge";
+} from "@/global/ui/dialog";
+import { Button } from "@/global/ui/button";
+import { Badge } from "@/global/ui/badge";
 import {
   AssetBundlerService,
   PrePublishAuditResult,

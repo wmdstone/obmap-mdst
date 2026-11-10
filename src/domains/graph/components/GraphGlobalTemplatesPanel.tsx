@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import { Bookmark, Check, Plus, Star, Trash2, Globe, Activity, RotateCcw } from 'lucide-react';
 import { toast } from 'sonner';
-import { Button } from '@/shared/ui/button';
-import { Input } from '@/shared/ui/input';
-import { Badge } from '@/shared/ui/badge';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/shared/ui/tooltip';
-import { cn } from '@/shared/lib/cn';
+import { Button } from '@/global/ui/button';
+import { Input } from '@/global/ui/input';
+import { Badge } from '@/global/ui/badge';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/global/ui/tooltip';
+import { cn } from '@/global/utils/cn';
 import { useGraphStore } from '@/shared/stores';
-import { SectionHeaderWithReset } from '@/shared/ui/SectionHeaderWithReset';
+import { SectionHeaderWithReset } from '@/global/ui/SectionHeaderWithReset';
 import {
   useGraphTemplatesStore,
   type GraphTemplate,

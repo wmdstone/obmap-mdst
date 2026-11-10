@@ -2,8 +2,8 @@
 import React, { useState, useMemo } from "react";
 import type { NoteRecord } from "@/types/collaboration";
 import { Folder, FolderOpen, FileText, Search, Layers, Calendar, ArrowRight } from "lucide-react";
-import { Input } from "@/shared/ui/input";
-import { Badge } from "@/shared/ui/badge";
+import { Input } from "@/global/ui/input";
+import { Badge } from "@/global/ui/badge";
 
 interface PublicFolderOverviewProps {
   folderNote: NoteRecord;

@@ -9,7 +9,7 @@
  * - Expose graph data for visualization
  */
 
-import { eventBus, EventType, DomainEvent } from "@/shared/events/events";
+import { eventBus, EventType, DomainEvent } from "@/global/stores/events";
 import { ContentParser } from "@/domains/metadata/content-parser";
 import { RelationshipMapper, GraphNode, GraphLink } from "@/domains/graph/shared/api/RelationshipMapper";
 

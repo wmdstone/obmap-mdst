@@ -6,10 +6,10 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/shared/ui/dialog";
-import { Button } from "@/shared/ui/button";
-import { Input } from "@/shared/ui/input";
-import { Label } from "@/shared/ui/label";
+} from "@/global/ui/dialog";
+import { Button } from "@/global/ui/button";
+import { Input } from "@/global/ui/input";
+import { Label } from "@/global/ui/label";
 import { useAuth } from "@/domains/auth/hooks/useAuth";
 import { ProfileService } from "@/domains/settings/profile/services/ProfileService";
 import { Loader2, CheckCircle2, XCircle, Globe, Sparkles } from "lucide-react";

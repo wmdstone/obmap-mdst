@@ -72,7 +72,7 @@ class DynamicPreloadRegistry {
         friendlyMessage: 'Menghubungkan bus event sistem & service locator...',
         category: 'system',
         priority: 15,
-        loader: () => import('@/shared/di/container'),
+        loader: () => import('@/global/utils/container'),
       },
       {
         id: 'sys-vault-mgr',

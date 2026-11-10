@@ -5,10 +5,10 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
-} from '@/shared/ui/dialog';
-import { Button } from '@/shared/ui/button';
-import { Input } from '@/shared/ui/input';
-import { Badge } from '@/shared/ui/badge';
+} from '@/global/ui/dialog';
+import { Button } from '@/global/ui/button';
+import { Input } from '@/global/ui/input';
+import { Badge } from '@/global/ui/badge';
 import { GitCommit, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { VcsCloudService } from '@/domains/vcs/services/VcsCloudService';

@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import type { SubsystemNode } from "@/types/admin";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/shared/ui/card";
-import { Badge } from "@/shared/ui/badge";
-import { Switch } from "@/shared/ui/switch";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/global/ui/card";
+import { Badge } from "@/global/ui/badge";
+import { Switch } from "@/global/ui/switch";
 import { toast } from "sonner";
 import { Sliders, Cpu, HardDrive, ShieldCheck, Zap, Activity } from "lucide-react";
 

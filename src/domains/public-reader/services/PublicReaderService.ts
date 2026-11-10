@@ -7,7 +7,7 @@
  * Dilengkapi Smart UUID Interceptor untuk kompatibilitas tautan lama/UUID.
  */
 
-import { supabase } from "@/shared/lib/untypedSupabase";
+import { supabase } from "@/global/api/untypedSupabase";
 import { ProfileService } from "@/domains/settings/profile/services/ProfileService";
 import type { NoteRecord } from "@/types/collaboration";
 import type { GraphData, Node, Link } from "@/shared/stores/types";

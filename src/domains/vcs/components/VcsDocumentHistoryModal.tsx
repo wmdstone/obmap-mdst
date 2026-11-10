@@ -4,11 +4,11 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from '@/shared/ui/dialog';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/tabs';
-import { Button } from '@/shared/ui/button';
-import { Badge } from '@/shared/ui/badge';
-import { ScrollArea } from '@/shared/ui/scroll-area';
+} from '@/global/ui/dialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/global/ui/tabs';
+import { Button } from '@/global/ui/button';
+import { Badge } from '@/global/ui/badge';
+import { ScrollArea } from '@/global/ui/scroll-area';
 import { DiffViewer } from '@/domains/collaboration/components/DiffViewer';
 import { VcsCloudService } from '@/domains/vcs/services/VcsCloudService';
 import { VcsMicroRevisionService } from '@/domains/vcs/services/VcsMicroRevisionService';

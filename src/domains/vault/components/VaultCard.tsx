@@ -25,16 +25,16 @@ import {
   CheckCircle2,
   Globe,
 } from "lucide-react";
-import { Button } from "@/shared/ui/button";
-import { Badge } from "@/shared/ui/badge";
-import { Input } from "@/shared/ui/input";
+import { Button } from "@/global/ui/button";
+import { Badge } from "@/global/ui/badge";
+import { Input } from "@/global/ui/input";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/shared/ui/dropdown-menu";
+} from "@/global/ui/dropdown-menu";
 import { formatDistanceToNow } from "date-fns";
 import type { VaultLocation } from "@/domains/vault/types";
 import { VaultLocationBadge } from "@/domains/vault/components/VaultStorageControls";

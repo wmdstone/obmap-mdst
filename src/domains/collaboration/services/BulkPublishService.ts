@@ -8,7 +8,7 @@
  * 4. Melacak kegagalan inline dan memfasilitasi retry per catatan
  */
 
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/global/api/supabaseClient";
 import { NoteService } from "@/domains/vault/services/NoteService";
 import { AssetBundlerService } from "@/domains/vault/services/AssetBundlerService";
 import type { Node } from "@/shared/stores/types";

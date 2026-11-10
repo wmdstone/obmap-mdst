@@ -1,8 +1,8 @@
 import { useState, useCallback, useRef, useEffect, useMemo } from "react";
-import { cn } from "@/shared/lib";
-import { Button } from "@/shared/ui/button";
-import { Input } from "@/shared/ui/input";
-import { ScrollArea } from "@/shared/ui/scroll-area";
+import { cn } from "@/global/utils";
+import { Button } from "@/global/ui/button";
+import { Input } from "@/global/ui/input";
+import { ScrollArea } from "@/global/ui/scroll-area";
 import { toast } from "sonner";
 import {
   X,
@@ -31,7 +31,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/shared/ui/dropdown-menu";
+} from "@/global/ui/dropdown-menu";
 import type { RibbonTool } from "@/domains/workspace/components/IconRibbon";
 import { useWorkspaceStore } from "@/domains/workspace/stores/useWorkspaceStore";
 import { useUIStore } from "@/shared/stores";

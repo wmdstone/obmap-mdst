@@ -4,18 +4,18 @@
  * graph store directly so every change is live, with no separate save step.
  */
 
-import { Label } from '@/shared/ui/label';
-import { Switch } from '@/shared/ui/switch';
-import { Button } from '@/shared/ui/button';
-import { Badge } from '@/shared/ui/badge';
-import { Slider } from "@/shared/ui/slider-number";
+import { Label } from '@/global/ui/label';
+import { Switch } from '@/global/ui/switch';
+import { Button } from '@/global/ui/button';
+import { Badge } from '@/global/ui/badge';
+import { Slider } from "@/global/ui/slider-number";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/shared/ui/select';
+} from '@/global/ui/select';
 import { Plus, Trash2 } from 'lucide-react';
 import { useGraphStore, type HierarchyColorConfig } from '@/domains/graph/shared/stores/useGraphStore';
 import {

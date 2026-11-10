@@ -9,7 +9,7 @@ import {
   X,
   BoxSelectIcon
 } from "lucide-react";
-import { Button } from "@/shared/ui/button";
+import { Button } from "@/global/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,7 +17,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/shared/ui/dropdown-menu";
+} from "@/global/ui/dropdown-menu";
 import type { MindmapLayoutMode, CanvasMode } from "@/domains/graph/shared/utils/graph.types";
 
 const MINDMAP_STRUCTURES: { mode: MindmapLayoutMode; label: string }[] = [

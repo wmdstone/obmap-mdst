@@ -4,8 +4,8 @@
  */
 
 import { FileText, Link2 } from 'lucide-react';
-import { Badge } from '@/shared/ui/badge';
-import { Button } from '@/shared/ui/button';
+import { Badge } from '@/global/ui/badge';
+import { Button } from '@/global/ui/button';
 import type { Node } from '@/shared/stores/types';
 import { useUnlinkedMentions } from '@/domains/metadata/backlinks/useUnlinkedMentions';
 

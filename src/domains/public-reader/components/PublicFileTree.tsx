@@ -2,7 +2,7 @@
 import React, { useState, useMemo, useEffect } from "react";
 import type { NoteRecord } from "@/types/collaboration";
 import { ChevronRight, ChevronDown, Folder, FolderOpen, FileText } from "lucide-react";
-import { cn } from "@/shared/lib";
+import { cn } from "@/global/utils";
 
 export interface PublicTreeNode {
   id: string;

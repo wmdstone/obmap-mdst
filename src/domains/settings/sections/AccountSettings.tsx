@@ -30,14 +30,14 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/domains/auth/hooks/useAuth";
 
-import { Button } from "@/shared/ui/button";
-import { Badge } from "@/shared/ui/badge";
-import { Input } from "@/shared/ui/input";
-import { Label } from "@/shared/ui/label";
-import { Textarea } from "@/shared/ui/textarea";
-import { Switch } from "@/shared/ui/switch";
-import { Card, CardContent } from "@/shared/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/ui/tabs";
+import { Button } from "@/global/ui/button";
+import { Badge } from "@/global/ui/badge";
+import { Input } from "@/global/ui/input";
+import { Label } from "@/global/ui/label";
+import { Textarea } from "@/global/ui/textarea";
+import { Switch } from "@/global/ui/switch";
+import { Card, CardContent } from "@/global/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/global/ui/tabs";
 import {
   Dialog,
   DialogContent,
@@ -45,7 +45,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/shared/ui/dialog";
+} from "@/global/ui/dialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -56,7 +56,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/shared/ui/alert-dialog";
+} from "@/global/ui/alert-dialog";
 import { toast } from "sonner";
 
 import { AvatarUpload } from "@/domains/settings/profile/components/AvatarUpload";

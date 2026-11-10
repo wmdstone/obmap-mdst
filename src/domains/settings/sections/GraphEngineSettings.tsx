@@ -3,8 +3,8 @@
  */
 
 import { useState } from "react";
-import { Button } from "@/shared/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/ui/tabs";
+import { Button } from "@/global/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/global/ui/tabs";
 import {
   BarChart3,
   Circle,

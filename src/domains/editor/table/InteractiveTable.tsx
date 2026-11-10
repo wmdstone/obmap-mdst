@@ -14,7 +14,7 @@ import {
   WrapText,
   X,
 } from "lucide-react";
-import { cn } from "@/shared/lib";
+import { cn } from "@/global/utils";
 import { TableData, TableColumn } from "@/domains/editor/table/tableTypes";
 import { parseMarkdownTable, stringifyMarkdownTable } from "@/domains/editor/table/tableParser";
 import {
@@ -23,7 +23,7 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/shared/ui/dropdown-menu";
+} from "@/global/ui/dropdown-menu";
 
 interface InteractiveTableProps {
   initialMarkdown?: string;

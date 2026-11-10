@@ -31,7 +31,7 @@ import {
 import { isFeatureEnabled } from "@/domains/settings/plugins/feature-toggles";
 import { syncEngine } from "@/domains/sync/SyncEngine";
 import { useStatusNoticeStore } from "@/shared/stores/useStatusNoticeStore";
-import { supabase } from "@/shared/lib/untypedSupabase";
+import { supabase } from "@/global/api/untypedSupabase";
 
 
 /** Sinkronisasi status tombol undo/redo ke useVaultStore */

@@ -9,7 +9,7 @@
  */
 
 import type { BackupConfig } from "@/domains/vault/types";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/global/api/supabaseClient";
 import { cloudVaultService, CloudVault } from "@/domains/vault/services/CloudVaultService";
 import { VaultManager } from "@/domains/vault/services/VaultManager";
 import { syncEngine } from "@/domains/sync/SyncEngine";

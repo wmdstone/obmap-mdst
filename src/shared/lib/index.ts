@@ -2,7 +2,7 @@
  * Core Utilities
  */
 
-export * from '@/shared/lib/cn';
-export * from '@/shared/lib/color-utils';
-export * from '@/shared/lib/color-engine';
+export * from '@/global/utils/cn';
+export * from '@/global/utils/color-utils';
+export * from '@/global/utils/color-engine';
 

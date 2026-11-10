@@ -5,7 +5,7 @@
  * credentials. Never runs in a production build.
  */
 
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/global/api/supabaseClient';
 
 export const isDevAuthEnabled = import.meta.env.DEV;
 

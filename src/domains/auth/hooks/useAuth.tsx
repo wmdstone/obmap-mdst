@@ -6,9 +6,9 @@ import {
   ReactNode,
 } from "react";
 import { User, Session } from "@supabase/supabase-js";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/global/api/supabaseClient";
 import { toast } from "sonner";
-import type { Json } from "@/integrations/supabase/types";
+import type { Json } from "@/global/api/supabaseTypes";
 import { vaultSyncService } from "@/domains/vault/services/VaultSyncService";
 
 interface Profile {

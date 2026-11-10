@@ -1,13 +1,13 @@
 import { usePWA } from "@/domains/sync/hooks/usePWA";
-import { Button } from "@/shared/ui/button";
+import { Button } from "@/global/ui/button";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/shared/ui/card";
-import { Badge } from "@/shared/ui/badge";
+} from "@/global/ui/card";
+import { Badge } from "@/global/ui/badge";
 import {
   Download,
   Smartphone,

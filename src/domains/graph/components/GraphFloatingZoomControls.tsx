@@ -1,5 +1,5 @@
-import { Button } from '@/shared/ui/button';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/shared/ui/tooltip';
+import { Button } from '@/global/ui/button';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/global/ui/tooltip';
 import { Frame, Focus, UnfoldVertical } from 'lucide-react';
 
 export type SmartZoomAction = 'fit' | 'selection' | 'reset';

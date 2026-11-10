@@ -1,7 +1,7 @@
-import { Button } from '@/shared/ui/button';
-import { ControlSliderRow } from '@/shared/ui/ControlSliderRow';
-import { SectionHeaderWithReset } from '@/shared/ui/SectionHeaderWithReset';
-import { cn } from '@/shared/lib/cn';
+import { Button } from '@/global/ui/button';
+import { ControlSliderRow } from '@/global/ui/ControlSliderRow';
+import { SectionHeaderWithReset } from '@/global/ui/SectionHeaderWithReset';
+import { cn } from '@/global/utils/cn';
 import {
   GitBranch,
   Network,

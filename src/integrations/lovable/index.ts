@@ -2,7 +2,7 @@
 
 import { createLovableAuth } from "@lovable.dev/cloud-auth-js";
 import type { OAuthProvider } from "@lovable.dev/cloud-auth-js";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/global/api/supabaseClient";
 const lovableAuth = createLovableAuth();
 
 type SignInOptions = {

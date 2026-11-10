@@ -1,7 +1,7 @@
 import { FileText, Link as LinkIcon } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
-import { Badge } from "@/shared/ui/badge";
-import { ScrollArea } from "@/shared/ui/scroll-area";
+import { Card, CardContent, CardHeader, CardTitle } from "@/global/ui/card";
+import { Badge } from "@/global/ui/badge";
+import { ScrollArea } from "@/global/ui/scroll-area";
 
 interface Backlink {
   nodeId: string;

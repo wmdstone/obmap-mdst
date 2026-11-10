@@ -9,7 +9,7 @@ import {
   parseHsl,
   formatHsl,
   type Hsl,
-} from '@/shared/lib/color-engine';
+} from '@/global/utils/color-engine';
 
 export { parseHsl, formatHsl, type Hsl };
 export type HierarchyOverflow = 'loop' | 'gradient';

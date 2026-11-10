@@ -2,7 +2,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { EditorView } from "@codemirror/view";
 import { EditorState } from "@codemirror/state";
-import { cn } from "@/shared/lib";
+import { cn } from "@/global/utils";
 import { PropertiesPanel } from "@/domains/editor/frontmatter/PropertiesPanel";
 import {
   createEditorExtensions,
@@ -27,7 +27,7 @@ import {
   upsertFootnoteDefinition,
 } from "@/domains/editor/footnotes/footnoteParser";
 import { FootnotePopover } from "@/domains/editor/components/FootnotePopover";
-import { Popover, PopoverAnchor } from "@/shared/ui/popover";
+import { Popover, PopoverAnchor } from "@/global/ui/popover";
 
 interface MarkdownViewProps {
   value: string;

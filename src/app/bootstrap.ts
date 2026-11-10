@@ -5,8 +5,8 @@
  * resolve them through `useService` instead of importing singletons directly.
  */
 
-import { container, ServiceIds } from "@/shared/di/container";
-import { eventBus } from "@/shared/events/events";
+import { container, ServiceIds } from "@/global/utils/container";
+import { eventBus } from "@/global/stores/events";
 import { pluginRegistry } from "@/domains/settings/plugins/plugin-registry";
 import { getVaultManager } from "@/domains/vault/services/VaultManagerSingleton";
 import { VaultStorage } from "@/domains/vault/services/VaultStorage";
@@ -18,7 +18,7 @@ import { ContentParser } from "@/domains/metadata/content-parser";
 import { getFileSystemService } from "@/domains/vault/persistence/FileSystemServiceSingleton";
 import { importExportService } from "@/domains/vault/import-export/services/ImportExportService";
 import { apiKeyService } from "@/domains/settings/profile/services/ApiKeyService";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/global/api/supabaseClient";
 import { commandRegistry } from "@/domains/workspace/commands/CommandRegistry";
 import { registerEditorCommands } from "@/domains/editor/commands/editorCommands";
 import { syncEngine } from "@/domains/sync/SyncEngine";

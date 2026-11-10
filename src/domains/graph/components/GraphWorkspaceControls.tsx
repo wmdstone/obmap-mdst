@@ -1,8 +1,8 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { cn } from "@/shared/lib/cn";
-import { Button } from "@/shared/ui/button";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/shared/ui/tooltip";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/shared/ui/tabs";
+import { cn } from "@/global/utils/cn";
+import { Button } from "@/global/ui/button";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/global/ui/tooltip";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/global/ui/tabs";
 import {
   ChevronDown,
   ChevronUp,

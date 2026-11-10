@@ -5,7 +5,7 @@ import {
   ContextMenuContent,
   ContextMenuItem,
   ContextMenuSeparator,
-} from "@/shared/ui/context-menu";
+} from "@/global/ui/context-menu";
 import {
   ExternalLink,
   Columns2,

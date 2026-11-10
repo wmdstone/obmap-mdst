@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import type { SubsystemNode } from "@/types/admin";
-import { Badge } from "@/shared/ui/badge";
-import { Card, CardContent } from "@/shared/ui/card";
+import { Badge } from "@/global/ui/badge";
+import { Card, CardContent } from "@/global/ui/card";
 import { Activity, ShieldCheck, Database, Layers, ArrowRight } from "lucide-react";
 
 interface Props {

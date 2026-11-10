@@ -4,19 +4,19 @@
  */
 
 import { useEffect } from "react";
-import { Button } from "@/shared/ui/button";
-import { Input } from "@/shared/ui/input";
-import { Label } from "@/shared/ui/label";
-import { Switch } from "@/shared/ui/switch";
-import { Badge } from "@/shared/ui/badge";
-import { Separator } from "@/shared/ui/separator";
+import { Button } from "@/global/ui/button";
+import { Input } from "@/global/ui/input";
+import { Label } from "@/global/ui/label";
+import { Switch } from "@/global/ui/switch";
+import { Badge } from "@/global/ui/badge";
+import { Separator } from "@/global/ui/separator";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/shared/ui/select";
+} from "@/global/ui/select";
 import { ArrowDown, ArrowUp, Plus, RotateCcw, Trash2 } from "lucide-react";
 import {
   PROPERTY_TYPES,

@@ -4,18 +4,18 @@ import {
   type ApiKey,
   type ApiKeyPermission,
 } from "@/domains/settings/profile/services/ApiKeyService";
-import { Button } from "@/shared/ui/button";
-import { Input } from "@/shared/ui/input";
-import { Label } from "@/shared/ui/label";
+import { Button } from "@/global/ui/button";
+import { Input } from "@/global/ui/input";
+import { Label } from "@/global/ui/label";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/shared/ui/card";
-import { Badge } from "@/shared/ui/badge";
-import { Checkbox } from "@/shared/ui/checkbox";
+} from "@/global/ui/card";
+import { Badge } from "@/global/ui/badge";
+import { Checkbox } from "@/global/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -23,7 +23,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/shared/ui/dialog";
+} from "@/global/ui/dialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -34,7 +34,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/shared/ui/alert-dialog";
+} from "@/global/ui/alert-dialog";
 import { Key, Plus, Copy, Trash2, Eye, EyeOff, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";

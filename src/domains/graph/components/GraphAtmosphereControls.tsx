@@ -1,10 +1,10 @@
-import { Label } from '@/shared/ui/label';
-import { Switch } from '@/shared/ui/switch';
-import { Button } from '@/shared/ui/button';
+import { Label } from '@/global/ui/label';
+import { Switch } from '@/global/ui/switch';
+import { Button } from '@/global/ui/button';
 import { Sparkles, Compass, Wind, Orbit, Sun } from 'lucide-react';
 import { ColorPicker } from '@/domains/graph/components/GraphColorPicker';
-import { ControlSliderRow } from '@/shared/ui/ControlSliderRow';
-import { SectionHeaderWithReset } from '@/shared/ui/SectionHeaderWithReset';
+import { ControlSliderRow } from '@/global/ui/ControlSliderRow';
+import { SectionHeaderWithReset } from '@/global/ui/SectionHeaderWithReset';
 import type { NodeConfig, LinkConfig } from '@/domains/graph/shared/stores/useGraphStore';
 import { COSMIC_PRESETS, type AtmosphereConfig, defaultAtmosphereConfig } from '@/domains/graph/shared/utils/atmosphereConfig';
 import { useGraphInteractionStore } from '@/domains/graph/shared/stores/useGraphInteractionStore';

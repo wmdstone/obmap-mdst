@@ -1,6 +1,6 @@
 /** Resolves graph config into concrete canvas colors, once per render pass. */
 
-import { colorWithOpacity, resolveColor } from '@/shared/lib/color-utils';
+import { colorWithOpacity, resolveColor } from '@/global/utils/color-utils';
 import type { GraphConfigState } from '@/domains/graph/shared/stores/useGraphStore';
 import type { RenderNode } from '@/domains/graph/shared/utils/graph.types';
 import {

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Button } from '@/shared/ui/button';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/shared/ui/tooltip';
+import { Button } from '@/global/ui/button';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/global/ui/tooltip';
 import { GitCommit, History, CloudOff, RefreshCw } from 'lucide-react';
 import { useAuth } from '@/domains/auth/hooks/useAuth';
 import { useVaultStore } from '@/domains/vault/stores/useVaultStore';

@@ -1,11 +1,11 @@
 import React, { useState } from "react";
 import type { AuditLogRecord } from "@/types/collaboration";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/shared/ui/card";
-import { Badge } from "@/shared/ui/badge";
-import { Input } from "@/shared/ui/input";
-import { Button } from "@/shared/ui/button";
-import { ScrollArea } from "@/shared/ui/scroll-area";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/shared/ui/dialog";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/global/ui/card";
+import { Badge } from "@/global/ui/badge";
+import { Input } from "@/global/ui/input";
+import { Button } from "@/global/ui/button";
+import { ScrollArea } from "@/global/ui/scroll-area";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/global/ui/dialog";
 import {
   Clock,
   Search,

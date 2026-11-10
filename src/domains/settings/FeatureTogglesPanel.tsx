@@ -1,9 +1,9 @@
 /** User-facing on/off switches for optional features. */
 
 import { useEffect, useState } from "react";
-import { Switch } from "@/shared/ui/switch";
-import { Label } from "@/shared/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/shared/ui/radio-group";
+import { Switch } from "@/global/ui/switch";
+import { Label } from "@/global/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/global/ui/radio-group";
 import { PanelBottom, Settings2 } from "lucide-react";
 import {
   TOGGLEABLE_FEATURES,

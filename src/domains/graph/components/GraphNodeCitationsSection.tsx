@@ -4,9 +4,9 @@ import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from "@/shared/ui/collapsible";
-import { Badge } from "@/shared/ui/badge";
-import { Button } from "@/shared/ui/button";
+} from "@/global/ui/collapsible";
+import { Badge } from "@/global/ui/badge";
+import { Button } from "@/global/ui/button";
 import {
   ChevronDown,
   ChevronRight,

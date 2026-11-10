@@ -1,6 +1,6 @@
-import { cn } from "@/shared/lib";
-import { Button } from "@/shared/ui/button";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/shared/ui/tooltip";
+import { cn } from "@/global/utils";
+import { Button } from "@/global/ui/button";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/global/ui/tooltip";
 import { FolderTree, GitBranch, Network, Settings2 } from "lucide-react";
 
 export type RibbonTool = "files" | "vcs" | "settings";

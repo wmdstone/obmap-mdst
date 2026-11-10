@@ -6,12 +6,12 @@ import {
   DialogTitle,
   DialogDescription,
   DialogFooter,
-} from "@/shared/ui/dialog";
-import { Button } from "@/shared/ui/button";
-import { Badge } from "@/shared/ui/badge";
-import { ScrollArea } from "@/shared/ui/scroll-area";
-import { Tabs, TabsList, TabsTrigger } from "@/shared/ui/tabs";
-import { Alert, AlertTitle, AlertDescription } from "@/shared/ui/alert";
+} from "@/global/ui/dialog";
+import { Button } from "@/global/ui/button";
+import { Badge } from "@/global/ui/badge";
+import { ScrollArea } from "@/global/ui/scroll-area";
+import { Tabs, TabsList, TabsTrigger } from "@/global/ui/tabs";
+import { Alert, AlertTitle, AlertDescription } from "@/global/ui/alert";
 import {
   GitMerge,
   AlertTriangle,

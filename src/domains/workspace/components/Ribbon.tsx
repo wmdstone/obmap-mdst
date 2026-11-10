@@ -6,7 +6,7 @@ import { useWorkspaceStore } from "@/domains/workspace/stores/useWorkspaceStore"
 import { openGraphCanvas } from "@/domains/workspace/commands/graphCanvasCommands";
 import { useNodeStore, useVaultStore } from "@/shared/stores";
 import { useAuth } from "@/domains/auth/hooks/useAuth";
-import { supabase } from "@/shared/lib/untypedSupabase";
+import { supabase } from "@/global/api/untypedSupabase";
 import { getVaultManager } from "@/domains/vault/services/VaultManagerSingleton";
 import {
   moveNodeAction,

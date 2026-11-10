@@ -3,8 +3,8 @@ import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from "@/shared/ui/collapsible";
-import { Badge } from "@/shared/ui/badge";
+} from "@/global/ui/collapsible";
+import { Badge } from "@/global/ui/badge";
 import { ChevronDown, ChevronRight, Link2, FileText, ArrowUpRight } from "lucide-react";
 
 export interface Backlink {

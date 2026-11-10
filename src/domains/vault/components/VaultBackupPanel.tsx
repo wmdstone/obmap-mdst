@@ -1,7 +1,7 @@
 import { History, RotateCcw, Settings, Trash2, Download } from "lucide-react";
-import { Button } from "@/shared/ui/button";
-import { ScrollArea } from "@/shared/ui/scroll-area";
-import { Badge } from "@/shared/ui/badge";
+import { Button } from "@/global/ui/button";
+import { ScrollArea } from "@/global/ui/scroll-area";
+import { Badge } from "@/global/ui/badge";
 import { formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
 

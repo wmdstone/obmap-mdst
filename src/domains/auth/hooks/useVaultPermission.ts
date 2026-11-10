@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { supabase } from "@/shared/lib/untypedSupabase";
+import { supabase } from "@/global/api/untypedSupabase";
 import { useAuth } from "@/domains/auth/hooks/useAuth";
 import { useVaultStore } from "@/domains/vault/stores/useVaultStore";
 import type { VaultMemberRole } from "@/types/collaboration";

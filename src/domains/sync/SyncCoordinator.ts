@@ -6,7 +6,7 @@
  * single sync instead of a burst.
  */
 
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/global/api/supabaseClient";
 import { vaultSyncService } from "@/domains/vault/services/VaultSyncService";
 import { getVaultManager } from "@/domains/vault/services/VaultManagerSingleton";
 

@@ -1,4 +1,4 @@
-import { supabase } from "@/shared/lib/untypedSupabase";
+import { supabase } from "@/global/api/untypedSupabase";
 import type { AppRole, AuditLogRecord } from "@/types/collaboration";
 import type {
   UserWithRole,

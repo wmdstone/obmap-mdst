@@ -1,15 +1,15 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Input } from "@/shared/ui/input";
-import { Button } from "@/shared/ui/button";
-import { Badge } from "@/shared/ui/badge";
-import { Checkbox } from "@/shared/ui/checkbox";
-import { Textarea } from "@/shared/ui/textarea";
+import { Input } from "@/global/ui/input";
+import { Button } from "@/global/ui/button";
+import { Badge } from "@/global/ui/badge";
+import { Checkbox } from "@/global/ui/checkbox";
+import { Textarea } from "@/global/ui/textarea";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/shared/ui/dropdown-menu";
+} from "@/global/ui/dropdown-menu";
 import {
   Plus,
   X,
@@ -24,7 +24,7 @@ import {
   Code2,
   Lock,
 } from "lucide-react";
-import { cn } from "@/shared/lib";
+import { cn } from "@/global/utils";
 import { useNodeStore } from "@/shared/stores";
 import type {
   FrontmatterProperty,

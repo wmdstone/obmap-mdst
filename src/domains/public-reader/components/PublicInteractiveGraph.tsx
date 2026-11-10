@@ -6,9 +6,9 @@ import { useGraphInteractionStore } from "@/domains/graph/shared/stores/useGraph
 import type { LayoutMode } from "@/domains/graph/shared/utils/graph.types";
 import type { GraphData, Node, Link as GraphLink } from "@/shared/stores/types";
 import type { NoteRecord } from "@/types/collaboration";
-import { Input } from "@/shared/ui/input";
-import { Button } from "@/shared/ui/button";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/shared/ui/tooltip";
+import { Input } from "@/global/ui/input";
+import { Button } from "@/global/ui/button";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/global/ui/tooltip";
 import { PublicGraphSettingsPopover } from "@/domains/public-reader/components/PublicGraphSettingsPopover";
 import { PublicNodePreviewDrawer } from "@/domains/public-reader/components/PublicNodePreviewDrawer";
 import {

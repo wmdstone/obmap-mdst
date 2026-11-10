@@ -3,13 +3,13 @@ import type { UserWithRole, AccountStatus } from "@/types/admin";
 import type { AppRole } from "@/types/collaboration";
 import { AdminService } from "@/domains/admin/services/AdminService";
 import { useAuth } from "@/domains/auth/hooks/useAuth";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/ui/table";
-import { Badge } from "@/shared/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/ui/select";
-import { Avatar, AvatarFallback, AvatarImage } from "@/shared/ui/avatar";
-import { Input } from "@/shared/ui/input";
-import { Button } from "@/shared/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/shared/ui/dialog";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/global/ui/table";
+import { Badge } from "@/global/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/global/ui/select";
+import { Avatar, AvatarFallback, AvatarImage } from "@/global/ui/avatar";
+import { Input } from "@/global/ui/input";
+import { Button } from "@/global/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/global/ui/dialog";
 import { toast } from "sonner";
 import {
   ShieldCheck,

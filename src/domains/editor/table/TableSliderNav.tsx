@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { cn } from "@/shared/lib";
+import { cn } from "@/global/utils";
 
 interface TableSliderNavProps {
   containerRef: React.RefObject<HTMLDivElement>;

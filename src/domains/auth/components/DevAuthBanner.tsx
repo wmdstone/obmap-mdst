@@ -5,7 +5,7 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
-import { Button } from "@/shared/ui/button";
+import { Button } from "@/global/ui/button";
 import { LogIn, LogOut, Loader2 } from "lucide-react";
 import { useAuth } from "@/domains/auth/hooks/useAuth";
 import { devQuickLogin, isDevAuthEnabled, markDevManualLogout, DEV_CREDENTIALS } from "@/domains/auth/services/devAuth";

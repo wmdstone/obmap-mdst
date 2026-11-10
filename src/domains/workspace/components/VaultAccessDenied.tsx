@@ -1,5 +1,5 @@
 import { ShieldAlert, ArrowLeft } from "lucide-react";
-import { Button } from "@/shared/ui/button";
+import { Button } from "@/global/ui/button";
 import { useWorkspaceStore } from "@/domains/workspace/stores/useWorkspaceStore";
 
 export function VaultAccessDenied() {

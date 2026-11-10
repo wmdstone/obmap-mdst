@@ -1,7 +1,7 @@
 import React, { useMemo } from "react";
-import { cn } from "@/shared/lib";
-import { ScrollArea } from "@/shared/ui/scroll-area";
-import { Badge } from "@/shared/ui/badge";
+import { cn } from "@/global/utils";
+import { ScrollArea } from "@/global/ui/scroll-area";
+import { Badge } from "@/global/ui/badge";
 
 export interface DiffViewerProps {
   originalContent: string;

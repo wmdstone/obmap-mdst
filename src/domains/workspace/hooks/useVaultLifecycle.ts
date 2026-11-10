@@ -7,7 +7,7 @@ import { useCallback, useEffect } from "react";
 import { useAuth } from "@/domains/auth/hooks/useAuth";
 import { getVaultManager } from "@/domains/vault/services/VaultManagerSingleton";
 import { syncCoordinator } from "@/domains/sync/SyncCoordinator";
-import { eventBus, EventType } from "@/shared/events/events";
+import { eventBus, EventType } from "@/global/stores/events";
 import { useNodeStore, useVaultStore, useGraphStore } from "@/shared/stores";
 import { useWorkspaceStore } from "@/domains/workspace/stores/useWorkspaceStore";
 import { refreshUndoRedoState } from "@/domains/workspace/actions/workspaceActions";

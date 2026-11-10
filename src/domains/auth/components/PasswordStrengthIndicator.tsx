@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { cn } from "@/shared/lib";
+import { cn } from "@/global/utils";
 
 interface PasswordStrengthIndicatorProps {
   password: string;

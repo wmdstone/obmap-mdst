@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { Folder, FileText, Image, Music, Video } from "lucide-react";
-import { cn } from "@/shared/lib";
+import { cn } from "@/global/utils";
 import { useNodeStore } from "@/domains/graph/shared/stores/useNodeStore";
 import { useUIStore } from "@/domains/workspace/stores/useUIStore";
 import { useWorkspaceStore } from "@/domains/workspace/stores/useWorkspaceStore";

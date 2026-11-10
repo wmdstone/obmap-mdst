@@ -8,7 +8,7 @@
  * - Remain fully portable, no database required
  */
 
-import { eventBus, EventType } from "@/shared/events/events";
+import { eventBus, EventType } from "@/global/stores/events";
 
 export interface FileSystemNode {
   id: string;

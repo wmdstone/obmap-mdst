@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { Settings } from "lucide-react";
-import { Button } from "@/shared/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/shared/ui/dialog";
-import { Input } from "@/shared/ui/input";
-import { Label } from "@/shared/ui/label";
-import { Separator } from "@/shared/ui/separator";
+import { Button } from "@/global/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/global/ui/dialog";
+import { Input } from "@/global/ui/input";
+import { Label } from "@/global/ui/label";
+import { Separator } from "@/global/ui/separator";
 import { toast } from "sonner";
 
 interface BackupConfig {

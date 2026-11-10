@@ -1,15 +1,15 @@
 import { useEffect, useState } from "react";
 import { Cloud, CloudOff, CheckCircle, RefreshCw, User } from "lucide-react";
-import { eventBus, EventType } from "@/shared/events/events";
+import { eventBus, EventType } from "@/global/stores/events";
 import { syncEngine } from "@/domains/sync/SyncEngine";
 import { useVaultSync } from "@/domains/vault/hooks/useVaultSync";
-import { Button } from "@/shared/ui/button";
+import { Button } from "@/global/ui/button";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/shared/ui/tooltip";
+} from "@/global/ui/tooltip";
 
 interface SyncStatusIndicatorProps {
   compact?: boolean;

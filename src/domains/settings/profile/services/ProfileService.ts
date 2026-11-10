@@ -3,7 +3,7 @@
  * Reservasi Pengalihan 14 Hari, dan Resolusi Namespace Publik.
  */
 
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/global/api/supabaseClient";
 
 export interface UsernameAvailabilityResult {
   available: boolean;

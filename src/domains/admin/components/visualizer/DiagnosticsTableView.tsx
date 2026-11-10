@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import type { SystemTelemetryContract } from "@/types/admin";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/ui/table";
-import { Badge } from "@/shared/ui/badge";
-import { Input } from "@/shared/ui/input";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/shared/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/global/ui/table";
+import { Badge } from "@/global/ui/badge";
+import { Input } from "@/global/ui/input";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/global/ui/card";
 import { Table as TableIcon, Search, AlertTriangle, Info, XCircle } from "lucide-react";
 
 interface Props {

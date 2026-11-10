@@ -1,8 +1,8 @@
-import { Input } from '@/shared/ui/input';
-import { Button } from '@/shared/ui/button';
-import { SectionHeaderWithReset } from '@/shared/ui/SectionHeaderWithReset';
+import { Input } from '@/global/ui/input';
+import { Button } from '@/global/ui/button';
+import { SectionHeaderWithReset } from '@/global/ui/SectionHeaderWithReset';
 import { Search, Sliders, Tag, FileText } from 'lucide-react';
-import { Slider } from '@/shared/ui/slider-noinput';
+import { Slider } from '@/global/ui/slider-noinput';
 
 interface SearchPanelProps {
   search: string;

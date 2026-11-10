@@ -4,12 +4,12 @@
 
 import { ReactNode, useState } from 'react';
 import { ChevronDown } from 'lucide-react';
-import { cn } from "@/shared/lib";
+import { cn } from "@/global/utils";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from "@/shared/ui/collapsible";
+} from "@/global/ui/collapsible";
 
 interface CollapsibleSectionProps {
   icon: ReactNode;

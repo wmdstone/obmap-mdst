@@ -6,8 +6,8 @@
 import { FileText, Link as LinkIcon } from "lucide-react";
 import { metadataCache } from "@/domains/metadata/MetadataCache";
 import { useMetadataVersion } from "@/domains/metadata/useMetadataCache";
-import { Badge } from "@/shared/ui/badge";
-import { ScrollArea } from "@/shared/ui/scroll-area";
+import { Badge } from "@/global/ui/badge";
+import { ScrollArea } from "@/global/ui/scroll-area";
 import type { Node } from "@/shared/stores/types";
 import { UnlinkedMentions } from "@/domains/metadata/backlinks/UnlinkedMentions";
 

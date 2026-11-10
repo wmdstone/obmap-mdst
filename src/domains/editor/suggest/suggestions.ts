@@ -1,7 +1,7 @@
 import type { Completion, CompletionContext, CompletionResult } from "@codemirror/autocomplete";
 import type { EditorView } from "@codemirror/view";
 import type { EditorState } from "@codemirror/state";
-import { fuzzyScore } from "@/shared/lib/fuzzy";
+import { fuzzyScore } from "@/global/utils/fuzzy";
 import { commandRegistry, type Command } from "@/domains/workspace/commands/CommandRegistry";
 import { getActiveEditor } from "@/domains/editor/services/activeEditor";
 

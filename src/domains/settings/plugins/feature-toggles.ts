@@ -5,7 +5,7 @@
  */
 
 import { pluginRegistry, type Feature } from '@/domains/settings/plugins/plugin-registry';
-import { eventBus, EventType } from '@/shared/events/events';
+import { eventBus, EventType } from '@/global/stores/events';
 
 const STORAGE_KEY = 'vault_feature_toggles';
 
