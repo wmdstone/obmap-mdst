@@ -629,25 +629,49 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, GraphCanvasProps>(funct
   // ---- 3. Metrics Calculation ----------------------------------------------
   const metrics = useMemo(() => {
     const map = new Map<string, NodeMetric>();
+    const showLabels = graphConfig.nodes.showLabels;
+    const labelBox = graphConfig.nodes.labelBox;
+
     for (const node of projection.nodes) {
-      if (!graphConfig.nodes.labelBox) {
-        const depthScale = graphConfig.nodes.sizeByDepth
-          ? Math.max(0.45, 1 - node.depth * graphConfig.nodes.depthSizeInterval * 0.08)
-          : 1;
-        const diameter = Math.max(3, graphConfig.nodes.relSize * depthScale) * 2;
-        map.set(node.id, { width: diameter, height: diameter });
-        continue;
-      }
       const label = graphConfig.nodes.labelField === 'id' ? node.id : node.name;
+      const depthScale = graphConfig.nodes.sizeByDepth
+        ? Math.max(0.45, 1 - node.depth * graphConfig.nodes.depthSizeInterval * 0.08)
+        : 1;
+      const diameter = Math.max(3, graphConfig.nodes.relSize * depthScale) * 2;
+
+      // Menggunakan signature cardLayout standar yang sudah kompatibel 100%
       const layout = cardLayout(label, {
         root: node.parentId === null,
         badge: node.childCount > 0,
         fontSize: graphConfig.nodes.labelSize + (node.parentId === null ? 2 : 0),
       });
-      map.set(node.id, { width: layout.width, height: layout.height });
+
+      if (labelBox) {
+        // Mode Bento Box
+        map.set(node.id, { width: layout.width, height: layout.height });
+      } else if (showLabels) {
+        // Mode Unboxed: layout.width sudah mencakup lebar teks + padding + badge
+        map.set(node.id, {
+          width: layout.width,
+          height: Math.max(diameter + 10, layout.height),
+        });
+      } else {
+        // Mode Dot Only
+        map.set(node.id, { width: diameter, height: diameter });
+      }
     }
     return map;
-  }, [projection, graphConfig.nodes]);
+  }, [
+    projection.nodes,
+    graphConfig.nodes.labelBox,
+    graphConfig.nodes.showLabels,
+    graphConfig.nodes.labelField,
+    graphConfig.nodes.labelSize,
+    graphConfig.nodes.relSize,
+    graphConfig.nodes.sizeByDepth,
+    graphConfig.nodes.depthSizeInterval,
+  ]);
+
 
   // ---- 4. Visibility Filter ------------------------------------------------
   

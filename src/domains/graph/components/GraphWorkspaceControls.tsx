@@ -506,7 +506,7 @@ function ClassicGearControls({
   return (
     // UBAH: Posisi di kanan atas (top-2 right-2 sm:top-4 sm:right-4)
     // UBAH: Gunakan flex-col items-end (BUKAN flex-col-reverse) agar panel muncul ke bawah
-    <div className="pointer-events-none absolute top-2 right-2 z-40 flex flex-col items-end gap-1.5 sm:top-4 sm:right-4">
+    <div className="pointer-events-none absolute top-3 right-3 z-40 flex flex-col items-end gap-1.5 sm:top-4 sm:right-4">
       {/* Baris Tombol Gear & Opsi Horizontal */}
       <div className="pointer-events-auto flex items-center rounded-lg border border-border/60 bg-card/90 p-1 shadow-md shadow-black/25 backdrop-blur-md transition-all">
         {/* Tombol-tombol Opsi mekar ke arah KIRI dari tombol Gear */}

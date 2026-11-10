@@ -85,22 +85,30 @@ export const cardFont = (size = CARD_FONT_SIZE, weight = '500') =>
 
 export interface CardLayout extends NodeMetric {
   lines: string[];
+  textWidth?: number;
 }
 
 /** Stable, zoom-independent card geometry derived from the label. */
 export function cardLayout(
   label: string,
-  options: { root?: boolean; badge?: boolean; fontSize?: number } = {}
+  options: {
+    root?: boolean;
+    badge?: boolean;
+    fontSize?: number;
+    maxTextWidth?: number;
+    maxLines?: number;
+  } = {}
 ): CardLayout {
   const fontSize = options.fontSize ?? (options.root ? CARD_FONT_SIZE + 2 : CARD_FONT_SIZE);
   const font = cardFont(fontSize, options.root ? '600' : '500');
-  const maxTextWidth = options.root ? 168 : 132;
-  const lines = wrapText(label || 'Untitled', font, maxTextWidth, 2);
+  const maxTextWidth = options.maxTextWidth ?? (options.root ? 200 : 160);
+  const maxLines = options.maxLines ?? (options.root ? 3 : 4);
+  const lines = wrapText(label || 'Untitled', font, maxTextWidth, maxLines);
   const textWidth = Math.max(...lines.map((line) => measureText(line, font)));
   const paddingX = 12;
   const iconWidth = 16;
   const badgeWidth = options.badge ? 20 : 0;
   const width = Math.max(72, Math.ceil(textWidth + paddingX * 2 + iconWidth + badgeWidth));
   const height = Math.ceil(lines.length * (fontSize + 4) + 14);
-  return { width, height, lines };
+  return { width, height, lines, textWidth };
 }

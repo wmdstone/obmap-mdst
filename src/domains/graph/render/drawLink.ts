@@ -56,50 +56,115 @@ const cubicTangent = (p0: number, p1: number, p2: number, p3: number, t: number)
 };
 
 // ==========================================
-// PRECISION TIMELINE ORTHOGONAL ROUTING
+// PRECISION TIMELINE ORTHOGONAL ROUTING (XMIND-GRADE)
+// ==========================================
+
+// Tambahkan boxed ke DrawLinkState
+export interface DrawLinkState {
+  mode: LayoutMode;
+  theme: GraphTheme;
+  color: string;
+  width: number;
+  opacity: number;
+  dash: number[];
+  dimmed: boolean;
+  showArrow: boolean;
+  arrowLength: number;
+  arrowRelPos: number;
+  curvature: number;
+  curveRotation: number;
+  particles: number;
+  particleWidth: number;
+  particleColor: string;
+  particleProgress: number;
+  zoom: number;
+  preserveDetail: boolean;
+  metricOf: (node: RenderNode) => NodeMetric;
+  isAttachedToDragged?: boolean;
+  boxed?: boolean; // <-- Deteksi apakah node berupa kotak bento atau dot lingkaran
+}
+
+// ==========================================
+// PRECISION TIMELINE & XMIND TREE ROUTING
 // ==========================================
 
 function createTimelineGeometry(
   source: RenderNode,
   target: RenderNode,
-  metricOf: (node: RenderNode) => NodeMetric
+  metricOf: (node: RenderNode) => NodeMetric,
+  boxed = false,
+  curvature = 0
 ): LinkGeometry {
   const sx = source.x ?? 0;
   const sy = source.y ?? 0;
   const tx = target.x ?? 0;
   const ty = target.y ?? 0;
 
-  const isFromBaseline = Math.abs(sy) < 5;
+  const sMetric = metricOf(source);
+  const tMetric = metricOf(target);
 
+  // 1. Target Anchor: Jika unboxed, garis langsung masuk ke dot lingkaran (tx, ty)
+  //    Jika boxed, garis masuk ke tepi kiri kotak bento (tx - width/2, ty)
+  const targetX = boxed ? tx - tMetric.width / 2 : tx;
+  const targetY = ty;
+
+  // 2. Hubungan dari Baseline Waktu (y = 0) ke Milestone Utama
+  const isFromBaseline = Math.abs(sy) < 5;
   if (isFromBaseline) {
-    // 1. Root ke Milestone (keluar sisi kanan root, belok masuk sisi atas/bawah milestone)
-    const a: Point = { x: sx + metricOf(source).width / 2, y: sy };
+    const a: Point = { x: sx + (boxed ? sMetric.width / 2 : sMetric.width), y: sy };
     const b: Point = {
       x: tx,
-      y: ty < sy ? ty + metricOf(target).height / 2 : ty - metricOf(target).height / 2,
+      y: ty < sy ? ty + (boxed ? tMetric.height / 2 : 6) : ty - (boxed ? tMetric.height / 2 : 6),
     };
-    return createElbowGeometry([a, { x: tx, y: a.y }, b]);
+    return createElbowGeometry([a, { x: tx, y: a.y }, b], 8);
   }
 
-  // Cek apakah target adalah Level 2 langsung di bawah/atas milestone (berbagi trunk X)
-  const isTrunkLink = Math.abs(tx - sx) < 70;
+  // 3. Hubungan Milestone Utama ke Kolom Level 2 (Tiang vertikal lurus + rak horizontal)
+  const isTrunkLink = Math.abs(tx - sx) <= 50;
   if (isTrunkLink) {
-    // 2. Milestone ke Level 2 (Trunk vertikal tunggal dengan cabang horizontal)
     const a: Point = {
       x: sx,
-      y: sy < 0 ? sy - metricOf(source).height / 2 : sy + metricOf(source).height / 2,
+      y: sy < 0 ? sy - (boxed ? sMetric.height / 2 : 6) : sy + (boxed ? sMetric.height / 2 : 6),
     };
-    const b: Point = { x: tx - metricOf(target).width / 2, y: ty };
-    return createElbowGeometry([a, { x: sx, y: b.y }, b]);
+    const b: Point = { x: targetX, y: targetY };
+    return createElbowGeometry([a, { x: sx, y: b.y }, b], 6);
   }
 
-  // 3. Level 2..15 ke Level 3..15 (Cabang horizontal presisi di tengah sisi kiri & kanan kartu)
-  const a: Point = { x: sx + metricOf(source).width / 2, y: sy };
-  const b: Point = { x: tx - metricOf(target).width / 2, y: ty };
-  const midX = (a.x + b.x) / 2;
-  return createElbowGeometry([a, { x: midX, y: a.y }, { x: midX, y: b.y }, b]);
-}
+  // 4. Hubungan Cabang Level 2+ ke Anak-anaknya (Level 3 s.d. Level 15)
+  // Garis keluar SETELAH teks induk agar tulisan tidak tertembus garis
+  const sourceRightX = boxed ? sx + sMetric.width / 2 : sx + sMetric.width + 4;
+  const sourceY = sy;
 
+  const dx = targetX - sourceRightX;
+  const dy = targetY - sourceY;
+
+  // Jika anak berada tepat sejajar horizontal
+  if (Math.abs(dy) < 3) {
+    return createStraightGeometry({ x: sourceRightX, y: sourceY }, { x: targetX, y: targetY });
+  }
+
+  // Gaya Cabang XMind: S-Curve Bezier halus yang memancar tanpa pernah bertumpuk
+  // Jika curvature > 0 atau mode pohon bertingkat
+  const k = 0.42;
+  const c1 = { x: sourceRightX + dx * k, y: sourceY };
+  const c2 = { x: targetX - dx * k, y: targetY };
+
+  return {
+    trace: (ctx) => {
+      ctx.moveTo(sourceRightX, sourceY);
+      ctx.bezierCurveTo(c1.x, c1.y, c2.x, c2.y, targetX, targetY);
+    },
+    pointAt: (t) => ({
+      x: cubicPoint(sourceRightX, c1.x, c2.x, targetX, t),
+      y: cubicPoint(sourceY, c1.y, c2.y, targetY, t),
+    }),
+    tangentAt: (t) =>
+      Math.atan2(
+        cubicTangent(sourceY, c1.y, c2.y, targetY, t),
+        cubicTangent(sourceRightX, c1.x, c2.x, targetX, t)
+      ),
+  };
+}
 
 // ==========================================
 // STANDARD GEOMETRIES (MINDMAP, ELBOW, STRAIGHT)
@@ -195,8 +260,15 @@ export function drawLink(
   let geometry: LinkGeometry;
 
   if (state.mode === 'timeline') {
-    geometry = createTimelineGeometry(source, target, state.metricOf);
-  } else if (state.mode === 'org-chart') {
+    geometry = createTimelineGeometry(
+      source,
+      target,
+      state.metricOf,
+      state.boxed ?? false,
+      state.curvature
+    );
+  }
+else if (state.mode === 'org-chart') {
     const top = sy <= ty;
     const a = { x: sx, y: sy + (top ? 1 : -1) * (state.metricOf(source).height / 2) };
     const b = { x: tx, y: ty - (top ? 1 : -1) * (state.metricOf(target).height / 2) };

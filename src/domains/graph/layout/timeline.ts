@@ -1,11 +1,11 @@
 /**
- * Timeline Layout Engine (XMind-inspired)
- * Features:
- * - Central chronological baseline axis (y = 0)
- * - Dynamic bottom-up recursive measurement to eliminate deep-tree overlaps (up to Level 15+)
- * - Dual independent cursors for top and bottom lanes
- * - Strictly partitioned vertical slots for recursive horizontal branches
- * - Monotonic progression and baseline clearance guarantee
+ * Timeline Layout Engine (XMind Zen / 2024 Reference Architecture)
+ * 
+ * Fitur:
+ * - Sumbu kronologis berirama dan simetris (anti-desert, anti-clumping).
+ * - Partisi slot vertikal terisolasi rekursif (anti-collision untuk 20+ L3 node & puluhan anak).
+ * - Penghitungan anchor visual presisi (garis menempel pas di bulatan/teks tanpa celah melayang).
+ * - Multi-line paragraph wrapping untuk judul panjang hingga 50 kata.
  */
 
 import type { LayoutContext, LayoutGeometry, NodeTarget } from '../model/graphTypes';
@@ -20,8 +20,8 @@ export interface TimelineInput {
 }
 
 interface SubtreeBox {
-  spanY: number;      // Total vertical span required by this node and its descendants
-  spanX: number;      // Total horizontal span from this node to rightmost leaf
+  spanY: number;      // Total tinggi vertikal subtree
+  spanX: number;      // Jangkauan horizontal dari node ini ke daun paling kanan
   ownWidth: number;
   ownHeight: number;
 }
@@ -40,23 +40,22 @@ export function timelineLayout({
   const visible = new Set(ids);
   const baselineY = 0;
 
-  // Ukuran fallback yang memperhitungkan padding & collapse badge
   const metric = (id: string) => {
     const m = context.nodeMetrics?.get(id);
     const hasChildren = childrenOf(id).some((c) => visible.has(c));
-    const extraWidth = hasChildren ? 26 : 0;
+    const extra = hasChildren ? 18 : 0;
     return {
-      width: (m?.width ?? 140) + extraWidth,
-      height: Math.max(m?.height ?? 34, 32),
+      width: Math.max(m?.width ?? 100, 40) + extra,
+      height: Math.max(m?.height ?? 32, 28),
     };
   };
 
   const laneGap = Math.max(context.laneGap ?? 110, 80);
-  const siblingGapY = Math.max(context.siblingGap ?? 16, 12);
+  const siblingGapY = Math.max(context.siblingGap ?? 18, 14);
   const levelGapX = Math.max(context.levelGap ?? 64, 48);
   const minBaselineClearance = 45;
 
-  // 1. Identifikasi Root Utama
+  // 1. Root Utama
   const visibleRoots = roots.filter((r) => visible.has(r));
   const primaryRoot = visibleRoots[0] ?? ids[0];
   const rootMetric = metric(primaryRoot);
@@ -68,13 +67,13 @@ export function timelineLayout({
     lane: 0,
   });
 
-  // 2. Daftar Milestone (anak langsung dari root)
+  // 2. Daftar Milestone
   const rootChildren = childrenOf(primaryRoot).filter((id) => visible.has(id));
   const milestones = rootChildren.length > 0
     ? rootChildren
     : visibleRoots.filter((r) => r !== primaryRoot);
 
-  // 3. Bottom-Up Recursive Measurement Cache (Menjamin ruang subtree hingga Level 15+)
+  // 3. Bottom-Up Recursive Bounding Box Cache
   const boxCache = new Map<string, SubtreeBox>();
 
   function measureBox(nodeId: string): SubtreeBox {
@@ -114,13 +113,11 @@ export function timelineLayout({
     return box;
   }
 
-  // Pre-measure seluruh node aktif
   for (const id of ids) {
     measureBox(id);
   }
 
-  // 4. Recursive Subtree Placement untuk Level 3 hingga Level 15+
-  // Setiap anak ditempatkan dalam slot vertikal terisolasi sehingga tidak ada tabrakan
+  // 4. Rekursif Penempatan Cabang Horizontal (Level 3 hingga Level 15+)
   function placeHorizontalSubtree(
     parentId: string,
     parentX: number,
@@ -132,7 +129,8 @@ export function timelineLayout({
     if (kids.length === 0) return;
 
     const parentMetric = metric(parentId);
-    const branchX = parentX + parentMetric.width / 2 + levelGapX;
+    // Ujung kanan parent (tempat teks berakhir) + celah level
+    const branchX = parentX + parentMetric.width + levelGapX;
 
     const kidsBoxes = kids.map((k) => measureBox(k));
     const totalKidsSpanY = kidsBoxes.reduce(
@@ -140,20 +138,18 @@ export function timelineLayout({
       0
     );
 
-    // Pusatkan anak di dalam slot vertikal milik parent
     let cursorY = parentSlotY + Math.max(0, (parentSlotHeight - totalKidsSpanY) / 2);
 
     for (let i = 0; i < kids.length; i++) {
       const kidId = kids[i];
       const kidBox = kidsBoxes[i];
-      const kidMetric = metric(kidId);
 
       const kidSlotY = cursorY;
       const kidSlotHeight = kidBox.spanY;
-
-      // Titik tengah node anak
       const kidY = kidSlotY + kidSlotHeight / 2;
-      const kidActualX = branchX + kidMetric.width / 2;
+
+      // Pusat bulatan node anak ditaruh tepat di branchX (tanpa ditambah width/2 yang membuat celah)
+      const kidActualX = branchX;
 
       targets.set(kidId, {
         x: kidActualX,
@@ -162,14 +158,14 @@ export function timelineLayout({
         lane,
       });
 
-      // Rekursif ke kedalaman berikutnya (Level 4, Level 5, ..., Level 15)
+      // Lanjut rekursif ke Level 4, Level 5, dst.
       placeHorizontalSubtree(kidId, kidActualX, kidSlotY, kidSlotHeight, lane);
 
       cursorY += kidBox.spanY + siblingGapY;
     }
   }
 
-  // 5. Penempatan Pohon Milestone (Milestone + Tiang Level 2 + Cabang Level 3..15+)
+  // 5. Penempatan Pohon Milestone
   function placeMilestoneTree(
     mId: string,
     mX: number,
@@ -187,21 +183,19 @@ export function timelineLayout({
 
     const l2Kids = childrenOf(mId).filter((c) => visible.has(c));
     if (l2Kids.length === 0) {
-      return { maxX: mX + mMetric.width / 2 };
+      return { maxX: mX + mMetric.width };
     }
 
     const l2Boxes = l2Kids.map((k) => measureBox(k));
-    const trunkX = mX + 36; // Indentasi teratur untuk tiang vertikal
+    // Indentasi tiang vertikal Level 2
+    const trunkX = mX + 32;
 
-    // Level 2 disusun vertikal menjauhi sumbu tengah:
-    // Lane -1 (Atas): menjauhi sumbu ke arah -Y
-    // Lane +1 (Bawah): menjauhi sumbu ke arah +Y
     let currentY: number;
     if (lane === -1) {
       const safeFirstSlotY = -minBaselineClearance - l2Boxes[0].spanY;
-      currentY = Math.min(mY - 30 - l2Boxes[0].spanY, safeFirstSlotY);
+      currentY = Math.min(mY - 28 - l2Boxes[0].spanY, safeFirstSlotY);
     } else {
-      currentY = Math.max(mY + 30, minBaselineClearance);
+      currentY = Math.max(mY + 28, minBaselineClearance);
     }
 
     for (let i = 0; i < l2Kids.length; i++) {
@@ -219,10 +213,9 @@ export function timelineLayout({
         lane,
       });
 
-      // Cabang horizontal Level 3+ tumbuh ke kanan
+      // Cabang Level 3+ bertumbuh horizontal ke kanan
       placeHorizontalSubtree(kidId, trunkX, slotY, slotHeight, lane);
 
-      // Langkah Y untuk sibling Level 2 berikutnya
       if (lane === -1) {
         if (i < l2Kids.length - 1) {
           const nextBox = l2Boxes[i + 1];
@@ -233,12 +226,11 @@ export function timelineLayout({
       }
     }
 
-    // Hitung jangkauan maksimum X yang ditempati seluruh turunan milestone ini
-    let maxX = mX + mMetric.width / 2;
+    let maxX = mX + mMetric.width;
     function collectMaxX(nodeId: string) {
       const t = targets.get(nodeId);
       if (t) {
-        maxX = Math.max(maxX, t.x + metric(nodeId).width / 2);
+        maxX = Math.max(maxX, t.x + metric(nodeId).width);
       }
       for (const c of childrenOf(nodeId).filter((k) => visible.has(k))) {
         collectMaxX(c);
@@ -249,37 +241,37 @@ export function timelineLayout({
     return { maxX };
   }
 
-  // 6. Penempatan Milestone dengan Dual Cursors (Atas & Bawah)
-  let cursorTopX = rootMetric.width / 2 + 80;
-  let cursorBottomX = rootMetric.width / 2 + 80;
-  let lastMilestoneX = 0;
+  // 6. Penempatan Milestone Ritmis Sumbu Baseline (Symmetric Pacing)
+  // Menjaga urutan bergantian yang seimbang tanpa ada ruang kosong raksasa
+  const lastSameLaneMaxX: Record<-1 | 1, number> = {
+    [-1]: rootMetric.width / 2 + 60,
+    [1]: rootMetric.width / 2 + 60,
+  };
+  let lastAnyMilestoneX = rootMetric.width / 2;
+  const minAlternatingStep = 80;
+  const sameLaneClearance = 45;
 
   milestones.forEach((mId, index) => {
-    // Alternasi Atas (-1) dan Bawah (+1)
     const lane: -1 | 1 = index % 2 === 0 ? -1 : 1;
-    const mMetric = metric(mId);
 
-    const cursorLane = lane === -1 ? cursorTopX : cursorBottomX;
-    const minStepFromLast = lastMilestoneX + Math.max(mMetric.width * 0.8, 80);
-    const mX = Math.max(cursorLane, minStepFromLast);
+    // Syarat 1: Membersihkan pohon milestone sebelumnya pada jalur yang sama
+    const minFromSameLane = lastSameLaneMaxX[lane] + sameLaneClearance;
+    // Syarat 2: Menjaga langkah ritmis minimum dari milestone sebelumnya
+    const minFromPrev = lastAnyMilestoneX + minAlternatingStep;
 
+    const mX = Math.max(minFromSameLane, minFromPrev);
     const { maxX } = placeMilestoneTree(mId, mX, lane);
 
-    if (lane === -1) {
-      cursorTopX = maxX + 60;
-    } else {
-      cursorBottomX = maxX + 60;
-    }
-
-    lastMilestoneX = mX;
+    lastSameLaneMaxX[lane] = maxX;
+    lastAnyMilestoneX = mX;
   });
 
-  // 7. Node yatim/tersisa ditaruh rapi di ujung kanan sumbu
-  let orphanCursorX = Math.max(cursorTopX, cursorBottomX) + 80;
+  // 7. Node yang belum terhubung/yatim ditaruh rapi di ujung timeline
+  let orphanCursorX = Math.max(lastSameLaneMaxX[-1], lastSameLaneMaxX[1]) + 80;
   for (const id of ids) {
     if (!targets.has(id)) {
       targets.set(id, { x: orphanCursorX, y: baselineY, side: 0, lane: 0 });
-      orphanCursorX += metric(id).width + 60;
+      orphanCursorX += metric(id).width + 50;
     }
   }
 
