@@ -27,9 +27,9 @@ import {
   GitBranch,
 } from 'lucide-react';
 import { NodeConfig, useGraphStore } from "@/domains/graph/shared/stores/useGraphStore";
-import { ColorPicker } from '@/domains/graph/components/ColorPicker';
-import { ColorEngineControls } from '@/domains/graph/components/ColorEngineControls';
-import { CollapsibleSection } from '@/domains/graph/components/CollapsibleSection';
+import { ColorPicker } from '@/domains/graph/components/GraphColorPicker';
+import { ColorEngineControls } from '@/domains/graph/components/GraphColorEngineControls';
+import { CollapsibleSection } from '@/domains/graph/components/GraphCollapsibleSection';
 
 interface NodeStylingTabProps {
   config: NodeConfig;

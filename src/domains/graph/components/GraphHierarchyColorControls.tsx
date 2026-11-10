@@ -27,7 +27,7 @@ import {
   type HierarchyOverflow,
   type HierarchyPresetId,
 } from '@/domains/graph/shared/utils/hierarchyColors';
-import { ColorPicker } from '@/domains/graph/components/ColorPicker';
+import { ColorPicker } from '@/domains/graph/components/GraphColorPicker';
 
 const MIN_LEVELS = 3;
 

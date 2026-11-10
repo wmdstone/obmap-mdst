@@ -12,14 +12,14 @@ import type {
   MindmapOrientation,
   NodeMetric,
   SubtreeLayoutMap,
-} from '@/domains/graph/shared/model/graphTypes';
-import { mindmapLayout } from '@/domains/graph/shared/hooks/mindmap';
-import { timelineLayout } from '@/domains/graph/shared/hooks/timeline';
-import { fishboneLayout } from '@/domains/graph/shared/hooks/fishbone';
-import { freeForceLayout } from '@/domains/graph/shared/hooks/freeForce';
-import { fruchtermanReingoldLayout, gridLayout, kamadaKawaiLayout } from '@/domains/graph/shared/hooks/networkLayouts';
-import { braceMapLayout, orgChartLayout } from '@/domains/graph/shared/hooks/treeLayouts';
-import { composeSubtreeLayouts } from '@/domains/graph/shared/hooks/subtreeCompose';
+} from '@/domains/graph/shared/utils/graph.types';
+import { mindmapLayout } from '@/domains/graph/shared/utils/mindmap';
+import { timelineLayout } from '@/domains/graph/shared/utils/timeline';
+import { fishboneLayout } from '@/domains/graph/shared/utils/fishbone';
+import { freeForceLayout } from '@/domains/graph/shared/utils/freeForce';
+import { fruchtermanReingoldLayout, gridLayout, kamadaKawaiLayout } from '@/domains/graph/shared/utils/networkLayouts';
+import { braceMapLayout, orgChartLayout } from '@/domains/graph/shared/utils/treeLayouts';
+import { composeSubtreeLayouts } from '@/domains/graph/shared/utils/subtreeCompose';
 
 export interface LayoutEngineOptions {
   mode: LayoutMode;

@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useRef } from 'react';
 import type { GraphConfigState } from '@/domains/graph/shared/stores/useGraphStore';
-import type { LayoutMode, RenderNode } from '@/domains/graph/shared/model/graphTypes';
-import type { GraphTheme } from '@/domains/graph/shared/render/theme';
-import { drawCosmicAtmosphere } from '@/domains/graph/shared/render/cosmicAtmosphere';
-import { drawDecorations } from '@/domains/graph/shared/render/drawDecorations';
-import { resolveHierarchyLinkPaint } from '@/domains/graph/shared/model/hierarchyColors';
-import { prefersReducedMotion } from '@/domains/graph/shared/layout/transitionController';
+import type { LayoutMode, RenderNode } from '@/domains/graph/shared/utils/graph.types';
+import type { GraphTheme } from '@/domains/graph/shared/utils/theme';
+import { drawCosmicAtmosphere } from '@/domains/graph/shared/utils/cosmicAtmosphere';
+import { drawDecorations } from '@/domains/graph/shared/utils/drawDecorations';
+import { resolveHierarchyLinkPaint } from '@/domains/graph/shared/utils/hierarchyColors';
+import { prefersReducedMotion } from '@/domains/graph/shared/utils/transitionController';
 
 const dashFor = (style: string | undefined, width: number): number[] => {
   if (style === 'dashed') return [width * 3, width * 2];

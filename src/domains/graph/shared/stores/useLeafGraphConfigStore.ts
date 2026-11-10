@@ -11,7 +11,7 @@ import {
   useGraphStore,
 } from '@/domains/graph/shared/stores/useGraphStore';
 import { useGraphTemplatesStore } from '@/domains/graph/shared/stores/useGraphTemplatesStore';
-import { mergeAtmosphereConfig, type AtmosphereConfig } from '@/domains/graph/shared/stores/atmosphereConfig';
+import { mergeAtmosphereConfig, type AtmosphereConfig } from '@/domains/graph/shared/utils/atmosphereConfig';
 
 export interface LeafGraphConfigState {
   config: GraphConfigState;

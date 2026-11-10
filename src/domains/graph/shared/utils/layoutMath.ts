@@ -1,6 +1,6 @@
 /** Pure math helpers shared by every layout strategy. */
 
-import type { Bounds, LayoutPoint, NodeTarget } from '@/domains/graph/shared/model/graphTypes';
+import type { Bounds, LayoutPoint, NodeTarget } from '@/domains/graph/shared/utils/graph.types';
 
 export const clamp = (value: number, min: number, max: number) =>
   Math.min(max, Math.max(min, value));

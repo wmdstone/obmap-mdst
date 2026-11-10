@@ -3,8 +3,8 @@
  * Bezier branches for Mindmaps, and Clean Straight links for Networks.
  */
 
-import type { LayoutMode, NodeMetric, RenderNode } from '@/domains/graph/shared/model/graphTypes';
-import { anchorOnCard } from '@/domains/graph/shared/layout/layoutMath';
+import type { LayoutMode, NodeMetric, RenderNode } from '@/domains/graph/shared/utils/graph.types';
+import { anchorOnCard } from '@/domains/graph/shared/utils/layoutMath';
 import { dim, type GraphTheme } from '@/domains/graph/shared/utils/theme';
 
 export interface DrawLinkState {

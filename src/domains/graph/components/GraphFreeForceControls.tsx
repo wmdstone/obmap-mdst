@@ -3,7 +3,9 @@ import { ControlSliderRow } from '@/shared/ui/ControlSliderRow';
 import { SectionHeaderWithReset } from '@/shared/ui/SectionHeaderWithReset';
 import { Flame, Pause, Magnet } from 'lucide-react';
 import { defaultForceConfig, type ForceConfig } from '@/domains/graph/shared/stores/useGraphStore';
-import { useGraphInteractionStore } from '@/domains/model/useGraphInteractionStore';
+import { useGraphInteractionStore } from '@/domains/graph/shared/stores/useGraphInteractionStore';
+
+useGraphInteractionStore
 
 interface FreeForceControlsProps {
   forces: ForceConfig;

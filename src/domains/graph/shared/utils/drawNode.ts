@@ -1,6 +1,6 @@
 /** Card node renderer with level-of-detail and a collapse toggle hit region. */
 
-import type { RenderNode } from '@/domains/graph/shared/model/graphTypes';
+import type { RenderNode } from '@/domains/graph/shared/utils/graph.types';
 import type { NodeConfig } from '@/domains/graph/shared/stores/useGraphStore';
 import { cardFont, cardLayout, CARD_FONT_SIZE } from '@/domains/graph/shared/utils/textLayout';
 import { accentFor, dim, type GraphTheme } from '@/domains/graph/shared/utils/theme';

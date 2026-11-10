@@ -1,6 +1,6 @@
 /** Cached text measurement, word wrapping and card sizing. */
 
-import type { NodeMetric } from '@/domains/graph/shared/model/graphTypes';
+import type { NodeMetric } from '@/domains/graph/shared/utils/graph.types';
 
 let measureCtx: CanvasRenderingContext2D | null = null;
 const widthCache = new Map<string, number>();

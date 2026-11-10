@@ -4,7 +4,7 @@
  * Pure TS, seeded initial positions, so identical input gives identical output.
  */
 
-import type { LayoutContext, LayoutGeometry, LayoutMode, NodeTarget } from '@/domains/graph/shared/model/graphTypes';
+import type { LayoutContext, LayoutGeometry, LayoutMode, NodeTarget } from '@/domains/graph/shared/utils/graph.types';
 import { boundsOf } from '@/domains/graph/shared/utils/layoutMath';
 
 export interface NetworkInput {

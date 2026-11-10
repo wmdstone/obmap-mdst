@@ -1,6 +1,6 @@
 /** Camera helpers built on the ForceGraph2D public API. */
 
-import type { Bounds, RenderNode } from '@/domains/graph/shared/model/graphTypes';
+import type { Bounds, RenderNode } from '@/domains/graph/shared/utils/graph.types';
 
 export interface ForceGraphHandle {
   centerAt?: (x: number, y: number, ms?: number) => void;

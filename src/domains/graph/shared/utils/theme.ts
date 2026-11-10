@@ -2,11 +2,11 @@
 
 import { colorWithOpacity, resolveColor } from '@/shared/lib/color-utils';
 import type { GraphConfigState } from '@/domains/graph/shared/stores/useGraphStore';
-import type { RenderNode } from '@/domains/graph/shared/model/graphTypes';
+import type { RenderNode } from '@/domains/graph/shared/utils/graph.types';
 import {
   resolveLevelColor,
   type HierarchyColorConfig,
-} from '@/domains/graph/shared/model/hierarchyColors';
+} from '@/domains/graph/shared/utils/hierarchyColors';
 
 export interface GraphTheme {
   folder: string;

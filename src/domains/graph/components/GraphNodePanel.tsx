@@ -28,7 +28,7 @@ import {
   DropdownMenuLabel,
 } from "@/shared/ui/dropdown-menu";
 import { NodeMediaPreview } from "@/domains/graph/components/GraphNodeMediaPreview";
-import { NodeBreadcrumbBar } from "@/domains/graph/components/GraphNodeBreadcrumBar";
+import { NodeBreadcrumbBar } from "@/domains/graph/components/GraphNodeBreadcrumbBar";
 import { NodeBacklinksSection, type Backlink } from "@/domains/graph/components/GraphNodeBacklinksSection";
 import { NoteWorkflowMenuSection } from "@/domains/collaboration/components/NoteWorkflowMenuSection";
 import { FolderOverviewEditor } from "@/domains/graph/components/GraphFolderOverviewEditor";

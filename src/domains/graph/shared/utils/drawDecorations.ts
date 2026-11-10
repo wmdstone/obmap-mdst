@@ -1,6 +1,6 @@
 /** Axis, spine and rib decorations, drawn once per frame before links. */
 
-import type { FishboneRib, FishboneSpine, LayoutDecoration } from '@/domains/graph/shared/model/graphTypes';
+import type { FishboneRib, FishboneSpine, LayoutDecoration } from '@/domains/graph/shared/utils/graph.types';
 import { cardFont } from '@/domains/graph/shared/utils/textLayout';
 import { dim, type GraphTheme } from '@/domains/graph/shared/utils/theme';
 

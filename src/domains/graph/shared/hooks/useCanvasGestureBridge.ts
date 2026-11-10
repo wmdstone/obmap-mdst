@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback } from "react";
 import type { Node } from "@/shared/stores/types";
-import type { RenderNode } from "@/domains/graph/shared/model/graphTypes";
+import type { RenderNode } from "@/domains/graph/shared/utils/graph.types";
 
 export interface UseCanvasGestureBridgeOptions {
   containerRef: React.RefObject<HTMLDivElement>;

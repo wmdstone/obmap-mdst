@@ -34,9 +34,9 @@ import {
   LinkStyle,
   LinkStats,
 } from "@/domains/graph/shared/stores/useGraphStore";
-import { NodeStylingTab } from '@/domains/graph/components/NodeStylingTab';
-import { LinkStylingTab } from '@/domains/graph/components/LinkStylingTab';
-import { AnalyticsTab } from '@/domains/graph/components/AnalyticsTab';
+import { NodeStylingTab } from '@/domains/graph/components/GraphNodeStylingTab';
+import { LinkStylingTab } from '@/domains/graph/components/GraphLinkStylingTab';
+import { AnalyticsTab } from '@/domains/graph/components/GraphAnalyticsTab';
 import { useIsMobile } from "@/shared/hooks/useMobile";
 
 interface GraphConfigPanelProps {

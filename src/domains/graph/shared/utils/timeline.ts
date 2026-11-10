@@ -8,7 +8,7 @@
  * - Multi-line paragraph wrapping untuk judul panjang hingga 50 kata.
  */
 
-import type { LayoutContext, LayoutGeometry, NodeTarget } from '@/domains/graph/shared/model/graphTypes';
+import type { LayoutContext, LayoutGeometry, NodeTarget } from '@/domains/graph/shared/utils/graph.types';
 import { boundsOf } from '@/domains/graph/shared/utils/layoutMath';
 
 export interface TimelineInput {

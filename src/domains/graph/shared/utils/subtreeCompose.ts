@@ -10,7 +10,7 @@ import type {
   MindmapLayoutMode,
   NodeTarget,
   SubtreeLayoutMap,
-} from '@/domains/graph/shared/model/graphTypes';
+} from '@/domains/graph/shared/utils/graph.types';
 import { boundsOf } from '@/domains/graph/shared/utils/layoutMath';
 import { mindmapLayout } from '@/domains/graph/shared/utils/mindmap';
 import { orgChartLayout, braceMapLayout } from '@/domains/graph/shared/utils/treeLayouts';

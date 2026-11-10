@@ -16,7 +16,7 @@ import {
   PaintBucket,
 } from "lucide-react";
 import { cn } from "@/shared/lib/cn";
-import { ColorPicker } from "@/domains/graph/components/ColorPicker";
+import { ColorPicker } from "@/domains/graph/components/GraphColorPicker";
 import { ControlSliderRow } from "@/shared/ui/ControlSliderRow";
 import { SectionHeaderWithReset } from "@/shared/ui/SectionHeaderWithReset";
 import {

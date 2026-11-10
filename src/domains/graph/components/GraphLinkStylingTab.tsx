@@ -23,9 +23,9 @@ import {
   Tags,
 } from 'lucide-react';
 import { LinkConfig, TopologyConfig, LinkStyle } from "@/domains/graph/shared/stores/useGraphStore";
-import { ColorPicker } from '@/domains/graph/components/ColorPicker';
-import { HierarchyLinkColorControls } from '@/domains/graph/components/HierarchyColorControls';
-import { CollapsibleSection } from '@/domains/graph/components/CollapsibleSection';
+import { ColorPicker } from '@/domains/graph/components/GraphColorPicker';
+import { HierarchyLinkColorControls } from '@/domains/graph/components/GraphHierarchyColorControls';
+import { CollapsibleSection } from '@/domains/graph/components/GraphCollapsibleSection';
 
 interface LinkStylingTabProps {
   config: LinkConfig;

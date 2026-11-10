@@ -2,7 +2,7 @@ import { Label } from '@/shared/ui/label';
 import { Switch } from '@/shared/ui/switch';
 import { Button } from '@/shared/ui/button';
 import { Sparkles, Compass, Wind, Orbit, Sun } from 'lucide-react';
-import { ColorPicker } from '@/domains/graph/components/ColorPicker';
+import { ColorPicker } from '@/domains/graph/components/GraphColorPicker';
 import { ControlSliderRow } from '@/shared/ui/ControlSliderRow';
 import { SectionHeaderWithReset } from '@/shared/ui/SectionHeaderWithReset';
 import type { NodeConfig, LinkConfig } from '@/domains/graph/shared/stores/useGraphStore';

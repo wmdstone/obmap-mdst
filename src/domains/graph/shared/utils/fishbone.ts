@@ -1,6 +1,6 @@
 /** Ishikawa (fishbone) layout: spine, alternating major ribs and sub-branches. */
 
-import { subtreeWeights } from '@/domains/graph/shared/model/buildGraphProjection';
+import { subtreeWeights } from '@/domains/graph/shared/utils/buildGraphProjection';
 import type {
   FishboneRib,
   FishboneSpine,
@@ -8,7 +8,7 @@ import type {
   LayoutDecoration,
   LayoutGeometry,
   NodeTarget,
-} from '@/domains/graph/shared/model/graphTypes';
+} from '@/domains/graph/shared/utils/graph.types';
 import { boundsOf } from '@/domains/graph/shared/utils/layoutMath';
 
 export interface FishboneInput {
