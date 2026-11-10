@@ -5,7 +5,7 @@
  * vault stays readable by other editors. Vaults without a folder are no-ops.
  */
 
-import type { Vault } from "../services/VaultManager";
+import type { Vault } from "@/domains/vault/services/VaultManager";
 
 export interface WritableNode {
   id: string;

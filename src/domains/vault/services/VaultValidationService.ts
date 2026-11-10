@@ -99,7 +99,7 @@ export class VaultValidationService {
       let localVaults = existingVaults;
       if (!localVaults) {
         // Ambil instance singleton secara dinamis untuk memutus circular dependency
-        const { getVaultManager } = await import("./VaultManagerSingleton");
+        const { getVaultManager } = await import("@/domains/vault/services/VaultManagerSingleton");
         const vm = getVaultManager();
         localVaults = vm && typeof vm.getAllVaults === "function" ? vm.getAllVaults() : [];
       }

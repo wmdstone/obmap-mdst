@@ -1,7 +1,7 @@
 import { create } from 'zustand';
-import { VcsBranch } from '../types/vcs';
-import { VcsCloudService } from '../services/VcsCloudService';
-import { VcsSyncQueueService } from '../services/VcsSyncQueueService';
+import { VcsBranch } from '@/domains/vcs/types/vcs';
+import { VcsCloudService } from '@/domains/vcs/services/VcsCloudService';
+import { VcsSyncQueueService } from '@/domains/vcs/services/VcsSyncQueueService';
 
 interface VcsState {
   activeBranchId: string | null;

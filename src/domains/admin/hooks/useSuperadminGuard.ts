@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/domains/auth/hooks/useAuth";
-import { AdminService } from "../services/AdminService";
+import { AdminService } from "@/domains/admin/services/AdminService";
 import { toast } from "sonner";
 
 export function useSuperadminGuard() {

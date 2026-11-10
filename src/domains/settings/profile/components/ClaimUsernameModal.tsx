@@ -11,7 +11,7 @@ import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { Label } from "@/shared/ui/label";
 import { useAuth } from "@/domains/auth/hooks/useAuth";
-import { ProfileService } from "../services/ProfileService";
+import { ProfileService } from "@/domains/settings/profile/services/ProfileService";
 import { Loader2, CheckCircle2, XCircle, Globe, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 

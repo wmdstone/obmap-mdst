@@ -4,8 +4,8 @@
  * Pure TS, seeded initial positions, so identical input gives identical output.
  */
 
-import type { LayoutContext, LayoutGeometry, LayoutMode, NodeTarget } from '../model/graphTypes';
-import { boundsOf } from './layoutMath';
+import type { LayoutContext, LayoutGeometry, LayoutMode, NodeTarget } from '@/domains/graph/shared/model/graphTypes';
+import { boundsOf } from '@/domains/graph/shared/utils/layoutMath';
 
 export interface NetworkInput {
   ids: string[];

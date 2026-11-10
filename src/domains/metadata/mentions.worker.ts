@@ -6,7 +6,7 @@
  * the notes that mention it in plain text (i.e. outside an existing wikilink).
  */
 
-import { AhoCorasick } from './aho-corasick';
+import { AhoCorasick } from '@/domains/metadata/aho-corasick';
 
 export interface MentionDoc {
   id: string;

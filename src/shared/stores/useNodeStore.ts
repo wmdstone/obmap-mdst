@@ -4,7 +4,7 @@
 
 import { create } from 'zustand';
 import { devtools, subscribeWithSelector } from 'zustand/middleware';
-import type { Node } from './types';
+import type { Node } from '@/shared/stores/types';
 
 interface NodeState {
   // State

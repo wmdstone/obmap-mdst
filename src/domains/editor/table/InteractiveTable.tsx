@@ -15,8 +15,8 @@ import {
   X,
 } from "lucide-react";
 import { cn } from "@/shared/lib";
-import { TableData, TableColumn } from "./tableTypes";
-import { parseMarkdownTable, stringifyMarkdownTable } from "./tableParser";
+import { TableData, TableColumn } from "@/domains/editor/table/tableTypes";
+import { parseMarkdownTable, stringifyMarkdownTable } from "@/domains/editor/table/tableParser";
 import {
   DropdownMenu,
   DropdownMenuContent,

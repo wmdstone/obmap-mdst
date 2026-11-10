@@ -4,8 +4,8 @@
  * dan mengembalikannya secara otomatis saat pengguna berpindah kembali ke branch asal.
  */
 
-import { openVcsDb, VCS_STORES, withVcsTx } from '../storage/vcsIndexedDb';
-import { LocalBranchStash } from '../types/vcs';
+import { openVcsDb, VCS_STORES, withVcsTx } from '@/domains/vcs/storage/vcsIndexedDb';
+import { LocalBranchStash } from '@/domains/vcs/types/vcs';
 
 export class VcsBranchStashService {
   /**

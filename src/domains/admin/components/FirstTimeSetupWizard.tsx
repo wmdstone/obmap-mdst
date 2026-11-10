@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useAuth } from "@/domains/auth/hooks/useAuth";
-import { AdminService } from "../services/AdminService";
+import { AdminService } from "@/domains/admin/services/AdminService";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/shared/ui/card";
 import { Button } from "@/shared/ui/button";
 import { Badge } from "@/shared/ui/badge";

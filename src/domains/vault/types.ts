@@ -9,9 +9,9 @@
  * to a folder on disk.
  */
 
-import type { GraphService } from '../graph/services/GraphService';
-import type { VaultHistory } from './services/VaultHistory';
-import type { FileSystemService } from './persistence/FileSystemService';
+import type { GraphService } from '@/domains/graph/shared/api/GraphService';
+import type { VaultHistory } from '@/domains/vault/services/VaultHistory';
+import type { FileSystemService } from '@/domains/vault/persistence/FileSystemService';
 
 export interface Vault {
   id: string;

@@ -5,7 +5,7 @@
  * dari orchestrator VaultManager.
  */
 
-import type { Vault, VaultLocation, VaultMetadata } from '../types';
+import type { Vault, VaultLocation, VaultMetadata } from '@/domains/vault/types';
 
 export interface IVaultStorageDriver {
   /** Jenis lokasi fisik yang ditangani driver ini ('cloud' | 'folder') */

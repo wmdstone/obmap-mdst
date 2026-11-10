@@ -22,10 +22,10 @@ import {
   GitBranch,
   Tags,
 } from 'lucide-react';
-import { LinkConfig, TopologyConfig, LinkStyle } from "@/domains/graph/stores/useGraphStore";
-import { ColorPicker } from './ColorPicker';
-import { HierarchyLinkColorControls } from './HierarchyColorControls';
-import { CollapsibleSection } from './CollapsibleSection';
+import { LinkConfig, TopologyConfig, LinkStyle } from "@/domains/graph/shared/stores/useGraphStore";
+import { ColorPicker } from '@/domains/graph/components/ColorPicker';
+import { HierarchyLinkColorControls } from '@/domains/graph/components/HierarchyColorControls';
+import { CollapsibleSection } from '@/domains/graph/components/CollapsibleSection';
 
 interface LinkStylingTabProps {
   config: LinkConfig;

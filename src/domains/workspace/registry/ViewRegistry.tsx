@@ -4,16 +4,16 @@
  */
 
 import { lazy, Suspense, type ComponentType } from 'react';
-import type { ViewType, WorkspaceLeaf } from '../types';
+import type { ViewType, WorkspaceLeaf } from '@/domains/workspace/types';
 
 export type LeafViewProps = { leaf: WorkspaceLeaf; isActive?: boolean };
 
 const registry: Record<ViewType, ComponentType<LeafViewProps>> = {
-  markdown: lazy(() => import('../views/MarkdownLeaf')),
-  graph: lazy(() => import('../views/GraphLeaf')),
-  backlinks: lazy(() => import('../views/BacklinksLeaf')),
-  settings: lazy(() => import('../views/SettingsLeaf')),
-  empty: lazy(() => import('../views/EmptyLeaf')),
+  markdown: lazy(() => import('@/domains/workspace/views/MarkdownLeaf')),
+  graph: lazy(() => import('@/domains/workspace/views/GraphLeaf')),
+  backlinks: lazy(() => import('@/domains/workspace/views/BacklinksLeaf')),
+  settings: lazy(() => import('@/domains/workspace/views/SettingsLeaf')),
+  empty: lazy(() => import('@/domains/workspace/views/EmptyLeaf')),
 };
 
 export function LeafView({ leaf, isActive = true }: LeafViewProps) {

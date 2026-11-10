@@ -1,8 +1,8 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { GraphConfigState } from './useGraphStore';
+import type { GraphConfigState } from '@/shared/stores/useGraphStore';
 import type { LayoutMode, MindmapOrientation } from '@/core/graph/model/graphTypes';
-import { defaultGraphConfig, mergeGraphConfig } from './useGraphStore';
+import { defaultGraphConfig, mergeGraphConfig } from '@/shared/stores/useGraphStore';
 
 export interface GraphTemplate {
   id: string;

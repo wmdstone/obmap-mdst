@@ -4,7 +4,7 @@
  * lifecycle, and broadcast on the event bus so features can react.
  */
 
-import { pluginRegistry, type Feature } from './plugin-registry';
+import { pluginRegistry, type Feature } from '@/domains/settings/plugins/plugin-registry';
 import { eventBus, EventType } from '@/shared/events/events';
 
 const STORAGE_KEY = 'vault_feature_toggles';

@@ -4,7 +4,7 @@
  * Provides a single shared instance of VaultManager across the application
  */
 
-import { VaultManager } from './VaultManager';
+import { VaultManager } from '@/domains/vault/services/VaultManager';
 
 let instance: VaultManager | null = null;
 

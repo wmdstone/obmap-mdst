@@ -18,11 +18,11 @@ export {
   type FeatureStatus,
   PluginRegistry,
   pluginRegistry,
-} from './plugin-registry';
+} from '@/domains/settings/plugins/plugin-registry';
 
 // Re-export container
 export * from '@/shared/di/container';
 
 // Re-export features
-export * from './features';
+export * from '@/domains/settings/plugins/features';
 

@@ -31,17 +31,17 @@ import {
   foldNodeProp,
 } from "@codemirror/language";
 
-import { editorTheme, markdownHighlight } from "./theme";
-import { headingFolding } from "./extensions/headingFold";
-import { livePreview, sourceHighlighting } from "./extensions/livePreview";
+import { editorTheme, markdownHighlight } from "@/domains/editor/cm/theme";
+import { headingFolding } from "@/domains/editor/cm/extensions/headingFold";
+import { livePreview, sourceHighlighting } from "@/domains/editor/cm/extensions/livePreview";
 import {
   wikilinkExtension,
   type LinkHandlers,
-} from "./extensions/wikilinkField";
+} from "@/domains/editor/cm/extensions/wikilinkField";
 import {
   frontmatterField,
   wordCountField,
-} from "./extensions/frontmatterField";
+} from "@/domains/editor/cm/extensions/frontmatterField";
 import {
   wikilinkCompletion,
   tagCompletion,
@@ -55,7 +55,7 @@ import type {
 } from "@/domains/editor/stores/useEditorSettingsStore";
 import { FONT_FAMILY_CSS } from "@/domains/editor/stores/useEditorSettingsStore";
 import { Table as GfmTable } from "@lezer/markdown";
-import { footnoteLivePreview } from "./extensions/cmFootnoteWidget";
+import { footnoteLivePreview } from "@/domains/editor/cm/extensions/cmFootnoteWidget";
 
 
 export interface EditorSettingsSnapshot {

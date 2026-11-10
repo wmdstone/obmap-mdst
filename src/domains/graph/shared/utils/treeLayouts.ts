@@ -3,8 +3,8 @@
  * Brace Map / Logic Chart (left-to-right). Card-size aware and deterministic.
  */
 
-import type { LayoutContext, LayoutGeometry, LayoutMode, NodeTarget } from '../model/graphTypes';
-import { boundsOf } from './layoutMath';
+import type { LayoutContext, LayoutGeometry, LayoutMode, NodeTarget } from '@/domains/graph/shared/model/graphTypes';
+import { boundsOf } from '@/domains/graph/shared/utils/layoutMath';
 
 export interface TreeInput {
   ids: string[];

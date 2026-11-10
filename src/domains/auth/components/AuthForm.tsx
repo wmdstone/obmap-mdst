@@ -15,7 +15,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/shared/ui/card";
-import { PasswordStrengthIndicator } from "./PasswordStrengthIndicator";
+import { PasswordStrengthIndicator } from "@/domains/auth/components/PasswordStrengthIndicator";
 import { Loader2, Mail, Lock, User, Eye, EyeOff, CheckCircle2, XCircle, AtSign } from "lucide-react";
 import { toast } from "sonner";
 

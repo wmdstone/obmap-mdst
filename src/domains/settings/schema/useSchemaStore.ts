@@ -8,8 +8,8 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { getVaultManager } from "@/domains/vault/services/VaultManagerSingleton";
-import { DEFAULT_SCHEMA, normalizeSchema } from "./schema-registry";
-import type { PropertyRule, VaultSchema } from "./types";
+import { DEFAULT_SCHEMA, normalizeSchema } from "@/domains/settings/schema/schema-registry";
+import type { PropertyRule, VaultSchema } from "@/domains/settings/schema/types";
 
 interface SchemaState {
   schema: VaultSchema;

@@ -8,7 +8,7 @@
  * exact same serializer.
  */
 
-import { configService } from './ConfigService';
+import { configService } from '@/domains/settings/config/ConfigService';
 
 export const VAULT_CONFIG_FILE = '.vault-config.json';
 

@@ -14,7 +14,7 @@ import {
 import {
   useGraphToolbarStore,
   type GraphControlsDisplayMode,
-} from "@/domains/graph/stores/useGraphToolbarStore";
+} from "@/domains/graph/shared/stores/useGraphToolbarStore";
 
 export function FeatureTogglesPanel() {
   const [toggles, setToggles] = useState<Record<string, boolean>>(() => getFeatureToggles());

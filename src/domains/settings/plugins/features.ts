@@ -5,7 +5,7 @@
  * and makes it easy to register and manage features.
  */
 
-import { pluginRegistry, type Feature } from './plugin-registry';
+import { pluginRegistry, type Feature } from '@/domains/settings/plugins/plugin-registry';
 
 /**
  * Register a feature

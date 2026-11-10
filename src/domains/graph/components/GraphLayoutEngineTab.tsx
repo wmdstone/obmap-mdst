@@ -15,12 +15,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/shared/ui/select";
-import { useGraphEngineStore } from "@/domains/graph/stores/useGraphEngineStore";
-import { useGraphInteractionStore } from "@/domains/graph/model/useGraphInteractionStore";
+import { useGraphEngineStore } from "@/domains/graph/shared/stores/useGraphEngineStore";
+import { useGraphInteractionStore } from "@/domains/graph/shared/stores/useGraphInteractionStore";
 import type {
   LayoutMode,
   MindmapOrientation,
-} from "@/domains/graph/model/graphTypes";
+} from "@/domains/graph/shared/utils/graph.types";
 
 const LAYOUTS: { value: LayoutMode; label: string }[] = [
   { value: "mindmap", label: "Mindmap" },

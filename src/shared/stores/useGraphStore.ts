@@ -6,7 +6,7 @@
 
 import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
-import type { Node, Link } from './types';
+import type { Node, Link } from '@/shared/stores/types';
 import { mergeAtmosphereConfig, defaultAtmosphereConfig, type AtmosphereConfig } from '@/core/graph/model/atmosphereConfig';
 import {
   defaultHierarchyColorConfig,

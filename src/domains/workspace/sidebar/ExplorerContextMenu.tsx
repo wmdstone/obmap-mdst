@@ -18,7 +18,7 @@ import {
   History,
   GitCommit,
 } from "lucide-react";
-import { useWorkspaceStore } from "../stores/useWorkspaceStore";
+import { useWorkspaceStore } from "@/domains/workspace/stores/useWorkspaceStore";
 import { FolderVcsDialog } from "@/domains/vcs/components/FolderVcsDialog";
 
 export interface ContextMenuNode {

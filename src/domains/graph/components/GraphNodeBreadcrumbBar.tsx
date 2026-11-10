@@ -1,10 +1,10 @@
 import { useMemo } from "react";
 import { Folder, FileText, Image, Music, Video } from "lucide-react";
 import { cn } from "@/shared/lib";
-import { useNodeStore } from "@/domains/graph/stores/useNodeStore";
+import { useNodeStore } from "@/domains/graph/shared/stores/useNodeStore";
 import { useUIStore } from "@/domains/workspace/stores/useUIStore";
 import { useWorkspaceStore } from "@/domains/workspace/stores/useWorkspaceStore";
-import { getBreadcrumbPath } from "@/domains/graph/model/hierarchyTraversal";
+import { getBreadcrumbPath } from "@/domains/graph/shared/utils/hierarchyTraversal";
 
 export interface NodeBreadcrumbItem {
   id: string;

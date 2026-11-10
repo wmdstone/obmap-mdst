@@ -2,8 +2,8 @@
  * src/core/graph/layout/transitionController.ts
  */
 
-import type { NodeTarget, RenderNode } from '../model/graphTypes';
-import { easeOutCubic } from './layoutMath';
+import type { NodeTarget, RenderNode } from '@/domains/graph/shared/model/graphTypes';
+import { easeOutCubic } from '@/domains/graph/shared/utils/layoutMath';
 
 export interface TransitionOptions {
   duration?: number;

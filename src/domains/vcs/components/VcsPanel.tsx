@@ -1,5 +1,5 @@
 import React from "react";
-import { VcsSidebarPanel } from "./VcsSidebarPanel";
+import { VcsSidebarPanel } from "@/domains/vcs/components/VcsSidebarPanel";
 
 /**
  * Re-export wrapper untuk panel VCS Sidebar agar konsisten

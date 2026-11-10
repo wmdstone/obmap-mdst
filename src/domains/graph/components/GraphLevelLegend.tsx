@@ -6,7 +6,7 @@
 import {
   resolveLevelColor,
   type HierarchyColorConfig,
-} from '../model/hierarchyColors';
+} from '@/domains/graph/shared/utils/hierarchyColors';
 
 export interface GraphLevelLegendProps {
   depths: number[];

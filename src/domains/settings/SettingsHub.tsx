@@ -13,7 +13,7 @@ import { ConfigurationSettings } from "@/domains/settings/sections/Configuration
 import {
   SETTINGS_SECTIONS,
   type SettingsSectionId,
-} from "./settingsNavigation";
+} from "@/domains/settings/settingsNavigation";
 
 export interface SettingsHubProps {
   active?: SettingsSectionId;

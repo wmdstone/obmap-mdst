@@ -11,9 +11,9 @@ import { SectionHeaderWithReset } from '@/shared/ui/SectionHeaderWithReset';
 import {
   useGraphTemplatesStore,
   type GraphTemplate,
-} from '@/domains/graph/stores/useGraphTemplatesStore';
-import type { GraphConfigState } from '@/domains/graph/stores/useGraphStore';
-import type { LayoutMode, MindmapOrientation } from '@/domains/graph/model/graphTypes';
+} from '@/domains/graph/shared/stores/useGraphTemplatesStore';
+import type { GraphConfigState } from '@/domains/graph/shared/stores/useGraphStore';
+import type { LayoutMode, MindmapOrientation } from '@/domains/graph/shared/utils/graph.types';
 
 export interface GlobalTemplatesPanelProps {
   config: GraphConfigState;

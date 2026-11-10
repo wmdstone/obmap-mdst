@@ -8,7 +8,7 @@
  * Never mix the two (e.g. anchoring D3 forces to Kamada-Kawai targets): the two energy
  * functions have different minima and the graph oscillates forever.
  */
-import type { LayoutMode } from '../model/graphTypes';
+import type { LayoutMode } from '@/domains/graph/shared/model/graphTypes';
 
 const PHYSICS_LAYOUTS: ReadonlySet<LayoutMode> = new Set<LayoutMode>(['free-force']);
 

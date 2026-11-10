@@ -1,8 +1,8 @@
 import { useMemo } from "react";
-import { NodePanel } from "@/domains/graph/components/NodePanel";
+import { NodePanel } from "@/domains/graph/components/GraphNodePanel";
 import { useNodeStore, useUIStore } from "@/shared/stores";
-import { useWorkspaceStore } from "../stores/useWorkspaceStore";
-import type { WorkspaceLeaf } from "../types";
+import { useWorkspaceStore } from "@/domains/workspace/stores/useWorkspaceStore";
+import type { WorkspaceLeaf } from "@/domains/workspace/types";
 import { useAuth } from "@/domains/auth/hooks/useAuth";
 import { useMetadataVersion } from "@/domains/metadata/useMetadataCache";
 import {
@@ -11,7 +11,7 @@ import {
   handleTagClick,
   handleWikilinkClick,
   updateNodeAction,
-} from "../actions/workspaceActions";
+} from "@/domains/workspace/actions/workspaceActions";
 
 export default function MarkdownLeaf({ leaf }: { leaf: WorkspaceLeaf }) {
   const nodes = useNodeStore((s) => s.nodes);

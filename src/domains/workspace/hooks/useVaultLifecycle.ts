@@ -9,8 +9,8 @@ import { getVaultManager } from "@/domains/vault/services/VaultManagerSingleton"
 import { syncCoordinator } from "@/domains/sync/SyncCoordinator";
 import { eventBus, EventType } from "@/shared/events/events";
 import { useNodeStore, useVaultStore, useGraphStore } from "@/shared/stores";
-import { useWorkspaceStore } from "../stores/useWorkspaceStore";
-import { refreshUndoRedoState } from "../actions/workspaceActions";
+import { useWorkspaceStore } from "@/domains/workspace/stores/useWorkspaceStore";
+import { refreshUndoRedoState } from "@/domains/workspace/actions/workspaceActions";
 
 export function useVaultLifecycle() {
   const vaultManager = getVaultManager();

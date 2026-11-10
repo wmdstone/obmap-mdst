@@ -3,7 +3,7 @@
  * update is a single `registerConfigSection()` call.
  */
 
-import type { ConfigSection } from './types';
+import type { ConfigSection } from '@/domains/settings/config/types';
 
 const sections = new Map<string, ConfigSection<any>>();
 const listeners = new Set<() => void>();

@@ -15,8 +15,8 @@ import { Label } from "@/shared/ui/label";
 import { Separator } from "@/shared/ui/separator";
 import { Badge } from "@/shared/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/shared/ui/tooltip";
-import type { GraphConfigState } from "@/domains/graph/stores/useGraphStore";
-import type { LayoutMode } from "@/domains/graph/model/graphTypes";
+import type { GraphConfigState } from "@/domains/graph/shared/stores/useGraphStore";
+import type { LayoutMode } from "@/domains/graph/shared/utils/graph.types";
 import {
   Settings2,
   RotateCcw,

@@ -273,14 +273,14 @@ class DynamicPreloadRegistry {
         name: 'Hierarchical Layout Engine',
         friendlyMessage: 'Menyiapkan algoritma layout Mindmap & Radial...',
         category: 'graph',
-        loader: () => import('@/domains/graph/layout/useLayoutEngine'),
+        loader: () => import('@/domains/graph/shared/hooks/useLayoutEngine'),
       },
       {
         id: 'graph-projection',
         name: 'Graph Topology & Projection Model',
         friendlyMessage: 'Mengompilasi model proyeksi hierarki & filter...',
         category: 'graph',
-        loader: () => import('@/domains/graph/model/buildGraphProjection'),
+        loader: () => import('@/domains/graph/shared/utils/buildGraphProjection'),
       },
       {
         id: 'graph-controls',

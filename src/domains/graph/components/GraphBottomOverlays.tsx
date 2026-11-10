@@ -5,10 +5,10 @@ import { Button } from '@/shared/ui/button';
 import { Popover, PopoverContent, PopoverAnchor } from '@/shared/ui/popover';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/shared/ui/tooltip';
 import { cn } from '@/shared/lib';
-import { GraphMiniMap, type GraphMiniMapProps } from './GraphMiniMap';
-import { GraphLevelLegend } from './GraphLevelLegend';
-import type { HierarchyColorConfig } from '../model/hierarchyColors';
-import { useGraphInteractionStore } from '../model/useGraphInteractionStore';
+import { GraphMiniMap, type GraphMiniMapProps } from '@/domains/graph/components/GraphMiniMap';
+import { GraphLevelLegend } from '@/domains/graph/components/GraphLevelLegend';
+import type { HierarchyColorConfig } from '@/domains/graph/shared/utils/hierarchyColors';
+import { useGraphInteractionStore } from '@/domains/graph/shared/stores/useGraphInteractionStore';
 
 export interface GraphBottomOverlaysProps extends GraphMiniMapProps {
   depths: number[];

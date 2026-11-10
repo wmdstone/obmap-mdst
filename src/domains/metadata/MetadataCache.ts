@@ -8,7 +8,7 @@
  * re-parses notes whose content actually changed.
  */
 
-import { extractWikilinks } from './markdown-parser';
+import { extractWikilinks } from '@/domains/metadata/markdown-parser';
 import type { Node } from '@/shared/stores/types';
 
 export interface HeadingCache {

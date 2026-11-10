@@ -8,9 +8,9 @@
  *  - export/import the whole configuration as one JSON file per section
  */
 
-import { listConfigSections, getConfigSection } from './registry';
-import { localConfigStore } from './LocalConfigStore';
-import { cloudConfigStore } from './CloudConfigStore';
+import { listConfigSections, getConfigSection } from '@/domains/settings/config/registry';
+import { localConfigStore } from '@/domains/settings/config/LocalConfigStore';
+import { cloudConfigStore } from '@/domains/settings/config/CloudConfigStore';
 import {
   CONFIG_SCHEMA_VERSION,
   emptyDocument,
@@ -19,7 +19,7 @@ import {
   type ConfigSection,
   type ConfigSyncState,
   type SectionRecord,
-} from './types';
+} from '@/domains/settings/config/types';
 
 const DEVICE_KEY = 'obmap-device-id';
 const SAVE_DEBOUNCE_MS = 800;

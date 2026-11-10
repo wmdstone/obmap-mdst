@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { isDescendant, validateReparent } from '../interactions/dragReparent';
-import type { RenderNode } from '../model/graphTypes';
+import { isDescendant, validateReparent } from '@/domains/graph/shared/utils/dragReparent';
+import type { RenderNode } from '@/domains/graph/shared/utils/graph.types';
 
 const makeRenderNode = (id: string, type: 'folder' | 'file', parentId: string | null = null): RenderNode => ({
   id,

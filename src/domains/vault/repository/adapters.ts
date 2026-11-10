@@ -11,15 +11,15 @@ import type {
   VaultRecord,
   VaultRepository,
   VaultSummary,
-} from "./types";
+} from "@/domains/vault/repository/types";
 import {
   FOLDER_UNSUPPORTED_REASON,
   supportsFolderPicker,
   supportsIndexedDb,
   supportsPersistentHandles,
-} from "./capabilities";
-import { VaultStorage } from "../services/VaultStorage";
-import { cloudVaultService } from "../services/CloudVaultService";
+} from "@/domains/vault/repository/capabilities";
+import { VaultStorage } from "@/domains/vault/services/VaultStorage";
+import { cloudVaultService } from "@/domains/vault/services/CloudVaultService";
 import { getFileSystemService } from "@/domains/vault/persistence/FileSystemServiceSingleton";
 
 // ------------------------------------------------------------------- memory

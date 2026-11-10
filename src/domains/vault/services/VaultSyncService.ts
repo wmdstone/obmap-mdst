@@ -8,10 +8,10 @@
  * IMPORTANT: Only vaults with cloud sync enabled are synced.
  */
 
-import type { BackupConfig } from "../types";
+import type { BackupConfig } from "@/domains/vault/types";
 import { supabase } from "@/integrations/supabase/client";
-import { cloudVaultService, CloudVault } from "./CloudVaultService";
-import { VaultManager } from "./VaultManager";
+import { cloudVaultService, CloudVault } from "@/domains/vault/services/CloudVaultService";
+import { VaultManager } from "@/domains/vault/services/VaultManager";
 import { syncEngine } from "@/domains/sync/SyncEngine";
 
 export type SyncStatus = "idle" | "syncing" | "synced" | "error" | "offline";

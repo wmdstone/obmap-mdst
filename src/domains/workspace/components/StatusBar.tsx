@@ -3,8 +3,8 @@
 import { Cloud, CloudOff, Loader2, Check, AlertCircle, CheckCircle2 } from "lucide-react";
 import { useNodeStore, useVaultStore, useOfflineStore } from "@/shared/stores";
 import { useStatusNoticeStore } from "@/shared/stores/useStatusNoticeStore";
-import { useGraphInteractionStore } from "@/domains/graph/model/useGraphInteractionStore";
-import { useWorkspaceStore } from "../stores/useWorkspaceStore";
+import { useGraphInteractionStore } from "@/domains/graph/shared/stores/useGraphInteractionStore";
+import { useWorkspaceStore } from "@/domains/workspace/stores/useWorkspaceStore";
 
 const statusIcon = {
   idle: Cloud,

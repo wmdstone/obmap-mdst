@@ -18,7 +18,7 @@ import { Checkbox } from '@/shared/ui/checkbox';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/shared/ui/dialog';
 import { Alert, AlertDescription } from '@/shared/ui/alert';
 import { pickVaultFolder, supportsFolderPicker } from '@/domains/vault/repository/capabilities';
-import { VaultValidationService } from '../services/VaultValidationService';
+import { VaultValidationService } from '@/domains/vault/services/VaultValidationService';
 
 type VaultKind = 'folder' | 'cloud';
 type Step = 'kind' | 'folder-action' | 'name';

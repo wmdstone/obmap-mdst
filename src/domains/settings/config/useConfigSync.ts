@@ -4,11 +4,11 @@
  */
 
 import { useEffect, useState } from "react";
-import { configService } from "./ConfigService";
-import { registerConfigSections } from "./sections";
+import { configService } from "@/domains/settings/config/ConfigService";
+import { registerConfigSections } from "@/domains/settings/config/sections";
 import { useVaultStore } from "@/domains/vault/stores/useVaultStore";
 import { useAuth } from "@/domains/auth/hooks/useAuth";
-import type { ConfigSyncState } from "./types";
+import type { ConfigSyncState } from "@/domains/settings/config/types";
 
 export function useConfigSync(): ConfigSyncState {
   const vaultId = useVaultStore((s) => s.currentVaultId);

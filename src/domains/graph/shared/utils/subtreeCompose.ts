@@ -10,12 +10,12 @@ import type {
   MindmapLayoutMode,
   NodeTarget,
   SubtreeLayoutMap,
-} from '../model/graphTypes';
-import { boundsOf } from './layoutMath';
-import { mindmapLayout } from './mindmap';
-import { orgChartLayout, braceMapLayout } from './treeLayouts';
-import { timelineLayout } from './timeline';
-import { fishboneLayout } from './fishbone';
+} from '@/domains/graph/shared/model/graphTypes';
+import { boundsOf } from '@/domains/graph/shared/utils/layoutMath';
+import { mindmapLayout } from '@/domains/graph/shared/utils/mindmap';
+import { orgChartLayout, braceMapLayout } from '@/domains/graph/shared/utils/treeLayouts';
+import { timelineLayout } from '@/domains/graph/shared/utils/timeline';
+import { fishboneLayout } from '@/domains/graph/shared/utils/fishbone';
 
 export interface TreeData {
   ids: string[];

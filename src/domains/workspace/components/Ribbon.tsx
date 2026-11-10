@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { IconRibbon, type RibbonTool } from "@/domains/workspace/components/IconRibbon";
-import { SidebarPanel } from "./SidebarPanel";
+import { SidebarPanel } from "@/domains/workspace/components/SidebarPanel";
 import { useUIStore } from "@/shared/stores";
 import { useWorkspaceStore } from "@/domains/workspace/stores/useWorkspaceStore";
 import { openGraphCanvas } from "@/domains/workspace/commands/graphCanvasCommands";

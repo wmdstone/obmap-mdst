@@ -3,7 +3,7 @@
  * that lives inside `graph_config.schema`.
  */
 
-import type { PropertyRule, SchemaPropertyType, PropertyVisibility, VaultSchema } from './types';
+import type { PropertyRule, SchemaPropertyType, PropertyVisibility, VaultSchema } from '@/domains/settings/schema/types';
 
 export const SCHEMA_VERSION = 1 as const;
 

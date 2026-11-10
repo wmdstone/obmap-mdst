@@ -8,8 +8,8 @@ import {
   DialogTitle,
 } from "@/shared/ui/dialog";
 import { NoteRecord, NoteStatus } from "@/types/collaboration";
-import { TwoStageLinterModal } from "./TwoStageLinterModal";
-import { DiffViewer } from "./DiffViewer";
+import { TwoStageLinterModal } from "@/domains/collaboration/components/TwoStageLinterModal";
+import { DiffViewer } from "@/domains/collaboration/components/DiffViewer";
 import { NoteService } from "@/domains/vault/services/NoteService";
 import { useVaultPermission } from "@/domains/auth/hooks/useVaultPermission";
 import { toast } from "sonner";

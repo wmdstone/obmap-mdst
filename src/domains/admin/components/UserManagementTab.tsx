@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import type { UserWithRole, AccountStatus } from "@/types/admin";
 import type { AppRole } from "@/types/collaboration";
-import { AdminService } from "../services/AdminService";
+import { AdminService } from "@/domains/admin/services/AdminService";
 import { useAuth } from "@/domains/auth/hooks/useAuth";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/ui/table";
 import { Badge } from "@/shared/ui/badge";

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { mindmapLayout } from '../layout/mindmap';
-import { context, deepTree, starTree } from './fixtures';
+import { mindmapLayout } from '@/domains/graph/shared/utils/mindmap';
+import { context, deepTree, starTree } from '@/domains/graph/__tests__/fixtures';
 
 const finite = (n: number) => Number.isFinite(n);
 

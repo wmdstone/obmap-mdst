@@ -9,9 +9,9 @@ import {
   type HierarchyColorConfig,
   mergeGraphConfig,
   useGraphStore,
-} from '@/domains/graph/stores/useGraphStore';
-import { useGraphTemplatesStore } from '@/domains/graph/stores/useGraphTemplatesStore';
-import { mergeAtmosphereConfig, type AtmosphereConfig } from './atmosphereConfig';
+} from '@/domains/graph/shared/stores/useGraphStore';
+import { useGraphTemplatesStore } from '@/domains/graph/shared/stores/useGraphTemplatesStore';
+import { mergeAtmosphereConfig, type AtmosphereConfig } from '@/domains/graph/shared/stores/atmosphereConfig';
 
 export interface LeafGraphConfigState {
   config: GraphConfigState;

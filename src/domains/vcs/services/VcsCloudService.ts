@@ -4,7 +4,7 @@
  */
 
 import { supabase } from '@/shared/lib/untypedSupabase';
-import { VcsHashUtil } from '../utils/vcsHash';
+import { VcsHashUtil } from '@/domains/vcs/utils/vcsHash';
 import {
   VcsBranch,
   VcsCommit,
@@ -13,7 +13,7 @@ import {
   VcsScope,
   VcsChangeType,
   VcsItemType,
-} from '../types/vcs';
+} from '@/domains/vcs/types/vcs';
 
 export class VcsCloudService {
   // ============================================================================

@@ -8,7 +8,7 @@
  */
 
 import { supabase } from "@/shared/lib/untypedSupabase";
-import { NoteService } from "./NoteService";
+import { NoteService } from "@/domains/vault/services/NoteService";
 import type { Node as LegacyNode } from "@/shared/stores/types";
 
 export interface HydrationResult {

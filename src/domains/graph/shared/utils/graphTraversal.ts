@@ -1,6 +1,6 @@
 /** Hierarchy traversal helpers: O(V+E) preprocessing, O(path) per query. */
 
-import type { GraphProjection } from '../model/graphTypes';
+import type { GraphProjection } from '@/domains/graph/shared/model/graphTypes';
 
 export function ancestorsOf(projection: GraphProjection, id: string): Set<string> {
   const result = new Set<string>();

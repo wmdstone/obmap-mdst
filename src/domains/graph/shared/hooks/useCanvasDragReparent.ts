@@ -1,16 +1,16 @@
-import { usesPhysicsSimulation, isDeterministicLayout } from '../layout/layoutCategory';
+import { usesPhysicsSimulation, isDeterministicLayout } from '@/domains/graph/shared/layout/layoutCategory';
 import { useCallback, useEffect, useRef } from 'react';
-import type { LayoutArrangement } from '../model/useGraphInteractionStore';
-import type { LayoutMode, NodeTarget, RenderNode } from '../model/graphTypes';
+import type { LayoutArrangement } from '@/domains/graph/shared/model/useGraphInteractionStore';
+import type { LayoutMode, NodeTarget, RenderNode } from '@/domains/graph/shared/model/graphTypes';
 import {
   findHoveredDropTarget,
   validateReparent,
   type DragReparentState,
-} from '../interactions/dragReparent';
+} from '@/domains/graph/shared/interactions/dragReparent';
 import {
   LayoutTransitionController,
   prefersReducedMotion,
-} from '../layout/transitionController';
+} from '@/domains/graph/shared/layout/transitionController';
 
 interface GraphHandleLike {
   refresh?: () => unknown;

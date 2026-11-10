@@ -5,7 +5,7 @@ import remarkBreaks from "remark-breaks";
 import rehypeRaw from "rehype-raw";
 import { Link } from "react-router-dom";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/shared/ui/tooltip";
-import { PublicReaderService } from "../services/PublicReaderService";
+import { PublicReaderService } from "@/domains/public-reader/services/PublicReaderService";
 import { cn } from "@/shared/lib";
 import { Lock, FileText } from "lucide-react";
 import { InteractiveTable } from "@/domains/editor/table/InteractiveTable";

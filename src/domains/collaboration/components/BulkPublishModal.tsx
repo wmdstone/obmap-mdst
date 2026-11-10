@@ -17,8 +17,8 @@ import {
   BulkPublishService,
   type BulkPublishItemState,
   type BulkPublishProgress,
-} from "../services/BulkPublishService";
-import { getPublicNoteUrl } from "../utils/publicUrlHelper";
+} from "@/domains/collaboration/services/BulkPublishService";
+import { getPublicNoteUrl } from "@/domains/collaboration/utils/publicUrlHelper";
 import { useAuth } from "@/domains/auth/hooks/useAuth";
 import { ClaimUsernameModal } from "@/domains/settings/profile/components/ClaimUsernameModal";
 import type { ExplorerNode } from "@/domains/workspace/sidebar/FileExplorerTree";

@@ -1,12 +1,12 @@
 /** Resolves graph config into concrete canvas colors, once per render pass. */
 
 import { colorWithOpacity, resolveColor } from '@/shared/lib/color-utils';
-import type { GraphConfigState } from '@/domains/graph/stores/useGraphStore';
-import type { RenderNode } from '../model/graphTypes';
+import type { GraphConfigState } from '@/domains/graph/shared/stores/useGraphStore';
+import type { RenderNode } from '@/domains/graph/shared/model/graphTypes';
 import {
   resolveLevelColor,
   type HierarchyColorConfig,
-} from '../model/hierarchyColors';
+} from '@/domains/graph/shared/model/hierarchyColors';
 
 export interface GraphTheme {
   folder: string;

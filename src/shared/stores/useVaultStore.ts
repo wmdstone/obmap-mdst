@@ -4,8 +4,8 @@
 
 import { create } from 'zustand';
 import { devtools, subscribeWithSelector } from 'zustand/middleware';
-import type { SaveStatus } from './types';
-import type { GraphConfigState } from './useGraphStore';
+import type { SaveStatus } from '@/shared/stores/types';
+import type { GraphConfigState } from '@/shared/stores/useGraphStore';
 
 interface VaultState {
   // State

@@ -1,8 +1,8 @@
 import { FilePlus, Network, FolderOpen } from 'lucide-react';
 import { Button } from '@/shared/ui/button';
-import { addNodeAction } from '../actions/workspaceActions';
-import { useWorkspaceStore } from '../stores/useWorkspaceStore';
-import type { LeafViewProps } from '../registry/ViewRegistry';
+import { addNodeAction } from '@/domains/workspace/actions/workspaceActions';
+import { useWorkspaceStore } from '@/domains/workspace/stores/useWorkspaceStore';
+import type { LeafViewProps } from '@/domains/workspace/registry/ViewRegistry';
 
 export default function EmptyLeaf({ leaf }: LeafViewProps) {
   const setLeafView = useWorkspaceStore((s) => s.setLeafView);

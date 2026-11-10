@@ -4,9 +4,9 @@
  * card-metric aware vertical distribution, and balanced left/right branching.
  */
 
-import { subtreeWeights } from '../model/buildGraphProjection';
-import type { LayoutContext, LayoutGeometry, NodeTarget } from '../model/graphTypes';
-import { boundsOf } from './layoutMath';
+import { subtreeWeights } from '@/domains/graph/shared/model/buildGraphProjection';
+import type { LayoutContext, LayoutGeometry, NodeTarget } from '@/domains/graph/shared/model/graphTypes';
+import { boundsOf } from '@/domains/graph/shared/utils/layoutMath';
 
 export interface MindmapInput {
   ids: string[];

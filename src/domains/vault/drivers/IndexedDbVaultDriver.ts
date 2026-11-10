@@ -5,17 +5,17 @@
  * dan konfigurasi ke dalam IndexedDB via VaultStorage.
  */
 
-import { GraphService } from '@/domains/graph/services/GraphService';
-import { VaultStorage } from '../services/VaultStorage';
-import { VaultHistory } from '../services/VaultHistory';
+import { GraphService } from '@/domains/graph/shared/api/GraphService';
+import { VaultStorage } from '@/domains/vault/services/VaultStorage';
+import { VaultHistory } from '@/domains/vault/services/VaultHistory';
 import {
   Vault,
   VaultData,
   VaultLocation,
   VaultMetadata,
   migrateLegacyStrategy,
-} from '../types';
-import type { IVaultStorageDriver } from './IVaultStorageDriver';
+} from '@/domains/vault/types';
+import type { IVaultStorageDriver } from '@/domains/vault/drivers/IVaultStorageDriver';
 
 export class IndexedDbVaultDriver implements IVaultStorageDriver {
   readonly location: VaultLocation = 'cloud';

@@ -15,10 +15,10 @@ import {
   FolderSearch,
 } from "lucide-react";
 import { toast } from "sonner";
-import { useWorkspaceStore } from "../stores/useWorkspaceStore";
-import { useNodeStore } from "@/domains/graph/stores/useNodeStore";
+import { useWorkspaceStore } from "@/domains/workspace/stores/useWorkspaceStore";
+import { useNodeStore } from "@/domains/graph/shared/stores/useNodeStore";
 import { useUIStore } from "@/shared/stores";
-import type { WorkspaceGroup, WorkspaceLeaf } from "../types";
+import type { WorkspaceGroup, WorkspaceLeaf } from "@/domains/workspace/types";
 
 interface TabContextMenuProps {
   leaf: WorkspaceLeaf;

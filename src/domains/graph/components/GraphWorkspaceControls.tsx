@@ -19,14 +19,14 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
-import type { CanvasMode, LayoutMode, MindmapOrientation } from "@/domains/graph/model/graphTypes";
+import type { CanvasMode, LayoutMode, MindmapOrientation } from "@/domains/graph/shared/utils/graph.types";
 import { useGraphStore } from "@/shared/stores";
-import { useGraphInteractionStore } from "@/domains/graph/model/useGraphInteractionStore";
+import { useGraphInteractionStore } from "@/domains/graph/shared/stores/useGraphInteractionStore";
 import {
   useLeafGraphConfig,
   useLeafGraphConfigApi,
   type LeafGraphConfigState,
-} from "@/domains/graph/model/useLeafGraphConfigStore";
+} from "@/domains/graph/shared/stores/useLeafGraphConfigStore";
 import type {
   GraphConfigState,
   NodeConfig,
@@ -34,17 +34,17 @@ import type {
   TopologyConfig,
   LinkStyle,
   HierarchyColorConfig,
-} from "@/domains/graph/stores/useGraphStore";
+} from "@/domains/graph/shared/stores/useGraphStore";
 
-import { FloatingZoomControls } from "@/domains/graph/controls/FloatingZoomControls";
-import { SearchPanel } from "@/domains/graph/controls/panels/SearchPanel";
-import { LayoutPanel } from "@/domains/graph/controls/panels/LayoutPanel";
-import { AppearancePanel } from "@/domains/graph/controls/panels/AppearancePanel";
-import { GlobalTemplatesPanel } from "@/domains/graph/controls/panels/GlobalTemplatesPanel";
-import { ColorEngineControls } from "@/domains/graph/config-panel/ColorEngineControls";
-import { AtmosphereControls } from "@/domains/graph/config-panel/AtmosphereControls";
-import { mergeAtmosphereConfig } from "@/domains/graph/model/atmosphereConfig";
-import { useGraphToolbarStore } from "@/domains/graph/stores/useGraphToolbarStore";
+import { FloatingZoomControls } from "@/domains/graph/components/GraphFloatingZoomControls";
+import { SearchPanel } from "@/domains/graph/components/GraphSearchPanel";
+import { LayoutPanel } from "@/domains/graph/components/GraphLayoutPanel";
+import { AppearancePanel } from "@/domains/graph/components/GraphAppearancePanel";
+import { GlobalTemplatesPanel } from "@/domains/graph/components/GraphGlobalTemplatesPanel";
+import { ColorEngineControls } from "@/domains/graph/components/GraphColorEngineControls";
+import { AtmosphereControls } from "@/domains/graph/components/GraphAtmosphereControls";
+import { mergeAtmosphereConfig } from "@/domains/graph/shared/utils/atmosphereConfig";
+import { useGraphToolbarStore } from "@/domains/graph/shared/stores/useGraphToolbarStore";
 
 // =============================================================================
 // 1. TYPES & NAVIGATION DEFINITIONS

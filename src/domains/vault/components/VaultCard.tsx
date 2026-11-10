@@ -37,10 +37,10 @@ import {
 } from "@/shared/ui/dropdown-menu";
 import { formatDistanceToNow } from "date-fns";
 import type { VaultLocation } from "@/domains/vault/types";
-import { VaultLocationBadge } from "./VaultStorageControls";
-import { VaultMemberSection } from "./VaultMemberSection";
+import { VaultLocationBadge } from "@/domains/vault/components/VaultStorageControls";
+import { VaultMemberSection } from "@/domains/vault/components/VaultMemberSection";
 import type { VaultMemberRole } from "@/types/collaboration";
-import { VaultValidationService } from "../services/VaultValidationService";
+import { VaultValidationService } from "@/domains/vault/services/VaultValidationService";
 
 export interface VaultCardProps {
   id: string;

@@ -32,11 +32,11 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/shared/ui/dropdown-menu";
-import type { RibbonTool } from "./IconRibbon";
-import { useWorkspaceStore } from "../stores/useWorkspaceStore";
+import type { RibbonTool } from "@/domains/workspace/components/IconRibbon";
+import { useWorkspaceStore } from "@/domains/workspace/stores/useWorkspaceStore";
 import { useUIStore } from "@/shared/stores";
-import { useFolderNavigation } from "../hooks/useFolderNavigation";
-import { FileExplorerTree } from "../sidebar/FileExplorerTree";
+import { useFolderNavigation } from "@/domains/workspace/hooks/useFolderNavigation";
+import { FileExplorerTree } from "@/domains/workspace/sidebar/FileExplorerTree";
 import { VcsSidebarPanel } from "@/domains/vcs/components/VcsSidebarPanel";
 
 

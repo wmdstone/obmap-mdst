@@ -3,7 +3,7 @@
  * Mengelola deteksi folder target, validasi pohon hierarki, dan animasi revert.
  */
 
-import type { RenderNode } from '../model/graphTypes';
+import type { RenderNode } from '@/domains/graph/shared/model/graphTypes';
 
 export interface DragReparentState {
   draggedNodeId: string | null;

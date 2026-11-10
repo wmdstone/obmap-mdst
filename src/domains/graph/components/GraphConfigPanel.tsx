@@ -33,10 +33,10 @@ import {
   TopologyConfig,
   LinkStyle,
   LinkStats,
-} from "@/domains/graph/stores/useGraphStore";
-import { NodeStylingTab } from './NodeStylingTab';
-import { LinkStylingTab } from './LinkStylingTab';
-import { AnalyticsTab } from './AnalyticsTab';
+} from "@/domains/graph/shared/stores/useGraphStore";
+import { NodeStylingTab } from '@/domains/graph/components/NodeStylingTab';
+import { LinkStylingTab } from '@/domains/graph/components/LinkStylingTab';
+import { AnalyticsTab } from '@/domains/graph/components/AnalyticsTab';
 import { useIsMobile } from "@/shared/hooks/useMobile";
 
 interface GraphConfigPanelProps {

@@ -3,7 +3,7 @@
  * Documents are keyed by scope key ("user" or "vault:<id>").
  */
 
-import { isConfigDocument, type ConfigDocument } from './types';
+import { isConfigDocument, type ConfigDocument } from '@/domains/settings/config/types';
 
 const DB_NAME = 'ObmapConfigDB';
 const DB_VERSION = 1;

@@ -1,13 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { buildGraphProjection } from '../model/buildGraphProjection';
+import { buildGraphProjection } from '@/domains/graph/shared/utils/buildGraphProjection';
 import {
   ancestorsOf,
   descendantsOf,
   hiddenByCollapse,
   pathwayOf,
   subtreeOf,
-} from '../interactions/graphTraversal';
-import { makeLink, makeNode } from './fixtures';
+} from '@/domains/graph/shared/utils/graphTraversal';
+import { makeLink, makeNode } from '@/domains/graph/__tests__/fixtures';
 
 const nodes = [
   makeNode('root'),

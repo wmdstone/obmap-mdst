@@ -5,8 +5,8 @@
  * - Squash: Membersihkan micro-revision setelah Explicit Named Commit berhasil.
  */
 
-import { openVcsDb, VCS_STORES, withVcsTx } from '../storage/vcsIndexedDb';
-import { LocalMicroRevision } from '../types/vcs';
+import { openVcsDb, VCS_STORES, withVcsTx } from '@/domains/vcs/storage/vcsIndexedDb';
+import { LocalMicroRevision } from '@/domains/vcs/types/vcs';
 
 const SIX_DAYS_MS = 6 * 24 * 60 * 60 * 1000;
 

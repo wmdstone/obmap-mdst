@@ -24,7 +24,7 @@ import {
   type MindmapLayoutMode,
   type MindmapOrientation,
   type TimelineStructure,
-} from './graphTypes';
+} from '@/domains/graph/shared/stores/graphTypes';
 
 export type TransitionStatus = 'idle' | 'animating';
 export type HighlightMode = 'off' | 'pathway';

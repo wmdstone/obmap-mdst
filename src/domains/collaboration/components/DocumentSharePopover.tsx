@@ -46,8 +46,8 @@ import { VcsCloudService } from "@/domains/vcs/services/VcsCloudService";
 import { VcsMicroRevisionService } from "@/domains/vcs/services/VcsMicroRevisionService";
 import { VcsSyncQueueService } from "@/domains/vcs/services/VcsSyncQueueService";
 import { VcsCommit, LocalMicroRevision } from "@/domains/vcs/types/vcs";
-import { TwoStageLinterModal } from "./TwoStageLinterModal";
-import { DiffViewer } from "./DiffViewer";
+import { TwoStageLinterModal } from "@/domains/collaboration/components/TwoStageLinterModal";
+import { DiffViewer } from "@/domains/collaboration/components/DiffViewer";
 import { ClaimUsernameModal } from "@/domains/settings/profile/components/ClaimUsernameModal";
 
 export interface DocumentSharePopoverProps {

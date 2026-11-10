@@ -1,16 +1,16 @@
 // src/domains/public-reader/components/PublicInteractiveGraph.tsx
 import React, { useState, useRef, useMemo, useEffect, useCallback } from "react";
 import { GraphCanvas, type GraphCanvasHandle } from "@/domains/graph/components/GraphCanvas";
-import { defaultGraphConfig, type GraphConfigState } from "@/domains/graph/stores/useGraphStore";
-import { useGraphInteractionStore } from "@/domains/graph/model/useGraphInteractionStore";
-import type { LayoutMode } from "@/domains/graph/model/graphTypes";
+import { defaultGraphConfig, type GraphConfigState } from "@/domains/graph/shared/stores/useGraphStore";
+import { useGraphInteractionStore } from "@/domains/graph/shared/stores/useGraphInteractionStore";
+import type { LayoutMode } from "@/domains/graph/shared/utils/graph.types";
 import type { GraphData, Node, Link as GraphLink } from "@/shared/stores/types";
 import type { NoteRecord } from "@/types/collaboration";
 import { Input } from "@/shared/ui/input";
 import { Button } from "@/shared/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/shared/ui/tooltip";
-import { PublicGraphSettingsPopover } from "./PublicGraphSettingsPopover";
-import { PublicNodePreviewDrawer } from "./PublicNodePreviewDrawer";
+import { PublicGraphSettingsPopover } from "@/domains/public-reader/components/PublicGraphSettingsPopover";
+import { PublicNodePreviewDrawer } from "@/domains/public-reader/components/PublicNodePreviewDrawer";
 import {
   Search,
   Compass,

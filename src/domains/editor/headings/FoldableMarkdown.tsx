@@ -7,8 +7,8 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { ChevronRight } from "lucide-react";
-import { MarkdownRenderer } from "@/domains/graph/components/MarkdownRenderer";
-import { buildHeadingTree, type HeadingNode } from "./headingTree";
+import { MarkdownRenderer } from "@/domains/graph/components/GraphMarkdownRenderer";
+import { buildHeadingTree, type HeadingNode } from "@/domains/editor/headings/headingTree";
 import { cn } from "@/shared/lib";
 
 interface FoldableMarkdownProps {

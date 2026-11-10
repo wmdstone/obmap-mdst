@@ -9,30 +9,30 @@
  * Cloud vaults keep the same structure in IndexedDB + the cloud record.
  */
 
-import { GraphService } from "../../graph/services/GraphService";
-import { VaultStorage } from "./VaultStorage";
+import { GraphService } from "@/domains/graph/shared/api/GraphService";
+import { VaultStorage } from "@/domains/vault/services/VaultStorage";
 import { VaultHistory } from "@/domains/vault/services/VaultHistory";
-import { VaultBackupService } from "./VaultBackupService";
-import type { FileSystemService } from "../persistence/FileSystemService";
-import { getFileSystemService } from "../persistence/FileSystemServiceSingleton";
-import { directoryHandleStore } from "../persistence/directoryHandleStore";
-import { hasGrantedPermission } from "../repository/capabilities";
-import { writeVaultConfigFile } from "../../settings/config/VaultConfigFile";
+import { VaultBackupService } from "@/domains/vault/services/VaultBackupService";
+import type { FileSystemService } from "@/domains/vault/persistence/FileSystemService";
+import { getFileSystemService } from "@/domains/vault/persistence/FileSystemServiceSingleton";
+import { directoryHandleStore } from "@/domains/vault/persistence/directoryHandleStore";
+import { hasGrantedPermission } from "@/domains/vault/repository/capabilities";
+import { writeVaultConfigFile } from "@/domains/settings/config/VaultConfigFile";
 import {
   BackupConfig,
   VaultLocation,
   VaultGraphConfig,
   VaultConfigSnapshot,
   migrateLegacyStrategy,
-} from "../types";
+} from "@/domains/vault/types";
 import {
   emitVaultCreated,
   emitVaultDeleted,
   emitVaultRenamed,
   emitVaultSwitched,
 } from "@/shared/events/events";
-import { VaultValidationService } from "./VaultValidationService";
-import { cloudVaultService } from "./CloudVaultService";
+import { VaultValidationService } from "@/domains/vault/services/VaultValidationService";
+import { cloudVaultService } from "@/domains/vault/services/CloudVaultService";
 
 
 export interface Vault {
@@ -476,7 +476,7 @@ export class VaultManager {
     // reappear on another. Best-effort: offline deletion is left to the caller.
     if (cloudId && wasCloudVault && navigator.onLine) {
       try {
-        const { cloudVaultService } = await import("./CloudVaultService");
+        const { cloudVaultService } = await import("@/domains/vault/services/CloudVaultService");
         await cloudVaultService.deleteVault(cloudId);
       } catch (error) {
         console.warn("Cloud vault deletion failed:", error);

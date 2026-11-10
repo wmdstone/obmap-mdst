@@ -9,8 +9,8 @@
  * ```
  */
 
-import { normalizeRule } from './schema-registry';
-import type { PropertyRule, ResolvedProperty, VaultSchema } from './types';
+import { normalizeRule } from '@/domains/settings/schema/schema-registry';
+import type { PropertyRule, ResolvedProperty, VaultSchema } from '@/domains/settings/schema/types';
 
 const VISIBILITY_ORDER = { always: 0, collapsed: 1, hidden: 2 } as const;
 

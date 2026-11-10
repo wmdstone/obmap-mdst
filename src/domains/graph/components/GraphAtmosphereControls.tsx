@@ -2,18 +2,18 @@ import { Label } from '@/shared/ui/label';
 import { Switch } from '@/shared/ui/switch';
 import { Button } from '@/shared/ui/button';
 import { Sparkles, Compass, Wind, Orbit, Sun } from 'lucide-react';
-import { ColorPicker } from './ColorPicker';
+import { ColorPicker } from '@/domains/graph/components/ColorPicker';
 import { ControlSliderRow } from '@/shared/ui/ControlSliderRow';
 import { SectionHeaderWithReset } from '@/shared/ui/SectionHeaderWithReset';
-import type { NodeConfig, LinkConfig } from '@/domains/graph/stores/useGraphStore';
-import { COSMIC_PRESETS, type AtmosphereConfig, defaultAtmosphereConfig } from '../model/atmosphereConfig';
-import { useGraphInteractionStore } from '../model/useGraphInteractionStore';
+import type { NodeConfig, LinkConfig } from '@/domains/graph/shared/stores/useGraphStore';
+import { COSMIC_PRESETS, type AtmosphereConfig, defaultAtmosphereConfig } from '@/domains/graph/shared/utils/atmosphereConfig';
+import { useGraphInteractionStore } from '@/domains/graph/shared/stores/useGraphInteractionStore';
 import {
   useExplorerGraphSyncStore,
   type ExplorerGraphSyncMode,
-} from '@/domains/graph/stores/useExplorerGraphSyncStore';
+} from '@/domains/graph/shared/stores/useExplorerGraphSyncStore';
 
-export type { AtmosphereConfig } from '../model/atmosphereConfig';
+export type { AtmosphereConfig } from '@/domains/graph/shared/utils/atmosphereConfig';
 
 interface AtmosphereControlsProps {
   atmosphere: AtmosphereConfig;

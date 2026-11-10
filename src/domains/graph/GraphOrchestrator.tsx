@@ -1,9 +1,9 @@
 import React, { useRef, useMemo, useCallback } from "react";
-import { GraphCanvas, type GraphCanvasHandle } from "./components/GraphCanvas";
-import { GraphWorkspaceControls, type SmartZoomAction } from "./components/GraphWorkspaceControls";
-import { useGraphInteractionStore } from "./shared/stores/useGraphInteractionStore";
-import { useLeafGraphConfigStore } from "./shared/stores/useLeafGraphConfigStore";
-import { useGraphData } from "./shared/hooks/useGraphData";
+import { GraphCanvas, type GraphCanvasHandle } from "@/domains/graph/components/GraphCanvas";
+import { GraphWorkspaceControls, type SmartZoomAction } from "@/domains/graph/components/GraphWorkspaceControls";
+import { useGraphInteractionStore } from "@/domains/graph/shared/stores/useGraphInteractionStore";
+import { useLeafGraphConfigStore } from "@/domains/graph/shared/stores/useLeafGraphConfigStore";
+import { useGraphData } from "@/domains/graph/shared/hooks/useGraphData";
 
 export interface GraphOrchestratorProps {
   leafId: string;

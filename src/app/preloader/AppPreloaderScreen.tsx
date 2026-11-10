@@ -4,7 +4,7 @@ import {
   preloadRegistry, 
   PreloadProgressState, 
   ModuleCategory 
-} from './modulePreloader';
+} from '@/app/preloader/modulePreloader';
 import { Badge } from '@/shared/ui/badge';
 import { ScrollArea } from '@/shared/ui/scroll-area';
 import { Button } from '@/shared/ui/button';

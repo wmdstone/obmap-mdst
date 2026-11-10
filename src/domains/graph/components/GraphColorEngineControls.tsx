@@ -16,7 +16,7 @@ import {
   PaintBucket,
 } from "lucide-react";
 import { cn } from "@/shared/lib/cn";
-import { ColorPicker } from "./ColorPicker";
+import { ColorPicker } from "@/domains/graph/components/ColorPicker";
 import { ControlSliderRow } from "@/shared/ui/ControlSliderRow";
 import { SectionHeaderWithReset } from "@/shared/ui/SectionHeaderWithReset";
 import {
@@ -27,8 +27,8 @@ import {
   type HierarchyColorConfig,
   type HierarchyPresetId,
   type HierarchyOverflow,
-} from "../model/hierarchyColors";
-import type { NodeConfig } from "@/domains/graph/stores/useGraphStore";
+} from "@/domains/graph/shared/utils/hierarchyColors";
+import type { NodeConfig } from "@/domains/graph/shared/stores/useGraphStore";
 
 interface ColorEngineControlsProps {
   hierarchy: HierarchyColorConfig;

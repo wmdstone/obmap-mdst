@@ -1,7 +1,7 @@
 /** React binding for the persisted feature toggles. */
 
 import { useEffect, useState } from 'react';
-import { getFeatureToggles, onFeatureTogglesChange } from './feature-toggles';
+import { getFeatureToggles, onFeatureTogglesChange } from '@/domains/settings/plugins/feature-toggles';
 
 export function useFeatureEnabled(featureId: string): boolean {
   const [enabled, setEnabled] = useState(() => getFeatureToggles()[featureId] ?? true);

@@ -17,7 +17,7 @@ import {
   SelectValue,
 } from '@/shared/ui/select';
 import { Plus, Trash2 } from 'lucide-react';
-import { useGraphStore, type HierarchyColorConfig } from '@/domains/graph/stores/useGraphStore';
+import { useGraphStore, type HierarchyColorConfig } from '@/domains/graph/shared/stores/useGraphStore';
 import {
   HIERARCHY_PRESETS,
   presetById,
@@ -26,8 +26,8 @@ import {
   type HierarchyLinkColorMode,
   type HierarchyOverflow,
   type HierarchyPresetId,
-} from '../model/hierarchyColors';
-import { ColorPicker } from './ColorPicker';
+} from '@/domains/graph/shared/utils/hierarchyColors';
+import { ColorPicker } from '@/domains/graph/components/ColorPicker';
 
 const MIN_LEVELS = 3;
 

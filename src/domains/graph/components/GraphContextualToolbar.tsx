@@ -18,7 +18,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/shared/ui/dropdown-menu";
-import type { MindmapLayoutMode, CanvasMode } from "../model/graphTypes";
+import type { MindmapLayoutMode, CanvasMode } from "@/domains/graph/shared/utils/graph.types";
 
 const MINDMAP_STRUCTURES: { mode: MindmapLayoutMode; label: string }[] = [
   { mode: "mindmap", label: "Mindmap (Balanced)" },

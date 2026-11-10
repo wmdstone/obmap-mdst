@@ -1,6 +1,6 @@
 /** Free-force mode: no deterministic targets, the wrapper's simulation owns positions. */
 
-import type { LayoutGeometry, NodeTarget } from '../model/graphTypes';
+import type { LayoutGeometry, NodeTarget } from '@/domains/graph/shared/model/graphTypes';
 
 export function freeForceLayout(): LayoutGeometry {
   return {

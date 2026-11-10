@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 // LayoutEngineOptions diimpor langsung dari useLayoutEngine bersama computeLayout
-import { computeLayout, type LayoutEngineOptions } from '../layout/useLayoutEngine';
-import { deepTree } from './fixtures';
-import type { GraphProjection, RenderNode } from '../model/graphTypes';
+import { computeLayout, type LayoutEngineOptions } from '@/domains/graph/shared/hooks/useLayoutEngine';
+import { deepTree } from '@/domains/graph/__tests__/fixtures';
+import type { GraphProjection, RenderNode } from '@/domains/graph/shared/utils/graph.types';
 
 /** Helper untuk membuat GraphProjection yang valid dan lengkap */
 function createMockProjection(): GraphProjection {

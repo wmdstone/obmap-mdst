@@ -4,8 +4,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsList, TabsTrigger } from "@/shared/ui/tabs";
 import { ControlSliderRow } from "@/shared/ui/ControlSliderRow";
 import { SectionHeaderWithReset } from "@/shared/ui/SectionHeaderWithReset";
-import { ColorPicker } from "@/domains/graph/config-panel/ColorPicker";
-import { HierarchyLinkColorControls } from "@/domains/graph/config-panel/HierarchyColorControls";
+import { ColorPicker } from "@/domains/graph/components/GraphColorPicker";
+import { HierarchyLinkColorControls } from "@/domains/graph/components/GraphHierarchyColorControls";
 import { Circle, Link2, Type, Shapes, Sparkles, GitFork } from "lucide-react";
 import type {
   GraphConfigState,
@@ -14,7 +14,7 @@ import type {
   TopologyConfig,
   LinkStyle,
   HierarchyColorConfig,
-} from "@/domains/graph/stores/useGraphStore";
+} from "@/domains/graph/shared/stores/useGraphStore";
 
 type LabelMode = "nodes" | "labels" | "boxes";
 export type LinkStyleType = keyof TopologyConfig["styles"];

@@ -1,8 +1,8 @@
 /** Axis, spine and rib decorations, drawn once per frame before links. */
 
-import type { FishboneRib, FishboneSpine, LayoutDecoration } from '../model/graphTypes';
-import { cardFont } from './textLayout';
-import { dim, type GraphTheme } from './theme';
+import type { FishboneRib, FishboneSpine, LayoutDecoration } from '@/domains/graph/shared/model/graphTypes';
+import { cardFont } from '@/domains/graph/shared/utils/textLayout';
+import { dim, type GraphTheme } from '@/domains/graph/shared/utils/theme';
 
 export function drawDecorations(
   ctx: CanvasRenderingContext2D,

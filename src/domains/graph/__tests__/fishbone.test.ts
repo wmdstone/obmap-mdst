@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { fishboneLayout } from '../layout/fishbone';
-import { context, deepTree, starTree } from './fixtures';
+import { fishboneLayout } from '@/domains/graph/shared/utils/fishbone';
+import { context, deepTree, starTree } from '@/domains/graph/__tests__/fixtures';
 
 describe('fishboneLayout', () => {
   it('alternates major categories above and below the spine', () => {

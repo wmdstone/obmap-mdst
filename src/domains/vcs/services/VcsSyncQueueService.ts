@@ -4,8 +4,8 @@
  * dan mengeksekusinya secara sekuensial (First-In, First-Out) saat koneksi online pulih.
  */
 
-import { openVcsDb, VCS_STORES, withVcsTx } from '../storage/vcsIndexedDb';
-import { VcsCommit, VcsCommitItem } from '../types/vcs';
+import { openVcsDb, VCS_STORES, withVcsTx } from '@/domains/vcs/storage/vcsIndexedDb';
+import { VcsCommit, VcsCommitItem } from '@/domains/vcs/types/vcs';
 
 export interface QueuedCommitTask {
   id: string;

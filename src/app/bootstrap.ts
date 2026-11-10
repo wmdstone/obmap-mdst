@@ -12,8 +12,8 @@ import { getVaultManager } from "@/domains/vault/services/VaultManagerSingleton"
 import { VaultStorage } from "@/domains/vault/services/VaultStorage";
 import { vaultSyncService } from "@/domains/vault/services/VaultSyncService";
 import { VaultBackupService } from "@/domains/vault/services/VaultBackupService";
-import { GraphService } from "@/domains/graph/services/GraphService";
-import { RelationshipMapper } from "@/domains/graph/services/RelationshipMapper";
+import { GraphService } from "@/domains/graph/shared/api/GraphService";
+import { RelationshipMapper } from "@/domains/graph/shared/api/RelationshipMapper";
 import { ContentParser } from "@/domains/metadata/content-parser";
 import { getFileSystemService } from "@/domains/vault/persistence/FileSystemServiceSingleton";
 import { importExportService } from "@/domains/vault/import-export/services/ImportExportService";

@@ -1,7 +1,7 @@
 import { SettingsHub } from "@/domains/settings/SettingsHub";
 import { isSettingsSectionId, type SettingsSectionId } from "@/domains/settings/settingsNavigation";
-import { useWorkspaceStore } from "../stores/useWorkspaceStore";
-import type { LeafViewProps } from "../registry/ViewRegistry";
+import { useWorkspaceStore } from "@/domains/workspace/stores/useWorkspaceStore";
+import type { LeafViewProps } from "@/domains/workspace/registry/ViewRegistry";
 
 export default function SettingsLeaf({ leaf }: LeafViewProps) {
   const section = isSettingsSectionId(leaf.view.settingsSection)

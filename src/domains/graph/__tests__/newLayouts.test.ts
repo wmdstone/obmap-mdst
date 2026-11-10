@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { fruchtermanReingoldLayout, gridLayout, kamadaKawaiLayout } from '../layout/networkLayouts';
-import { braceMapLayout, orgChartLayout } from '../layout/treeLayouts';
-import { context, deepTree } from './fixtures';
-import type { LayoutGeometry } from '../model/graphTypes';
+import { fruchtermanReingoldLayout, gridLayout, kamadaKawaiLayout } from '@/domains/graph/shared/utils/networkLayouts';
+import { braceMapLayout, orgChartLayout } from '@/domains/graph/shared/utils/treeLayouts';
+import { context, deepTree } from '@/domains/graph/__tests__/fixtures';
+import type { LayoutGeometry } from '@/domains/graph/shared/utils/graph.types';
 
 const tree = deepTree();
 const edges = tree.ids.flatMap((id) => tree.childrenOf(id).map((c) => [id, c] as [string, string]));

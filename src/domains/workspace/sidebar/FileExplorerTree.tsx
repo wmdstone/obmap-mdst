@@ -2,14 +2,14 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { cn } from "@/shared/lib";
 import { Badge } from "@/shared/ui/badge";
 import { ChevronRight, ChevronDown, Folder, FileText, Image, Music, Video } from "lucide-react";
-import { useWorkspaceStore } from "../stores/useWorkspaceStore";
+import { useWorkspaceStore } from "@/domains/workspace/stores/useWorkspaceStore";
 import { useNodeStore } from "@/shared/stores";
 import { getVaultManager } from "@/domains/vault/services/VaultManagerSingleton";
 import { writeNodeToDisk } from "@/domains/vault/persistence/VaultFileWriter";
-import { useFolderNavigation } from "../hooks/useFolderNavigation";
-import { ExplorerContextMenu } from "./ExplorerContextMenu";
-import { getAncestorIdSet, isNodeDescendant } from "@/domains/graph/model/hierarchyTraversal";
-import { useExplorerGraphSyncStore } from "@/domains/graph/stores/useExplorerGraphSyncStore";
+import { useFolderNavigation } from "@/domains/workspace/hooks/useFolderNavigation";
+import { ExplorerContextMenu } from "@/domains/workspace/sidebar/ExplorerContextMenu";
+import { getAncestorIdSet, isNodeDescendant } from "@/domains/graph/shared/utils/hierarchyTraversal";
+import { useExplorerGraphSyncStore } from "@/domains/graph/shared/stores/useExplorerGraphSyncStore";
 import { BulkPublishModal } from "@/domains/collaboration/components/BulkPublishModal";
 
 export interface ExplorerNode {

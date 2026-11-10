@@ -4,7 +4,7 @@
  * yang mungkin timbul karena dokumen target dihapus atau diubah di branch lain.
  */
 
-import { GraphMergeValidationResult } from '../types/vcs';
+import { GraphMergeValidationResult } from '@/domains/vcs/types/vcs';
 
 export class VcsGraphAwareness {
   private static WIKILINK_REGEX = /\[\[([a-zA-Z0-9_\-\s]+)(?:\|[^\]]+)?\]\]/g;

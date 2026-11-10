@@ -4,7 +4,7 @@
  * Handles persistent storage of vault metadata, graph data, and history
  */
 
-import { VaultMetadata, VaultData, VaultGraphConfig, BackupConfig } from '../types';
+import { VaultMetadata, VaultData, VaultGraphConfig, BackupConfig } from '@/domains/vault/types';
 
 // Re-export for backwards compatibility
 export type { VaultGraphConfig, BackupConfig as VaultBackupConfig };

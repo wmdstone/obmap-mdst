@@ -18,12 +18,12 @@ import {
 import { useAuth } from "@/domains/auth/hooks/useAuth";
 import { useVaultStore } from "@/domains/vault/stores/useVaultStore";
 import { useVaultPermission } from "@/domains/auth/hooks/useVaultPermission";
-import { useVcsStore } from "../stores/useVcsStore";
-import { VcsCloudService } from "../services/VcsCloudService";
-import { BranchSelector } from "./BranchSelector";
-import { VcsCreateBranchModal } from "./VcsCreateBranchModal";
-import { VcsCreateMergeRequestModal } from "./VcsCreateMergeRequestModal";
-import { VcsCommit, VcsMergeRequest } from "../types/vcs";
+import { useVcsStore } from "@/domains/vcs/stores/useVcsStore";
+import { VcsCloudService } from "@/domains/vcs/services/VcsCloudService";
+import { BranchSelector } from "@/domains/vcs/components/BranchSelector";
+import { VcsCreateBranchModal } from "@/domains/vcs/components/VcsCreateBranchModal";
+import { VcsCreateMergeRequestModal } from "@/domains/vcs/components/VcsCreateMergeRequestModal";
+import { VcsCommit, VcsMergeRequest } from "@/domains/vcs/types/vcs";
 import { toast } from "sonner";
 
 export const VcsSidebarPanel: React.FC = () => {

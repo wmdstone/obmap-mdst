@@ -6,9 +6,9 @@ import { useMemo, useEffect } from "react";
 import { useNodeStore, useGraphStore, type GraphData } from "@/shared/stores";
 import { useIndexedNodes, useMetadataVersion } from "@/domains/metadata/useMetadataCache";
 import { metadataCache } from "@/domains/metadata/MetadataCache";
-import { useAutoLinks } from "./useAutoLinks";
+import { useAutoLinks } from "@/domains/graph/shared/hooks/useAutoLinks";
 import { useFeatureEnabled } from "@/domains/settings/plugins/useFeatureEnabled";
-import type { GraphConfigState } from "@/domains/graph/stores/useGraphStore";
+import type { GraphConfigState } from "@/domains/graph/shared/stores/useGraphStore";
 
 export function useGraphData(graphConfig: GraphConfigState): GraphData {
   const nodes = useNodeStore((s) => s.nodes);

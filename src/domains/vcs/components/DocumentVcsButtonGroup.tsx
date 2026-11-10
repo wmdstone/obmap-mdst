@@ -4,10 +4,10 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/shar
 import { GitCommit, History, CloudOff, RefreshCw } from 'lucide-react';
 import { useAuth } from '@/domains/auth/hooks/useAuth';
 import { useVaultStore } from '@/domains/vault/stores/useVaultStore';
-import { useVcsStore } from '../stores/useVcsStore';
-import { VcsCoPresenceAvatars } from './VcsCoPresenceAvatars';
-import { VcsQuickCommitModal } from './VcsQuickCommitModal';
-import { VcsDocumentHistoryModal } from './VcsDocumentHistoryModal';
+import { useVcsStore } from '@/domains/vcs/stores/useVcsStore';
+import { VcsCoPresenceAvatars } from '@/domains/vcs/components/VcsCoPresenceAvatars';
+import { VcsQuickCommitModal } from '@/domains/vcs/components/VcsQuickCommitModal';
+import { VcsDocumentHistoryModal } from '@/domains/vcs/components/VcsDocumentHistoryModal';
 
 interface DocumentVcsButtonGroupProps {
   noteId: string;

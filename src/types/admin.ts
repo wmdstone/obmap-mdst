@@ -1,4 +1,4 @@
-import type { AppRole, VaultMemberRole } from "./collaboration";
+import type { AppRole, VaultMemberRole } from "@/types/collaboration";
 
 export type AccountStatus = "active" | "suspended";
 

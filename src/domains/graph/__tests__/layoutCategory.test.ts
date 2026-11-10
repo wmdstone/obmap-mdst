@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { usesPhysicsSimulation, isDeterministicLayout } from '../layout/layoutCategory';
+import { usesPhysicsSimulation, isDeterministicLayout } from '@/domains/graph/shared/utils/layoutCategory';
 
 describe('layoutCategory', () => {
   it('only free-force runs the physics simulation', () => {

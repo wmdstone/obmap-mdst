@@ -13,11 +13,11 @@ import {
   Cpu,
   Layers,
 } from 'lucide-react';
-import type { CanvasMode, LayoutMode, MindmapOrientation } from '../../model/graphTypes';
-import { useLeafGraphConfig, useLeafGraphConfigApi } from '../../model/useLeafGraphConfigStore';
-import { useGraphStore, type ForceConfig } from '@/domains/graph/stores/useGraphStore';
-import { useGraphInteractionStore } from '../../model/useGraphInteractionStore';
-import { useGraphEngineStore } from '@/domains/graph/stores/useGraphEngineStore';
+import type { CanvasMode, LayoutMode, MindmapOrientation } from '@/domains/model/graphTypes';
+import { useLeafGraphConfig, useLeafGraphConfigApi } from '@/domains/model/useLeafGraphConfigStore';
+import { useGraphStore, type ForceConfig } from '@/domains/graph/shared/stores/useGraphStore';
+import { useGraphInteractionStore } from '@/domains/model/useGraphInteractionStore';
+import { useGraphEngineStore } from '@/domains/graph/shared/stores/useGraphEngineStore';
 
 export const GRAPH_LAYOUTS: { value: LayoutMode; label: string; icon: typeof Network; desc: string }[] = [
   { value: 'free-force', label: 'Free Force', icon: Network, desc: 'Simulasi fisika D3 alami' },

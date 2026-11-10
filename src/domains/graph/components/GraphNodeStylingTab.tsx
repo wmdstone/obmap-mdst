@@ -26,10 +26,10 @@ import {
   Hexagon,
   GitBranch,
 } from 'lucide-react';
-import { NodeConfig, useGraphStore } from "@/domains/graph/stores/useGraphStore";
-import { ColorPicker } from './ColorPicker';
-import { ColorEngineControls } from './ColorEngineControls';
-import { CollapsibleSection } from './CollapsibleSection';
+import { NodeConfig, useGraphStore } from "@/domains/graph/shared/stores/useGraphStore";
+import { ColorPicker } from '@/domains/graph/components/ColorPicker';
+import { ColorEngineControls } from '@/domains/graph/components/ColorEngineControls';
+import { CollapsibleSection } from '@/domains/graph/components/CollapsibleSection';
 
 interface NodeStylingTabProps {
   config: NodeConfig;

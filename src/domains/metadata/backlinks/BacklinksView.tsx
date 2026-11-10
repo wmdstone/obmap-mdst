@@ -9,7 +9,7 @@ import { useMetadataVersion } from "@/domains/metadata/useMetadataCache";
 import { Badge } from "@/shared/ui/badge";
 import { ScrollArea } from "@/shared/ui/scroll-area";
 import type { Node } from "@/shared/stores/types";
-import { UnlinkedMentions } from "./UnlinkedMentions";
+import { UnlinkedMentions } from "@/domains/metadata/backlinks/UnlinkedMentions";
 
 interface BacklinksViewProps {
   node: Node;

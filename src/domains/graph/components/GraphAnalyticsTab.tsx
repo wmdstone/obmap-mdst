@@ -12,8 +12,8 @@ import {
   ArrowDownToLine,
   ArrowUpFromLine,
 } from 'lucide-react';
-import { LinkStats } from "@/domains/graph/stores/useGraphStore";
-import { CollapsibleSection } from './CollapsibleSection';
+import { LinkStats } from "@/domains/graph/shared/stores/useGraphStore";
+import { CollapsibleSection } from '@/domains/graph/components/CollapsibleSection';
 
 interface AnalyticsTabProps {
   stats: LinkStats;

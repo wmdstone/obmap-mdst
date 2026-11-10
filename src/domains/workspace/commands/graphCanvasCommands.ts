@@ -3,7 +3,7 @@
  * shortcuts Mod-Shift-G (graph) and Mod-Shift-M (mindmap).
  */
 import { commandRegistry } from "@/domains/workspace/commands/CommandRegistry";
-import { useWorkspaceStore } from "../stores/useWorkspaceStore";
+import { useWorkspaceStore } from "@/domains/workspace/stores/useWorkspaceStore";
 
 export function openGraphCanvas(canvasMode: "graph" | "mindmap") {
   useWorkspaceStore.getState().openView({

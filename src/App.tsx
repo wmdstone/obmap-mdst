@@ -15,7 +15,7 @@ const queryClient = new QueryClient();
 
 // Lazy load pages to catch import errors
 const Landing = lazy(() =>
-  import("./pages/Landing").catch((err) => {
+  import("@/pages/Landing").catch((err) => {
     console.error("Failed to load Landing:", err);
     return {
       default: () => (
@@ -26,7 +26,7 @@ const Landing = lazy(() =>
 );
 
 const Index = lazy(() =>
-  import("./pages/Index").catch((err) => {
+  import("@/pages/Index").catch((err) => {
     console.error("Failed to load Index:", err);
     return {
       default: () => (
@@ -37,7 +37,7 @@ const Index = lazy(() =>
 );
 
 const Install = lazy(() =>
-  import("./pages/Install").catch((err) => {
+  import("@/pages/Install").catch((err) => {
     console.error("Failed to load Install:", err);
     return {
       default: () => (
@@ -48,7 +48,7 @@ const Install = lazy(() =>
 );
 
 const Auth = lazy(() =>
-  import("./domains/auth/components/Auth").catch((err) => {
+  import("@/domains/auth/components/Auth").catch((err) => {
     console.error("Failed to load Auth:", err);
     return {
       default: () => <div className="p-8 text-destructive">Failed to load Auth: {err.message}</div>,
@@ -57,7 +57,7 @@ const Auth = lazy(() =>
 );
 
 const NotFound = lazy(() =>
-  import("./pages/NotFound").catch((err) => {
+  import("@/pages/NotFound").catch((err) => {
     console.error("Failed to load NotFound:", err);
     return {
       default: () => (
@@ -77,7 +77,7 @@ const LoadingFallback = () => (
 );
 
 const PublicReader = lazy(() =>
-  import("./pages/PublicReader").catch((err) => {
+  import("@/pages/PublicReader").catch((err) => {
     console.error("Failed to load PublicReader:", err);
     return {
       default: () => (
@@ -88,7 +88,7 @@ const PublicReader = lazy(() =>
 );
 
 const Admin = lazy(() =>
-  import("./pages/Admin").catch((err) => {
+  import("@/pages/Admin").catch((err) => {
     console.error("Failed to load Admin:", err);
     return {
       default: () => (

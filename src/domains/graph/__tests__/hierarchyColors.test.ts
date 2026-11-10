@@ -10,7 +10,7 @@ import {
   uniqueDepths,
   mergeHierarchyColorConfig,
   type HierarchyColorConfig,
-} from '../model/hierarchyColors';
+} from '@/domains/graph/shared/utils/hierarchyColors';
 
 const cfg = (over: Partial<HierarchyColorConfig> = {}): HierarchyColorConfig => ({
   ...defaultHierarchyColorConfig,

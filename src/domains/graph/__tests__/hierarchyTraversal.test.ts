@@ -4,8 +4,8 @@ import {
   getBreadcrumbPath,
   getAncestorIdSet,
   isNodeDescendant,
-} from '../model/hierarchyTraversal';
-import { makeNode } from './fixtures';
+} from '@/domains/graph/shared/utils/hierarchyTraversal';
+import { makeNode } from '@/domains/graph/__tests__/fixtures';
 
 describe('hierarchyTraversal', () => {
   const nodes = [

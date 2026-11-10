@@ -2,7 +2,7 @@ import { describe, expect, it, beforeEach } from 'vitest';
 import {
   ImportExportService,
   type GraphNode,
-} from '../services/ImportExportService';
+} from '@/domains/vault/import-export/services/ImportExportService';
 
 describe('ImportExportService Characterization Tests', () => {
   let service: ImportExportService;

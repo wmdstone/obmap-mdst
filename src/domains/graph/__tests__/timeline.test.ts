@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { timelineLayout } from '../layout/timeline';
-import { context } from './fixtures';
+import { timelineLayout } from '@/domains/graph/shared/utils/timeline';
+import { context } from '@/domains/graph/__tests__/fixtures';
 
 describe('timelineLayout', () => {
   it('returns valid coordinates for every visible node', () => {

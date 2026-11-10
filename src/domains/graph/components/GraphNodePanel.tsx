@@ -27,16 +27,16 @@ import {
   DropdownMenuTrigger,
   DropdownMenuLabel,
 } from "@/shared/ui/dropdown-menu";
-import { NodeMediaPreview } from "../node-panel/NodeMediaPreview";
-import { NodeBreadcrumbBar } from "../node-panel/NodeBreadcrumBar";
-import { NodeBacklinksSection, type Backlink } from "../node-panel/NodeBacklinksSection";
+import { NodeMediaPreview } from "@/domains/graph/components/GraphNodeMediaPreview";
+import { NodeBreadcrumbBar } from "@/domains/graph/components/GraphNodeBreadcrumBar";
+import { NodeBacklinksSection, type Backlink } from "@/domains/graph/components/GraphNodeBacklinksSection";
 import { NoteWorkflowMenuSection } from "@/domains/collaboration/components/NoteWorkflowMenuSection";
-import { FolderOverviewEditor } from "./FolderOverviewEditor";
+import { FolderOverviewEditor } from "@/domains/graph/components/GraphFolderOverviewEditor";
 import { DocumentVcsButtonGroup } from "@/domains/vcs/components/DocumentVcsButtonGroup";
 import { DocumentSharePopover } from "@/domains/collaboration/components/DocumentSharePopover";
 import { openGraphCanvas } from "@/domains/workspace/commands/graphCanvasCommands";
 import { useNodeStore } from "@/shared/stores";
-import { NodeCitationsSection } from "../node-panel/NodeCitationsSection";
+import { NodeCitationsSection } from "@/domains/graph/components/GraphNodeCitationsSection";
 import {
   undoActiveEditor,
   redoActiveEditor,

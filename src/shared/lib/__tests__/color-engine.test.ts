@@ -6,7 +6,7 @@ import {
   parseHsl,
   resolveColor,
   rgbToHsl,
-} from '../color-engine';
+} from '@/shared/lib/color-engine';
 
 describe('color-engine', () => {
   describe('parseHex and rgbToHsl', () => {
