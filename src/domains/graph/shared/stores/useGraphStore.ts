@@ -1,0 +1,560 @@
+/**
+ * Graph Store - Manages graph configuration and computed stats
+ * 
+ * Replaces useGraphConfig hook with Zustand for consistency
+ */
+
+import { create } from 'zustand';
+import { devtools, persist } from 'zustand/middleware';
+import type { Node, Link } from '../../../shared/stores/types';
+import { mergeAtmosphereConfig, defaultAtmosphereConfig, type AtmosphereConfig } from '@/domains/graph/model/atmosphereConfig';
+import {
+  defaultHierarchyColorConfig,
+  mergeHierarchyColorConfig,
+  type HierarchyColorConfig,
+} from '@/domains/graph/model/hierarchyColors';
+
+export type { HierarchyColorConfig };
+
+// ============= TYPE DEFINITIONS =============
+
+export interface NodeConfig {
+  relSize: number;
+  sizeByDepth: boolean;
+  depthSizeInterval: number;
+  resolution: number;
+  /** Show folder nodes on the canvas. */
+  showFolderNodes: boolean;
+  /** Show file/note nodes on the canvas. */
+  showFileNodes: boolean;
+  shape: 'circle' | 'square' | 'diamond' | 'triangle' | 'hexagon';
+  autoShapeByFormat: boolean; 
+  formatMarkerStyle?: 'shapes' | 'icons';
+  visible: boolean;
+  opacity: number;
+  autoColorBy: 'none' | 'type' | 'depth' | 'tags' | 'branch';
+  glow: boolean;
+  glowIntensity: number;
+  glowSpeed: number;
+  folderColor: string;
+  fileColor: string;
+  selectedColor: string;
+  labelField: 'name' | 'id' | 'custom';
+  showLabels: boolean;
+  labelSize: number;
+  labelColor: string;
+  labelFontStyle: 'normal' | 'bold' | 'italic' | 'bold-italic';
+  labelBox: boolean;
+  labelBackground: boolean;
+  labelBackgroundColor: string;
+}
+
+export interface LinkStyle {
+  color: string;
+  lineStyle: 'solid' | 'dashed' | 'dotted';
+  opacity: number;
+  width: number;
+}
+
+export interface LinkConfig {
+  width: number;
+  curvature: number;
+  curveRotation: number;
+  color: string;
+  opacity: number;
+  dashArray: string;
+  arrowLength: number;
+  arrowRelPos: number;
+  showArrows: boolean;
+  particles: number;
+  particleSpeed: number;
+  particleWidth: number;
+  particleColor: string;
+  showParticles: boolean;
+}
+
+export interface TopologyConfig {
+  showHierarchy: boolean;
+  showBacklinks: boolean;
+  showTags: boolean;
+  tagThreshold: number;
+  styles: {
+    hierarchy: LinkStyle;
+    backlink: LinkStyle;
+    tag: LinkStyle;
+    semantic: LinkStyle;
+  };
+}
+
+export interface ForceConfig {
+  dagMode: 'null' | 'td' | 'bu' | 'lr' | 'rl' | 'radialin' | 'radialout';
+  dagLevelDistance: number;
+  alphaDecay: number;
+  velocityDecay: number;
+  chargeStrength: number;
+  linkDistance: number;
+  centerStrength: number;
+  warmupTicks: number;
+  cooldownTicks: number;
+  cooldownTime: number;
+}
+
+export interface LinkStats {
+  hierarchyCount: number;
+  backlinkCount: number;
+  tagCount: number;
+  totalCount: number;
+  topHubs: Array<{
+    nodeId: string;
+    nodeName: string;
+    connectionCount: number;
+    inDegree: number;
+    outDegree: number;
+  }>;
+}
+
+export interface GraphConfigState {
+  /** Bumped when the persisted shape changes; drives default merging. */
+  version?: number;
+  nodes: NodeConfig;
+  hierarchy: HierarchyColorConfig;
+  links: LinkConfig;
+  topology: TopologyConfig;
+  forces: ForceConfig;
+  atmosphere?: AtmosphereConfig;
+}
+
+// ============= DEFAULTS =============
+
+export const defaultNodeConfig: NodeConfig = {
+  relSize: 6,
+  sizeByDepth: false,
+  depthSizeInterval: 1,
+  resolution: 8,
+  showFolderNodes: true,
+  showFileNodes: true,
+  shape: 'circle',
+  autoShapeByFormat: true,
+  formatMarkerStyle: 'shapes',
+  visible: true,
+  opacity: 1.0,
+  autoColorBy: 'depth',
+  glow: false,
+  glowIntensity: 0.6,
+  glowSpeed: 1,
+  folderColor: 'hsl(48, 100%, 60%)',
+  fileColor: 'hsl(270, 70%, 65%)',
+  selectedColor: 'hsl(0, 91%, 54%)',
+  labelField: 'name',
+  showLabels: true,
+  labelSize: 12,
+  labelColor: 'hsl(0, 0%, 100%)',
+  labelFontStyle: 'normal',
+  labelBox: true,
+  labelBackground: true,
+  labelBackgroundColor: 'hsl(0, 0%, 0%)',
+};
+
+export const defaultLinkConfig: LinkConfig = {
+  width: 2,
+  curvature: 0,
+  curveRotation: 0,
+  color: 'hsl(var(--primary))',
+  opacity: 0.6,
+  dashArray: '',
+  arrowLength: 0,
+  arrowRelPos: 1,
+  showArrows: false,
+  particles: 0,
+  particleSpeed: 0.01,
+  particleWidth: 4,
+  particleColor: 'hsl(var(--accent))',
+  showParticles: false,
+};
+
+export const defaultTopologyConfig: TopologyConfig = {
+  showHierarchy: true,
+  showBacklinks: true,
+  showTags: true,
+  tagThreshold: 1,
+  styles: {
+    hierarchy: {
+      color: 'hsl(var(--primary))',
+      lineStyle: 'solid',
+      opacity: 0.8,
+      width: 2.5,
+    },
+    backlink: {
+      color: 'hsl(var(--accent))',
+      lineStyle: 'dashed',
+      opacity: 0.6,
+      width: 2,
+    },
+    tag: {
+      color: 'hsl(var(--secondary))',
+      lineStyle: 'dotted',
+      opacity: 0.4,
+      width: 1.5,
+    },
+    semantic: {
+      color: 'hsl(var(--muted-foreground))',
+      lineStyle: 'dotted',
+      opacity: 0.3,
+      width: 1,
+    },
+  },
+};
+
+export const defaultForceConfig: ForceConfig = {
+  dagMode: 'null',
+  dagLevelDistance: 50,
+  alphaDecay: 0.02,
+  velocityDecay: 0.3,
+  chargeStrength: -30,
+  linkDistance: 130,
+  centerStrength: 0.50,
+  warmupTicks: 100,
+  cooldownTicks: 100,
+  cooldownTime: 15000,
+};
+
+export const GRAPH_CONFIG_VERSION = 2;
+
+export const defaultGraphConfig: GraphConfigState = {
+  version: GRAPH_CONFIG_VERSION,
+  nodes: defaultNodeConfig,
+  hierarchy: defaultHierarchyColorConfig,
+  links: defaultLinkConfig,
+  topology: defaultTopologyConfig,
+  forces: defaultForceConfig,
+  atmosphere: defaultAtmosphereConfig,
+};
+
+/**
+ * Deep-merge any (possibly legacy/partial) config onto the defaults so
+ * consumers never see `undefined` sections like `config.nodes`.
+ */
+export function mergeGraphConfig(partial?: Partial<GraphConfigState> | null): GraphConfigState {
+  const p = (partial ?? {}) as Partial<GraphConfigState>;
+  return {
+    version: GRAPH_CONFIG_VERSION,
+    atmosphere: mergeAtmosphereConfig(p.atmosphere),
+    nodes: { ...defaultNodeConfig, ...(p.nodes ?? {}) },
+    links: { ...defaultLinkConfig, ...(p.links ?? {}) },
+    forces: { ...defaultForceConfig, ...(p.forces ?? {}) },
+    hierarchy: mergeHierarchyColorConfig(p.hierarchy),
+    topology: {
+      ...defaultTopologyConfig,
+      ...(p.topology ?? {}),
+      styles: {
+        hierarchy: { ...defaultTopologyConfig.styles.hierarchy, ...(p.topology?.styles?.hierarchy ?? {}) },
+        backlink: { ...defaultTopologyConfig.styles.backlink, ...(p.topology?.styles?.backlink ?? {}) },
+        tag: { ...defaultTopologyConfig.styles.tag, ...(p.topology?.styles?.tag ?? {}) },
+        semantic: { ...defaultTopologyConfig.styles.semantic, ...(p.topology?.styles?.semantic ?? {}) },
+      },
+    },
+  };
+}
+
+// ============= STORE INTERFACE =============
+
+interface GraphState {
+  // Config state
+  config: GraphConfigState;
+  
+  // Computed stats (not persisted, calculated from nodes/links)
+  stats: LinkStats;
+  
+  // Dirty flag to track if config needs saving
+  isDirty: boolean;
+  
+  // Actions - Config updates
+  updateNodeConfig: (updates: Partial<NodeConfig>) => void;
+  updateAtmosphereConfig: (updates: Partial<AtmosphereConfig>) => void;
+  updateLinkConfig: (updates: Partial<LinkConfig>) => void;
+  updateTopologyConfig: (updates: Partial<TopologyConfig>) => void;
+  updateTopologyStyle: (linkType: keyof TopologyConfig['styles'], updates: Partial<LinkStyle>) => void;
+  updateForceConfig: (updates: Partial<ForceConfig>) => void;
+  updateHierarchyConfig: (updates: Partial<HierarchyColorConfig>) => void;
+  
+  // Actions - Full config
+  setConfig: (config: GraphConfigState) => void;
+  loadConfig: (config: GraphConfigState | null) => void;
+  resetConfig: () => void;
+  resetNodeConfig: () => void;
+  resetLinkConfig: () => void;
+  resetTopologyConfig: () => void;
+  resetForceConfig: () => void;
+  resetHierarchyConfig: () => void;
+  
+  // Actions - Stats (computed from nodes/links)
+  computeStats: (nodes: Node[], links: Link[]) => void;
+  
+  // Actions - Dirty flag
+  markClean: () => void;
+}
+
+// ============= STORE =============
+
+export const useGraphStore = create<GraphState>()(
+  devtools(
+    persist(
+      (set, get) => ({
+        // Initial state
+        config: defaultGraphConfig,
+        stats: {
+          hierarchyCount: 0,
+          backlinkCount: 0,
+          tagCount: 0,
+          totalCount: 0,
+          topHubs: [],
+        },
+        isDirty: false,
+        
+        // Config update actions
+        updateAtmosphereConfig: (updates) => set(
+          (state) => ({
+            config: {
+              ...state.config,
+              atmosphere: mergeAtmosphereConfig({ ...state.config.atmosphere, ...updates }),
+            },
+            isDirty: true,
+          }),
+          false,
+          'updateAtmosphereConfig'
+        ),
+        updateNodeConfig: (updates) => set(
+          (state) => ({
+            config: {
+              ...state.config,
+              nodes: { ...state.config.nodes, ...updates },
+            },
+            isDirty: true,
+          }),
+          false,
+          'updateNodeConfig'
+        ),
+        
+        updateLinkConfig: (updates) => set(
+          (state) => ({
+            config: {
+              ...state.config,
+              links: { ...state.config.links, ...updates },
+            },
+            isDirty: true,
+          }),
+          false,
+          'updateLinkConfig'
+        ),
+        
+        updateTopologyConfig: (updates) => set(
+          (state) => ({
+            config: {
+              ...state.config,
+              topology: { ...state.config.topology, ...updates },
+            },
+            isDirty: true,
+          }),
+          false,
+          'updateTopologyConfig'
+        ),
+        
+        updateTopologyStyle: (linkType, updates) => set(
+          (state) => ({
+            config: {
+              ...state.config,
+              topology: {
+                ...state.config.topology,
+                styles: {
+                  ...state.config.topology.styles,
+                  [linkType]: { ...state.config.topology.styles[linkType], ...updates },
+                },
+              },
+            },
+            isDirty: true,
+          }),
+          false,
+          'updateTopologyStyle'
+        ),
+        
+        updateForceConfig: (updates) => set(
+          (state) => ({
+            config: {
+              ...state.config,
+              forces: { ...state.config.forces, ...updates },
+            },
+            isDirty: true,
+          }),
+          false,
+          'updateForceConfig'
+        ),
+        
+        updateHierarchyConfig: (updates) => set(
+          (state) => ({
+            config: {
+              ...state.config,
+              hierarchy: { ...state.config.hierarchy, ...updates },
+            },
+            isDirty: true,
+          }),
+          false,
+          'updateHierarchyConfig'
+        ),
+
+        // Full config actions
+        setConfig: (config) => set(
+          { config: mergeGraphConfig(config), isDirty: true },
+          false,
+          'setConfig'
+        ),
+        
+        loadConfig: (config) => set(
+          {
+            config: mergeGraphConfig(config),
+            isDirty: false,
+          },
+          false,
+          'loadConfig'
+        ),
+        
+        resetConfig: () => set(
+          { config: defaultGraphConfig, isDirty: true },
+          false,
+          'resetConfig'
+        ),
+        
+        resetNodeConfig: () => set(
+          (state) => ({
+            config: { ...state.config, nodes: defaultNodeConfig },
+            isDirty: true,
+          }),
+          false,
+          'resetNodeConfig'
+        ),
+        
+        resetLinkConfig: () => set(
+          (state) => ({
+            config: { ...state.config, links: defaultLinkConfig },
+            isDirty: true,
+          }),
+          false,
+          'resetLinkConfig'
+        ),
+        
+        resetTopologyConfig: () => set(
+          (state) => ({
+            config: { ...state.config, topology: defaultTopologyConfig },
+            isDirty: true,
+          }),
+          false,
+          'resetTopologyConfig'
+        ),
+        
+        resetForceConfig: () => set(
+          (state) => ({
+            config: { ...state.config, forces: defaultForceConfig },
+            isDirty: true,
+          }),
+          false,
+          'resetForceConfig'
+        ),
+
+        resetHierarchyConfig: () => set(
+          (state) => ({
+            config: { ...state.config, hierarchy: defaultHierarchyColorConfig },
+            isDirty: true,
+          }),
+          false,
+          'resetHierarchyConfig'
+        ),
+        
+        // Stats computation
+        computeStats: (nodes, links) => {
+          let hierarchyCount = 0;
+          let backlinkCount = 0;
+          let tagCount = 0;
+
+          links.forEach((link) => {
+            const linkType = typeof link.type === 'string' ? link.type : undefined;
+            switch (linkType) {
+              case 'hierarchy':
+                hierarchyCount++;
+                break;
+              case 'backlink':
+                backlinkCount++;
+                break;
+              case 'tag':
+                tagCount++;
+                break;
+            }
+          });
+
+          // Calculate node degrees
+          const nodeConnections = new Map<string, { inDegree: number; outDegree: number }>();
+          
+          nodes.forEach((node) => {
+            nodeConnections.set(node.id, { inDegree: 0, outDegree: 0 });
+          });
+
+          links.forEach((link) => {
+            const sourceId = typeof link.source === 'string' ? link.source : link.source.id;
+            const targetId = typeof link.target === 'string' ? link.target : link.target.id;
+            
+            const sourceConn = nodeConnections.get(sourceId);
+            const targetConn = nodeConnections.get(targetId);
+            
+            if (sourceConn) sourceConn.outDegree++;
+            if (targetConn) targetConn.inDegree++;
+          });
+
+          // Get top hubs
+          const topHubs = Array.from(nodeConnections.entries())
+            .map(([nodeId, { inDegree, outDegree }]) => {
+              const node = nodes.find((n) => n.id === nodeId);
+              return {
+                nodeId,
+                nodeName: node?.name || 'Unknown',
+                connectionCount: inDegree + outDegree,
+                inDegree,
+                outDegree,
+              };
+            })
+            .filter((hub) => hub.connectionCount > 0)
+            .sort((a, b) => b.connectionCount - a.connectionCount)
+            .slice(0, 5);
+
+          set(
+            {
+              stats: {
+                hierarchyCount,
+                backlinkCount,
+                tagCount,
+                totalCount: links.length,
+                topHubs,
+              },
+            },
+            false,
+            'computeStats'
+          );
+        },
+        
+        markClean: () => set({ isDirty: false }, false, 'markClean'),
+      }),
+      {
+        name: 'graph-config-storage',
+        partialize: (state) => ({ config: state.config }),
+        merge: (persisted, current) => {
+          const saved = persisted as Partial<GraphState>;
+          const config = saved.config;
+          if (!config) return current;
+          return {
+            ...current,
+            ...saved,
+            config: mergeGraphConfig(config),
+          };
+        },
+      }
+    ),
+    { name: 'GraphStore' }
+  )
+);
